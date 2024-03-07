@@ -72,7 +72,7 @@ For the versions available, see the [tags on this repository](https://github.com
 
 ## Authors
 
-- **Zaal Gol** - *Initial work* - [ZaalGol](https://github.com/zaalgol)
+- **Zalman Goldstein** - *Initial work* - [ZaalGol](https://github.com/zaalgol)
 
 See also the list of [contributors](https://github.com/zaalgol/flask-uwsgi-docker/contributors) who participated in this project.
 
