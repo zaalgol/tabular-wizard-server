@@ -35,7 +35,7 @@ Follow these steps to get your development environment running:
 4. **Run the Docker container**
 
    ```sh
-   docker run -p 5000:5000 flask-uwsgi-docke
+   docker run -p 8080:8080 flask-uwsgi-docke
    ```
 
    Alternatively, if you're using Docker Compose to manage multiple containers:
@@ -44,8 +44,8 @@ Follow these steps to get your development environment running:
 
 ## Accessing the Application
 
-- **Localhost**: After starting the application, it can be accessed at [http://localhost:5000](http://localhost:5000).
-- **Other devices on your network**: Use the host machine's IP address, such as [http://192.168.1.X:5000](http://192.168.1.X:5000).
+- **Localhost**: After starting the application, it can be accessed at [http://localhost:8080](http://localhost:8080).
+- **Other devices on your network**: Use the host machine's IP address, such as [http://192.168.1.X:8080](http://192.168.1.X:8080).
 
 ## Running the Tests
 
@@ -84,4 +84,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Hat tip to anyone whose code was used as inspiration.
 - Thanks to the Flask, Docker, and uWSGI communities for their invaluable resources.
+
+https://www.loginradius.com/blog/engineering/guest-post/securing-flask-api-with-jwt/
 
