@@ -1,7 +1,1 @@
-# *venv/Lib/**
-# *venv/bin
-*venv/**
-*venv/**/*
-*venv/*/*/*
-.venv/app
 .venv

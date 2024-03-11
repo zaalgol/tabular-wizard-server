@@ -1,24 +1,26 @@
-from flask import Flask, request, jsonify, make_response
+from app.repositories.user_repository import UserRepository
+from app.services.token_serivce import TokenService
+from flask import jsonify, make_response
 from datetime import timedelta
-from app import app
-
+from app.models.user import User
 
 class UsersService():
-    def login(username, password):
-        if not username or not password:
-            return jsonify({"message": "Unauthorized"}), 401
-        # Simple authentication logic (replace with actual validation against user data)
-        
-        if data['username'] == 'admin' and data['password'] == 'admin':
-            # Generate a token. This is just a placeholder. Use a secure method for real applications.
-            token = "secureRandomTokenHere"
-
-            # Create response object
-            response = make_response(jsonify({"message": "Login successful"}), 200)
-
-            # Set token in httpOnly cookie
-            response.set_cookie('auth_token', token, httponly=True, max_age=timedelta(days=1))
-
+    @staticmethod
+    def login(email, password):
+        user = UserRepository.get_user_by_email_and_password(email, password)
+        if user:
+            access_token = TokenService.create_jwt_token(user.user_id)
+            
+            response = make_response(jsonify({"message": "Login successful", "access_token": access_token}), 200)
             return response
-        else:
-            return jsonify({"message": "Unauthorized"}), 401
+
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    @staticmethod
+    def create_user(email, password):
+        user = UserRepository.create_user(email, password)  # Password should be hashed
+        return user
+    
+    @staticmethod
+    def seed_admin_user():
+       UserRepository.seed_admin_user()
