@@ -10,6 +10,7 @@ def generate_flask_server():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db' #
     db = SQLAlchemy(app)
     Migrate(app, db)
     JWTManager(app)
