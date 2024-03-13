@@ -6,36 +6,33 @@ from sqlalchemy import and_, func, asc, desc, String
 
 class UserRepository:
     @with_session
-    @staticmethod
-    def get_user_by_username(username, session=None):
-        return session.query(User).filter(and_(User.username == str(username), User.deleted.is_(None))).first()
+    def get_user_by_username(self, username, session=None):
+        return session.query(User).filter(and_(User.username == str(username), User.isDeleted.is_(None))).first()
     
     @with_session
-    @staticmethod
-    def get_user_by_email(email, session=None):
-        return session.query(User).filter(and_(User.email == str(email), User.deleted.is_(None))).first()
+    def get_user_by_email(self, email, session=None):
+        return session.query(User).filter(and_(User.email == str(email), User.isDeleted.is_(None))).first()
     
     @with_session
-    @staticmethod
-    def get_user_by_email_and_password(email, password, session=None):
+    def get_user_by_email_and_password(self, email, password, session=None):
+        # self.seed_admin_user()
+        temp = session.query(User).first()
         return session.query(User).filter(and_(User.email == str(email),
                                                 User.password == str(password),
-                                                User.deleted.is_(None))).first()
+                                                User.isDeleted.is_(None))).first()
 
     @with_session
-    @staticmethod
-    def create_user(username, password, session=None):
+    def create_user(self, username, password, session=None):
         user = User(username=username, password=password)  # Assume password hashing
         session.add(user)
         session.commit()
         return user
     
     @with_session
-    @staticmethod
-    def seed_admin_user():
-        admin_exists = User.query.filter_by(username='admin').first()
+    def seed_admin_user(self, session=None):
+        admin_exists = User.query.filter_by(email='admin').first()
         if not admin_exists:
-            admin = User(username='admin', password=app.config['ADMIN_PASSWORD'])  # Use a hashed password in real scenarios
+            admin = User(email='admin', password=app.config.config.Config.ADMIN_PASSWORD)  # Use a hashed password in real scenarios
             db.session.add(admin)
             db.session.commit()
             print('Admin user created')

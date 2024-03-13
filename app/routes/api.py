@@ -10,14 +10,12 @@ bp = Blueprint('main', __name__)
 CORS(bp)
 
 @bp.route('/', methods=['GET'])
-@cross_origin()
 @jwt_required()
 def hello_world():
     return 'Hello, World!'
 
 
 @bp.route('/api/login/', methods=['POST', 'OPTIONS'])
-@cross_origin()
 def login():
     if request.method == 'OPTIONS':
         # Handle the preflight request
@@ -27,4 +25,5 @@ def login():
     password = request.json.get('password', None)
     if not email or not password:
         return jsonify({'message': 'Invalid credentials'}), 401
-    return UsersService.login(email, password)
+    usersService = UsersService()
+    return usersService.login(email, password)

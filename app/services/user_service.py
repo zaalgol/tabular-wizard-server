@@ -5,9 +5,11 @@ from flask import jsonify, make_response
 # from app.models.user import User
 
 class UsersService():
-    @staticmethod
-    def login(email, password):
-        user = UserRepository.get_user_by_email_and_password(email, password)
+    def __init__(self):
+        self.userRepository = UserRepository()
+
+    def login(self, email, password):
+        user = self.userRepository.get_user_by_email_and_password(email, password)
         if user:
             access_token = TokenService.create_jwt_token(user.user_id)
             
@@ -16,11 +18,9 @@ class UsersService():
 
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    @staticmethod
-    def create_user(email, password):
-        user = UserRepository.create_user(email, password)  # Password should be hashed
+    def create_user(self, email, password):
+        user = self.userRepository.create_user(email, password)  # Password should be hashed
         return user
     
-    @staticmethod
-    def seed_admin_user():
-       UserRepository.seed_admin_user()
+    def seed_admin_user(self):
+       self.userRepository.seed_admin_user()
