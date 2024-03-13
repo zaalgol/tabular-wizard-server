@@ -1,8 +1,8 @@
 from app.repositories.user_repository import UserRepository
 from app.services.token_serivce import TokenService
 from flask import jsonify, make_response
-from datetime import timedelta
-from app.models.user import User
+# from datetime import timedelta
+# from app.models.user import User
 
 class UsersService():
     @staticmethod

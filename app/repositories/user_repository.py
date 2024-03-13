@@ -1,6 +1,6 @@
 from app import db
 import app
-from app.db.utils import with_session
+from app.utils.utils import with_session
 from app.models.user import User
 from sqlalchemy import and_, func, asc, desc, String
 

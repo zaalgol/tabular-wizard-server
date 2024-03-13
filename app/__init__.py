@@ -1,25 +1,27 @@
-from app.services.user_service import UsersService
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from app.config.config import Config
 from flask_migrate import Migrate
+from app.config.config import Config  # Adjust import path as necessary
 
-def generate_flask_server():
+db = SQLAlchemy()
+jwt = JWTManager()
+migrate = Migrate()
+
+def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db' #
-    db = SQLAlchemy(app)
-    Migrate(app, db)
-    JWTManager(app)
-
-    CORS(app)
-
-    from routes import routes
+    db.init_app(app)
+    jwt.init_app(app)
+    migrate.init_app(app, db)
     
-    UsersService.seed_admin_user()
-    return app
+    # Apply CORS to the entire app with support for credentials
+    CORS(app, supports_credentials=True)
+    # CORS(app, resources={r"/*": {"origins": "*"}}) # also not solving the CORS issue
 
-app = generate_flask_server()
+    from app.routes.api import bp as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+    return app
