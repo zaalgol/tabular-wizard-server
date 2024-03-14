@@ -1,5 +1,4 @@
 from app import db
-import app
 from app.utils.utils import with_session
 from app.models.user import User
 from sqlalchemy import and_, func, asc, desc, String
@@ -22,19 +21,29 @@ class UserRepository:
                                                 User.isDeleted.is_(None))).first()
 
     @with_session
-    def create_user(self, username, password, session=None):
-        user = User(username=username, password=password)  # Assume password hashing
+    def create_user(self, email, password, session=None):
+        user_exists = User.query.filter_by(email=email).first()
+        if user_exists:
+            return f"user with email {email} already exist"
+        user = User(email=email, password=password)  # Assume password hashing
         session.add(user)
         session.commit()
         return user
     
-    @with_session
-    def seed_admin_user(self, session=None):
-        admin_exists = User.query.filter_by(email='admin').first()
-        if not admin_exists:
-            admin = User(email='admin', password=app.config.config.Config.ADMIN_PASSWORD)  # Use a hashed password in real scenarios
-            db.session.add(admin)
-            db.session.commit()
-            print('Admin user created')
-        else:
-            print('Admin user already exists')
+    # @with_session
+    # def seed_admin_user(self, email, password, session=None):
+    #     admin_exists = User.query.filter_by(email=email).first()
+    #     if not admin_exists:
+    #         return self.create_user(email, password)
+
+    
+    # @with_session
+    # def seed_admin_user(self, session=None):
+    #     admin_exists = User.query.filter_by(email='admin').first()
+    #     if not admin_exists:
+    #         admin = User(email='admin', password=app.config.config.Config.ADMIN_PASSWORD)  # Use a hashed password in real scenarios
+    #         db.session.add(admin)
+    #         db.session.commit()
+    #         print('Admin user created')
+    #     else:
+    #         print('Admin user already exists')
