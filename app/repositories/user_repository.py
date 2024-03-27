@@ -1,49 +1,31 @@
-from app import db
-from app.utils.utils import with_session
-from app.models.user import User
-from sqlalchemy import and_, func, asc, desc, String
+from flask import current_app
 
 class UserRepository:
-    @with_session
-    def get_user_by_username(self, username, session=None):
-        return session.query(User).filter(and_(User.username == str(username), User.isDeleted.is_(None))).first()
-    
-    @with_session
-    def get_user_by_email(self, email, session=None):
-        return session.query(User).filter(and_(User.email == str(email), User.isDeleted.is_(None))).first()
-    
-    @with_session
-    def get_user_by_email_and_password(self, email, password, session=None):
-        # self.seed_admin_user()
-        temp = session.query(User).first()
-        return session.query(User).filter(and_(User.email == str(email),
-                                                User.password == str(password),
-                                                User.isDeleted.is_(None))).first()
 
-    @with_session
-    def create_user(self, email, password, session=None):
-        user_exists = User.query.filter_by(email=email).first()
+    @property
+    def db(self):
+        return current_app.db
+
+    @property
+    def users_collection(self):
+        return self.db['users']
+
+    def get_user_by_username(self, username):
+        return self.users_collection.find_one({"username": username, "isDeleted": {"$ne": True}})
+
+    def get_user_by_email(self, email):
+        return self.users_collection.find_one({"email": email, "isDeleted": {"$ne": True}})
+    
+    def get_user_by_email_and_password(self, email, password):
+        return self.users_collection.find_one({"email": email, "password": password, "isDeleted": {"$ne": True}})
+
+    def create_user(self, email, password):
+        user_exists = self.users_collection.find_one({"email": email})
         if user_exists:
             return f"user with email {email} already exist"
-        user = User(email=email, password=password)  # Assume password hashing
-        session.add(user)
-        session.commit()
-        return user
-    
-    # @with_session
-    # def seed_admin_user(self, email, password, session=None):
-    #     admin_exists = User.query.filter_by(email=email).first()
-    #     if not admin_exists:
-    #         return self.create_user(email, password)
-
-    
-    # @with_session
-    # def seed_admin_user(self, session=None):
-    #     admin_exists = User.query.filter_by(email='admin').first()
-    #     if not admin_exists:
-    #         admin = User(email='admin', password=app.config.config.Config.ADMIN_PASSWORD)  # Use a hashed password in real scenarios
-    #         db.session.add(admin)
-    #         db.session.commit()
-    #         print('Admin user created')
-    #     else:
-    #         print('Admin user already exists')
+        user = {
+            "email": email,
+            "password": password,  # Ensure password is hashed appropriately
+        }
+        result = self.users_collection.insert_one(user)
+        return {"_id": result.inserted_id, **user}

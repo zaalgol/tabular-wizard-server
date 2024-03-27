@@ -17,11 +17,12 @@ class UsersService:
         self.token_service = TokenService()
 
     def login(self, email, password):
+        # self.seed_admin_user() # TODO: find away to run migrations
         user = self.user_repository.get_user_by_email(email)
         if user:
-            is_valid_password = PasswordHasher.check_password(user.password, password)
+            is_valid_password = PasswordHasher.check_password(user['password'], password)
             if is_valid_password:
-                access_token = self.token_service.create_jwt_token(user.user_id)
+                access_token = self.token_service.create_jwt_token(str(user['_id']))
                 response = make_response(jsonify({"message": "Login successful", "access_token": access_token}), 200)
                 return response
         return jsonify({'message': 'Invalid credentials'}), 401
@@ -29,8 +30,9 @@ class UsersService:
     def seed_admin_user(self):
         email=f'admin@{app.config.config.Config.EMAIL_DOMAIN}'
         password=app.config.config.Config.ADMIN_PASSWORD
-        self.create_user(email, password)
+        return self.create_user(email, password)
 
     def create_user(self, email, password):
         hashed_password = PasswordHasher.hash_password(password)
         user = self.user_repository.create_user(email, hashed_password) 
+        return user
