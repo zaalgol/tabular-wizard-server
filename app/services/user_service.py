@@ -4,7 +4,7 @@ from app.services.hassing_service import PasswordHasher
 from app.services.token_serivce import TokenService
 from flask import jsonify, make_response
 
-class UsersService:
+class UserService:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -36,3 +36,6 @@ class UsersService:
         hashed_password = PasswordHasher.hash_password(password)
         user = self.user_repository.create_user(email, hashed_password) 
         return user
+    
+    def get_user_by_id(self, user_id):
+        return self.user_repository.get_user_by_email(user_id)

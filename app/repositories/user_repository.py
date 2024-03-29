@@ -9,6 +9,9 @@ class UserRepository:
     @property
     def users_collection(self):
         return self.db['users']
+    
+    def get_user_by_id(self, user_id):
+        return self.users_collection.find_one({"_id": user_id, "isDeleted": {"$ne": True}})
 
     def get_user_by_username(self, username):
         return self.users_collection.find_one({"username": username, "isDeleted": {"$ne": True}})

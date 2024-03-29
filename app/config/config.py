@@ -8,3 +8,5 @@ class Config:
     MONGODB_URI = 'mongodb://localhost:27017/tabular-wizard'
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
     EMAIL_DOMAIN = os.getenv('EMAIL_DOMAIN')
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_ACCESS_TOKEN_EXPIRES = 36000
