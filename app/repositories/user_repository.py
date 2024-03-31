@@ -1,6 +1,14 @@
+from bson import ObjectId
 from flask import current_app
+from datetime import datetime, UTC
 
 class UserRepository:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     @property
     def db(self):
@@ -11,7 +19,7 @@ class UserRepository:
         return self.db['users']
     
     def get_user_by_id(self, user_id):
-        return self.users_collection.find_one({"_id": user_id, "isDeleted": {"$ne": True}})
+        return self.users_collection.find_one({"_id": ObjectId(user_id), "isDeleted": {"$ne": True}})
 
     def get_user_by_username(self, username):
         return self.users_collection.find_one({"username": username, "isDeleted": {"$ne": True}})
@@ -32,3 +40,4 @@ class UserRepository:
         }
         result = self.users_collection.insert_one(user)
         return {"_id": result.inserted_id, **user}
+    

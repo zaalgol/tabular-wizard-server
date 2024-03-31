@@ -37,8 +37,9 @@ def login():
 @jwt_required()
 def train_model():
     user_id =  tokenService.extract_user_id_from_token()
-    user_service.get_user_by_id(user_id)
-    verify_jwt_in_request()[1]['sub']
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        return {}, 401, {}
     model_name = request.json.get('modelName', None)
     dataset = request.json.get('dataset', None)
     
@@ -47,7 +48,7 @@ def train_model():
     
     # Assuming the first row of the dataset is the header
     headers = dataset[0]
-    data_rows = dataset[1:]
+    data_rows = dataset[1:200]
 
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)

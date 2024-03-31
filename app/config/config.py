@@ -10,3 +10,4 @@ class Config:
     EMAIL_DOMAIN = os.getenv('EMAIL_DOMAIN')
     JWT_HEADER_NAME = 'Authorization'
     JWT_ACCESS_TOKEN_EXPIRES = 36000
+    SAVED_MODELS_FOLDER = 'saved_models'
