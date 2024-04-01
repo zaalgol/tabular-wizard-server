@@ -40,21 +40,23 @@ def train_model():
     user = user_service.get_user_by_id(user_id)
     if not user:
         return {}, 401, {}
-    model_name = request.json.get('modelName', None)
+    
     dataset = request.json.get('dataset', None)
-    
-    if dataset is None:
-        return {"error": "No dataset provided"}, 400
-    
-    # Assuming the first row of the dataset is the header
-    headers = dataset[0]
-    data_rows = dataset[1:200]
-
+    model_name = request.json.get('modelName', None)
+    description = request.json.get('description', None)
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
     training_speed = request.json.get('trainingSpeed', None)
-    ai_model_service.train_model(user_id, model_name, headers, data_rows, target_column, model_type, training_speed)
+
+    ai_model_service.train_model(user_id, model_name, description, dataset, target_column, model_type, training_speed)
 
     return {}, 200, {}
 
-
+@bp.route('/api/userModels/', methods=['GET'])
+@jwt_required()
+def get_user_models():
+    user_id =  tokenService.extract_user_id_from_token()
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        return {}, 401, {}
+    return ai_model_service.get_user_ai_models_by_id()

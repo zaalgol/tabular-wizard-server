@@ -25,6 +25,7 @@ class UserRepository:
         return self.users_collection.find_one({"username": username, "isDeleted": {"$ne": True}})
 
     def get_user_by_email(self, email):
+        t = self.users_collection.find_one({"email": email, "isDeleted": {"$ne": True}})
         return self.users_collection.find_one({"email": email, "isDeleted": {"$ne": True}})
     
     def get_user_by_email_and_password(self, email, password):
@@ -41,3 +42,24 @@ class UserRepository:
         result = self.users_collection.insert_one(user)
         return {"_id": result.inserted_id, **user}
     
+    ### return all data beside ai_models
+    # pipeline = [
+    # {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
+    # {"$project": {"ai_models": 0}}
+    # ]
+
+    # result = self.users_collection.aggregate(pipeline).next()
+    # if result:
+    #     return result
+    # else:
+    #     return {}
+
+    
+
+    ### return all data beside deleted ai_models
+    # result = self.users_collection.aggregate(pipeline).next()
+    # if result:
+    #     return result
+    # else:
+    #     return {}
+        
