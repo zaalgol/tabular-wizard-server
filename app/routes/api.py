@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
+from flask import jsonify, make_response
 from app.services.ai_model_service import AiModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
@@ -55,8 +56,13 @@ def train_model():
 @bp.route('/api/userModels/', methods=['GET'])
 @jwt_required()
 def get_user_models():
+    if request.method == 'OPTIONS':
+        # Handle the preflight request
+        return {}, 200, {}
+    
     user_id =  tokenService.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         return {}, 401, {}
-    return ai_model_service.get_user_ai_models_by_id()
+    models =  ai_model_service.get_user_ai_models_by_id(user_id)
+    return make_response(jsonify({"models": models}), 200)
