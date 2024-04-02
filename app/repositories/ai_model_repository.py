@@ -49,9 +49,20 @@ class AiModelRepository:
         ]
         result = self.users_collection.aggregate(pipeline).next()
         if result:
-            return result.get("ai_models", {})
+            return self._model_dict_to_front_list(result.get("ai_models", {}))
         else:
             return {}
+        
+    def _model_dict_to_front_list(self, models_dict):
+        models_list = []
+        for name, details in models_dict.items():
+            model_info = {'id': name}
+            if 'created_at' in details:
+                model_info['created_at'] = details['created_at']
+            if 'description' in details:
+                model_info['description'] = details['description']
+            models_list.append(model_info)
+        return models_list
 
 
     
