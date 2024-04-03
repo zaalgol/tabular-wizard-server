@@ -34,7 +34,7 @@ class AiModelService:
         # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task, args=(model_type, training_speed,
+        thread = threading.Thread(target=self.training_task, args=(model_type, training_speed, headers,
                                                                     target_column, df, user_id, model_name, description,
                                                                     self.training_task_callback, app_context))
         thread.start()
@@ -50,7 +50,7 @@ class AiModelService:
             df[feature] = df[feature].astype('category')
         return df
     
-    def training_task(self, model_type, training_speed, target_column, df, user_id, model_name, description, training_task_callback, app_context):
+    def training_task(self, model_type, training_speed, headers, target_column, df, user_id, model_name, description, training_task_callback, app_context):
         is_training_successfully_finish = False
         trained_model = None
         try:
@@ -66,17 +66,17 @@ class AiModelService:
             trained_model = model.train()
             is_training_successfully_finish = True
         finally:
-            training_task_callback(trained_model, user_id, model_name, description, is_training_successfully_finish, app_context)
+            training_task_callback(trained_model, headers, target_column, user_id, model_name, description, is_training_successfully_finish, app_context)
 
 
-    def training_task_callback(self, model, user_id, model_Name, description, is_training_successfully_finish, app_context):
+    def training_task_callback(self, model, headers, target_column, user_id, model_Name, description, is_training_successfully_finish, app_context):
         with app_context:
             if not is_training_successfully_finish:
                 # TODO: handle the exception
                 pass
             else:
                 saved_model_file_path = self.save_model(model, user_id, model_Name)
-                self.ai_model_repository.add_or_update_ai_model_for_user(user_id, model_Name, description, saved_model_file_path)
+                self.ai_model_repository.add_or_update_ai_model_for_user(user_id, headers, target_column, model_Name, description, saved_model_file_path)
 
 
     def save_model(self, model, user_id, model_name):
@@ -88,7 +88,11 @@ class AiModelService:
             return SAVED_MODEL_FILE
 
     def get_user_ai_models_by_id(self, user_id):
-           return self.ai_model_repository.get_user_ai_models_by_id(user_id)
+           return self.ai_model_repository.get_user_ai_models_by_id(user_id, additonal_properties=['created_at', 'description'])
+    
+    def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
+        return self.ai_model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
+                                                                                  additonal_properties=['created_at', 'description', 'columns', 'target_column'])[0]
 
 
 

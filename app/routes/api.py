@@ -66,3 +66,19 @@ def get_user_models():
         return {}, 401, {}
     models =  ai_model_service.get_user_ai_models_by_id(user_id)
     return make_response(jsonify({"models": models}), 200)
+
+
+@bp.route('/api/model', methods=['GET'])
+@jwt_required()
+def get_user_model():
+    if request.method == 'OPTIONS':
+        # Handle the preflight request
+        return {}, 200, {}
+    model_name = request.args.get('model_name')
+    user_id =  tokenService.extract_user_id_from_token()
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        return {}, 401, {}
+    model =  ai_model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
+    return make_response(jsonify({"model": model}), 200)
+
