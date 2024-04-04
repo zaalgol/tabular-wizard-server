@@ -84,6 +84,8 @@ class AiModelService:
 
             trained_model = model.train()
             is_training_successfully_finish = True
+        except Exception as e:
+            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
             training_task_callback(ai_model, trained_model, headers, is_training_successfully_finish, app_context)
 
@@ -103,10 +105,6 @@ class AiModelService:
         if not os.path.exists(SAVED_MODEL_FOLDER):
             raise Exception(f"Model {SAVED_MODEL_FILE} not found")
         return pickle.load(open(SAVED_MODEL_FILE, 'rb'))
-        # evaluate = Evaluate()
-        # y_predict = evaluate.predict(loaded_model, X_data)
-        # print(evaluate.evaluate_classification(df['outcome'], y_predict))
-
 
     def save_model(self, model, user_id, model_name):
             SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, user_id, model_name)
