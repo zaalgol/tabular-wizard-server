@@ -15,28 +15,32 @@ class AiModelRepository:
     def users_collection(self):
         return self.db['users']
     
-    def add_or_update_ai_model_for_user(self, user_id, columns, target_column, model_name, description, saved_model_file_path):
-
+    def add_or_update_ai_model_for_user(self, ai_model, columns, saved_model_file_path):
+        model_name = ai_model.model_name
         # Define the field paths using dot notation
         model_field_path = f"ai_models.{model_name}.filePath"
         created_at_field_path = f"ai_models.{model_name}.created_at"
         description_field_path = f"ai_models.{model_name}.description"
         columns_field_path = f"ai_models.{model_name}.columns"
         target_column_field_path = f"ai_models.{model_name}.target_column"
+        model_type_field_path = f"ai_models.{model_name}.model_type"
+        training_speed_field_path = f"ai_models.{model_name}.training_speed"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
         
         # Update the user document with the model path and current UTC datetime
         update_result = self.users_collection.update_one(
-            {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}},
+            {"_id": ObjectId(ai_model.user_id), "isDeleted": {"$ne": True}},
             {
                 "$set": {
                     model_field_path: saved_model_file_path,
-                    description_field_path: description,
+                    description_field_path: ai_model.description,
                     created_at_field_path: current_utc_datetime,
                     columns_field_path: columns,
-                    target_column_field_path: target_column
+                    target_column_field_path: ai_model.target_column,
+                    model_type_field_path: ai_model.model_type,
+                    training_speed_field_path: ai_model.training_speed
                 }
             }
         )

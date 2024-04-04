@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from flask import jsonify, make_response
+from app.models.ai_model import AiModel
 from app.services.ai_model_service import AiModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
@@ -48,8 +49,9 @@ def train_model():
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
     training_speed = request.json.get('trainingSpeed', None)
+    ai_model = AiModel(user_id=user_id, model_name=model_name, description=description, model_type=model_type, training_speed=training_speed, target_column=target_column)
 
-    ai_model_service.train_model(user_id, model_name, description, dataset, target_column, model_type, training_speed)
+    ai_model_service.train_model(ai_model, dataset)
 
     return {}, 200, {}
 
@@ -81,4 +83,23 @@ def get_user_model():
         return {}, 401, {}
     model =  ai_model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
     return make_response(jsonify({"model": model}), 200)
+
+
+@bp.route('/api/inference//', methods=['POST'])
+@jwt_required()
+def infrernce():
+    if request.method == 'OPTIONS':
+        # Handle the preflight request
+        return {}, 200, {}
+    user_id =  tokenService.extract_user_id_from_token()
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        return {}, 401, {}
+    
+    dataset = request.json.get('dataset', None)
+    model_name = request.json.get('modelName', None)
+
+    ai_model_service.inference(user_id=user_id, model_name=model_name, dataset=dataset)
+
+    return {}, 200, {}
 
