@@ -9,6 +9,12 @@ from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegress
 import threading
 import pickle
 
+from flask_socketio import SocketIO
+
+# socketio = SocketIO(cors_allowed_origins="*")
+from app import socketio
+t=0
+
 
 class AiModelService:
     _instance = None
@@ -35,7 +41,7 @@ class AiModelService:
         # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task, args=(ai_model,  df.columns.tolist(), df, self.training_task_callback, app_context))
+        thread = threading.Thread(target=self.training_task, args=(ai_model,  df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
 
     def perprocess_data(self, dataset, drop_other_columns=None):
@@ -61,17 +67,34 @@ class AiModelService:
         df = self.perprocess_data(dataset, drop_other_columns=model_details.columns)
         X_data = self.data_preprocessing.exclude_columns(df, columns_to_exclude=model_details.target_column).copy()
         
+        app_context = current_app._get_current_object().app_context()
 
-        if model_details.model_type == 'classification':
-            y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
-            print(self.classificationEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
-        elif model_details.model_type == 'regression':
-            y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
-            print(self.RegressionEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
+        thread = threading.Thread(target=self.inference_task, args=(model_name, model_details, loaded_model, X_data, self._inference_task_callback, app_context))
+        thread.start()
 
-    
+        # if model_details.model_type == 'classification':
+        #     y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
+        #     print(self.classificationEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
+        # elif model_details.model_type == 'regression':
+        #     y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
+        #     print(self.RegressionEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
+
+    def inference_task(self, model_name, model_details, loaded_model, X_data, inference_task_callback, app_context):
+        try:
+            is_inference_successfully_finished = False
+            if model_details.model_type == 'classification':
+                y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
+            elif model_details.model_type == 'regression':
+                y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
+            X_data[f'{model_details.target_column}_predict'] = y_predict
+            is_inference_successfully_finished = True
+        except Exception as e:
+            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+        finally:
+            inference_task_callback(model_name, model_details, X_data, is_inference_successfully_finished, app_context)
+
     def training_task(self, ai_model, headers, df, training_task_callback, app_context):
-        is_training_successfully_finish = False
+        is_training_successfully_finished = False
         trained_model = None
         try:
             if ai_model.model_type == 'classification':
@@ -83,21 +106,32 @@ class AiModelService:
                 model.tune_hyper_parameters()
 
             trained_model = model.train()
-            is_training_successfully_finish = True
+            is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            training_task_callback(ai_model, trained_model, headers, is_training_successfully_finish, app_context)
+            training_task_callback(ai_model, trained_model, headers, is_training_successfully_finished, app_context)
 
 
-    def training_task_callback(self, ai_model, trained_model, headers, is_training_successfully_finish, app_context):
+    def _training_task_callback(self, ai_model, trained_model, headers, is_training_successfully_finished, app_context):
         with app_context:
-            if not is_training_successfully_finish:
-                # TODO: handle the exception
-                pass
+            if not is_training_successfully_finished:
+                # Emit an event for training failure
+                socketio.emit('status', {'status': 'failed', 'message': f'Model {ai_model.model_name} training failed.'})
             else:
                 saved_model_file_path = self.save_model(trained_model, ai_model.user_id, ai_model.model_name)
                 self.ai_model_repository.add_or_update_ai_model_for_user(ai_model, headers, saved_model_file_path)
+                # Emit an event for training success
+                socketio.emit('status', {'status': 'success', 'message': f'Model {ai_model.model_name} training completed successfully.'})
+
+    def _inference_task_callback(self, model_name, model_details, X_data, is_inference_successfully_finished, app_context):
+        with app_context:
+            if not is_inference_successfully_finished:
+                # Emit an event for training failure
+                socketio.emit('status', {'status': 'failed', 'message': f'Model {model_name} inference failed.'})
+            else:
+                # TODO: Add logs to DB
+                socketio.emit('status', {'status': 'success', 'message': f'Model {model_name} inference completed successfully.'})
 
     def load_model(self, user_id, model_name):
         SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, user_id, model_name)
@@ -119,7 +153,7 @@ class AiModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.ai_model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
-                                                                                  additonal_properties=['created_at', 'description', 'columns', 'target_column', 'model_type', 'training_speed'])[0]
+                                                                                  additonal_properties=['created_at', 'description', 'columns', 'target_column', 'model_type', 'training_speed'])
 
 
 

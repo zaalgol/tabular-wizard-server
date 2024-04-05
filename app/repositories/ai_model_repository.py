@@ -57,7 +57,7 @@ class AiModelRepository:
 
         result =  self.users_collection.aggregate(pipeline).next()
         if result:
-            return self._model_dict_to_front_list(result, additonal_properties)
+            return self._model_dict_to_front_list(result, additonal_properties)[0]
         else:
             return {}
 
