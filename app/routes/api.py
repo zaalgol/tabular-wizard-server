@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask import jsonify, make_response
 from app.models.ai_model import AiModel
 from app.services.ai_model_service import AiModelService
@@ -102,4 +102,12 @@ def infrernce():
     ai_model_service.inference(user_id=user_id, model_name=model_name, dataset=dataset)
 
     return {}, 200, {}
+
+@bp.route('/download/<filename>')
+def download_file(filename):
+    verify_jwt_in_request(locations='query_string')
+    # The token has been validated, proceed with sending the file
+    user_id = get_jwt_identity()  # If you need to use user information from the token
+    model_name = request.args.get('model_name')
+    return ai_model_service.downloadInferenceFile(user_id, model_name, filename)
 

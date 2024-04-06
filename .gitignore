@@ -3,3 +3,4 @@
 .vscode/
 instance/
 saved_models
+saved_inferences
