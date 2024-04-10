@@ -50,11 +50,14 @@ class AiModelService:
         
         if drop_other_columns:
             self.data_preprocessing.exclude_other_columns(df,columns=drop_other_columns)
+        df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)
         df = self.data_preprocessing.fill_missing_numeric_cells(df)
         df = self.data_preprocessing.sanitize_column_names(df)
-        cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
-        for feature in cat_features:
-            df[feature] = df[feature].astype('category')
+
+        # TODO: find a resample methos tha works with categorical columns
+        # cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
+        # for feature in cat_features:
+        #     df[feature] = df[feature].astype('category')
         return df
     
     def _dataset_to_df(self, dataset):
