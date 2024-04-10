@@ -25,7 +25,7 @@ class AiModelService:
         self.ai_model_repository = AiModelRepository()
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
-        self.classificationEvaluate = ClassificationEvaluate()
+        self.regressionEvaluate = RegressionEvaluate()
 
     def __new__(cls):
         if not cls._instance:
@@ -50,9 +50,7 @@ class AiModelService:
         
         if drop_other_columns:
             self.data_preprocessing.exclude_other_columns(df,columns=drop_other_columns)
-        df = self.data_preprocessing.fill_missing_not_numeric_cells(df)
         df = self.data_preprocessing.fill_missing_numeric_cells(df)
-        df = self.data_preprocessing.fill_missing_not_numeric_cells(df)
         df = self.data_preprocessing.sanitize_column_names(df)
         cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
         for feature in cat_features:
@@ -108,13 +106,19 @@ class AiModelService:
         try:
             if ai_model.model_type == 'classification':
                 model = LightgbmClassifier(train_df = df.copy(), prediction_column = ai_model.target_column)
+                evaluate = self.classificationEvaluate
+
             elif ai_model.model_type == 'regression':
                 model = LightGBMRegressor(train_df = df.copy(), prediction_column = ai_model.target_column)
-            
+                evaluate = self.regressionEvaluate
+
             if ai_model.training_speed == 'slow':
                 model.tune_hyper_parameters()
 
             trained_model = model.train()
+            train_evaluations, train_score, test_evaluations, test_score = evaluate.evaluate_train_and_test(trained_model, model)
+            evaluate.print_train_and_test_evaluation(train_evaluations, train_score, test_evaluations, test_score)
+            # print(f"model evaluations: {evaluations}")
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
