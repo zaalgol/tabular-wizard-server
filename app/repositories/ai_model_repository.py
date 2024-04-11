@@ -15,7 +15,7 @@ class AiModelRepository:
     def users_collection(self):
         return self.db['users']
     
-    def add_or_update_ai_model_for_user(self, ai_model, columns, saved_model_file_path):
+    def add_or_update_ai_model_for_user(self, ai_model, evaluations, columns, saved_model_file_path):
         model_name = ai_model.model_name
         # Define the field paths using dot notation
         model_field_path = f"ai_models.{model_name}.filePath"
@@ -25,6 +25,7 @@ class AiModelRepository:
         target_column_field_path = f"ai_models.{model_name}.target_column"
         model_type_field_path = f"ai_models.{model_name}.model_type"
         training_speed_field_path = f"ai_models.{model_name}.training_speed"
+        evaluations_field_path = f"ai_models.{model_name}.evaluations"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
@@ -40,7 +41,8 @@ class AiModelRepository:
                     columns_field_path: columns,
                     target_column_field_path: ai_model.target_column,
                     model_type_field_path: ai_model.model_type,
-                    training_speed_field_path: ai_model.training_speed
+                    training_speed_field_path: ai_model.training_speed,
+                    evaluations_field_path: evaluations
                 }
             }
         )

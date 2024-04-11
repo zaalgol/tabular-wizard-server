@@ -36,8 +36,8 @@ class AiModelService:
         if dataset is None:
             return {"error": "No dataset provided"}, 400
         df = self._dataset_to_df(dataset)
-        df = self._perprocess_data(df)
-        
+        df = self._perprocess_data(df, target_column=ai_model.target_column)
+       
         # df.to_csv('after.csv')
 
         # Capture the app context here
@@ -46,25 +46,32 @@ class AiModelService:
         thread = threading.Thread(target=self.training_task, args=(ai_model,  df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
 
-    def _perprocess_data(self, df, drop_other_columns=None):
+    def _perprocess_data(self, df, target_column=None, drop_other_columns=None):
         
         if drop_other_columns:
-            self.data_preprocessing.exclude_other_columns(df,columns=drop_other_columns)
-        df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)
-        df = self.data_preprocessing.fill_missing_numeric_cells(df)
-        df = self.data_preprocessing.sanitize_column_names(df)
+            df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
+
+        # if target_column: 
+        #     df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, target_column)
+
+        # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)    
+        # columns_to_encode = df.columns[df.columns != target_column]
+        # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df, columns_to_encode)
+        # df = self.data_preprocessing.one_hot_encode_column(df, 'color')
+        # df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, 'type')
+        # df = self.data_preprocessing.fill_missing_numeric_cells(df)
+        # df = self.data_preprocessing.sanitize_column_names(df)
 
         # TODO: find a resample methos tha works with categorical columns
-        # cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
-        # for feature in cat_features:
-        #     df[feature] = df[feature].astype('category')
+        cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
+        for feature in cat_features:
+            df[feature] = df[feature].astype('category')
         return df
     
     def _dataset_to_df(self, dataset):
         headers = dataset[0]
         data_rows = dataset[1:]
         df = pd.DataFrame(data_rows, columns=headers)
-        df = df.set_index(headers[0])
         return df
     
     def inference(self, user_id, model_name, dataset):
@@ -106,37 +113,37 @@ class AiModelService:
     def training_task(self, ai_model, headers, df, training_task_callback, app_context):
         is_training_successfully_finished = False
         trained_model = None
+        evaluations = None
         try:
             if ai_model.model_type == 'classification':
-                model = LightgbmClassifier(train_df = df.copy(), prediction_column = ai_model.target_column)
+                model = LightgbmClassifier(train_df = df, prediction_column = ai_model.target_column)
                 evaluate = self.classificationEvaluate
 
             elif ai_model.model_type == 'regression':
-                model = LightGBMRegressor(train_df = df.copy(), prediction_column = ai_model.target_column)
+                model = LightGBMRegressor(train_df = df, prediction_column = ai_model.target_column)
                 evaluate = self.regressionEvaluate
 
             if ai_model.training_speed == 'slow':
                 model.tune_hyper_parameters()
 
             trained_model = model.train()
-            train_evaluations, train_score, test_evaluations, test_score = evaluate.evaluate_train_and_test(trained_model, model)
-            evaluate.print_train_and_test_evaluation(train_evaluations, train_score, test_evaluations, test_score)
-            # print(f"model evaluations: {evaluations}")
+            evaluations = evaluate.evaluate_train_and_test(trained_model, model)
+            evaluate.print_train_and_test_evaluation(evaluations)
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            training_task_callback(ai_model, trained_model, headers, is_training_successfully_finished, app_context)
+            training_task_callback(ai_model, trained_model, evaluations, headers, is_training_successfully_finished, app_context)
 
 
-    def _training_task_callback(self, ai_model, trained_model, headers, is_training_successfully_finished, app_context):
+    def _training_task_callback(self, ai_model, trained_model, evaluations, headers, is_training_successfully_finished, app_context):
         with app_context:
             if not is_training_successfully_finished:
                 # Emit an event for training failure
                 socketio.emit('status', {'status': 'failed', 'message': f'Model {ai_model.model_name} training failed.'})
             else:
                 saved_model_file_path = self.save_model(trained_model, ai_model.user_id, ai_model.model_name)
-                self.ai_model_repository.add_or_update_ai_model_for_user(ai_model, headers, saved_model_file_path)
+                self.ai_model_repository.add_or_update_ai_model_for_user(ai_model, evaluations, headers, saved_model_file_path)
                 # Emit an event for training success
                 socketio.emit('status', {'status': 'success', 'message': f'Model {ai_model.model_name} training completed successfully.'})
 
