@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask import jsonify, make_response
-from app.models.ai_model import AiModel
+from app.entities.ai_model import AiModel
 from app.services.ai_model_service import AiModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
@@ -98,8 +98,9 @@ def infrernce():
     
     dataset = request.json.get('dataset', None)
     model_name = request.json.get('modelName', None)
+    file_name = request.json.get('fileName', None)
 
-    ai_model_service.inference(user_id=user_id, model_name=model_name, dataset=dataset)
+    ai_model_service.inference(user_id=user_id, model_name=model_name, file_name=file_name, dataset=dataset)
 
     return {}, 200, {}
 

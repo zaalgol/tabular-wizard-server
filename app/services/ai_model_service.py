@@ -1,14 +1,14 @@
 import os
 import app
 from datetime import datetime, UTC
-from app.models.ai_model import AiModel
+from app.entities.ai_model import AiModel
 from app.repositories.ai_model_repository import AiModelRepository
 from app.repositories.user_repository import UserRepository
 from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
 from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 import pandas as pd
-from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate
+from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate, KnnClassifier
 import threading
 import pickle
 
@@ -74,12 +74,13 @@ class AiModelService:
         df = pd.DataFrame(data_rows, columns=headers)
         return df
     
-    def inference(self, user_id, model_name, dataset):
+    def inference(self, user_id, model_name, file_name, dataset):
         loaded_model = self.load_model(user_id, model_name)
         model_details_dict =  self.get_user_model_by_user_id_and_model_name(user_id, model_name)
         model_details = AiModel(**model_details_dict)
         model_details.user_id = user_id
         model_details.model_name = model_name
+        model_details.file_name = file_name
         original_df = self._dataset_to_df(dataset)
         original_df = self._perprocess_data(original_df, drop_other_columns=model_details.columns)
         X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=model_details.target_column).copy()
@@ -156,7 +157,8 @@ class AiModelService:
                 # TODO: Add logs to DB
                 current_utc_datetime = datetime.now(UTC).strftime('%Y-%m-%d_%H-%M-%S')
                 SAVED_INFERENCES_FOLDER = os.path.join(app.config.config.Config.SAVED_INFERENCES_FOLDER, model_details.user_id, model_details.model_name)
-                csv_filename = f"{current_utc_datetime}_{model_details.model_name}_inference.csv"
+                uploaf_file_without_sufix = model_details.file_name[:model_details.file_name.index(".")]
+                csv_filename = f"{current_utc_datetime}__{model_details.model_name}__{uploaf_file_without_sufix}__inference.csv"
                 csv_filepath = os.path.join(SAVED_INFERENCES_FOLDER, csv_filename)
                 if not os.path.exists(SAVED_INFERENCES_FOLDER):
                     os.makedirs(SAVED_INFERENCES_FOLDER)
