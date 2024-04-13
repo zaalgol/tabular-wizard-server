@@ -1,8 +1,8 @@
 import os
 import app
 from datetime import datetime, UTC
-from app.entities.ai_model import AiModel
-from app.repositories.ai_model_repository import AiModelRepository
+from app.entities.model import Model
+from app.repositories.model_repository import ModelRepository
 from app.repositories.user_repository import UserRepository
 from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
 from werkzeug.utils import safe_join
@@ -18,11 +18,11 @@ from flask_socketio import SocketIO
 from app import socketio
 
 
-class AiModelService:
+class ModelService:
     _instance = None
 
     def __init__(self):
-        self.ai_model_repository = AiModelRepository()
+        self.model_repository = ModelRepository()
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
@@ -32,18 +32,18 @@ class AiModelService:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def train_model(self, ai_model, dataset):
+    def train_model(self, model, dataset):
         if dataset is None:
             return {"error": "No dataset provided"}, 400
         df = self._dataset_to_df(dataset)
-        df = self._perprocess_data(df, target_column=ai_model.target_column)
+        df = self._perprocess_data(df, target_column=model.target_column)
        
         # df.to_csv('after.csv')
 
         # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task, args=(ai_model,  df.columns.tolist(), df, self._training_task_callback, app_context))
+        thread = threading.Thread(target=self.training_task, args=(model,  df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
 
     def _perprocess_data(self, df, target_column=None, drop_other_columns=None):
@@ -62,7 +62,6 @@ class AiModelService:
         # df = self.data_preprocessing.fill_missing_numeric_cells(df)
         # df = self.data_preprocessing.sanitize_column_names(df)
 
-        # TODO: find a resample methos tha works with categorical columns
         cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
         for feature in cat_features:
             df[feature] = df[feature].astype('category')
@@ -77,13 +76,13 @@ class AiModelService:
     def inference(self, user_id, model_name, file_name, dataset):
         loaded_model = self.load_model(user_id, model_name)
         model_details_dict =  self.get_user_model_by_user_id_and_model_name(user_id, model_name)
-        model_details = AiModel(**model_details_dict)
+        model_details = Model(**model_details_dict)
         model_details.user_id = user_id
         model_details.model_name = model_name
         model_details.file_name = file_name
         original_df = self._dataset_to_df(dataset)
         original_df = self._perprocess_data(original_df, drop_other_columns=model_details.columns)
-        X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=model_details.target_column).copy()
+        X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=[model_details.target_column]).copy()
         
         app_context = current_app._get_current_object().app_context()
 
@@ -111,42 +110,42 @@ class AiModelService:
         finally:
             inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
 
-    def training_task(self, ai_model, headers, df, training_task_callback, app_context):
+    def training_task(self, model, headers, df, training_task_callback, app_context):
         is_training_successfully_finished = False
         trained_model = None
         evaluations = None
         try:
-            if ai_model.model_type == 'classification':
-                model = LightgbmClassifier(train_df = df, prediction_column = ai_model.target_column)
+            if model.model_type == 'classification':
+                training_model = LightgbmClassifier(train_df = df, prediction_column = model.target_column)
                 evaluate = self.classificationEvaluate
 
-            elif ai_model.model_type == 'regression':
-                model = LightGBMRegressor(train_df = df, prediction_column = ai_model.target_column)
+            elif model.model_type == 'regression':
+                training_model = LightGBMRegressor(train_df = df, prediction_column = model.target_column)
                 evaluate = self.regressionEvaluate
 
-            if ai_model.training_speed == 'slow':
+            if model.training_speed == 'slow':
                 model.tune_hyper_parameters()
 
-            trained_model = model.train()
-            evaluations = evaluate.evaluate_train_and_test(trained_model, model)
+            trained_model = training_model.train()
+            evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
             evaluate.print_train_and_test_evaluation(evaluations)
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            training_task_callback(ai_model, trained_model, evaluations, headers, is_training_successfully_finished, app_context)
+            training_task_callback(model, trained_model, evaluations, headers, is_training_successfully_finished, app_context)
 
 
-    def _training_task_callback(self, ai_model, trained_model, evaluations, headers, is_training_successfully_finished, app_context):
+    def _training_task_callback(self, model, trained_model, evaluations, headers, is_training_successfully_finished, app_context):
         with app_context:
             if not is_training_successfully_finished:
                 # Emit an event for training failure
-                socketio.emit('status', {'status': 'failed', 'message': f'Model {ai_model.model_name} training failed.'})
+                socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             else:
-                saved_model_file_path = self.save_model(trained_model, ai_model.user_id, ai_model.model_name)
-                self.ai_model_repository.add_or_update_ai_model_for_user(ai_model, evaluations, headers, saved_model_file_path)
+                saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
+                self.model_repository.add_or_update_model_for_user(model, evaluations, headers, saved_model_file_path)
                 # Emit an event for training success
-                socketio.emit('status', {'status': 'success', 'message': f'Model {ai_model.model_name} training completed successfully.'})
+                socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training completed successfully.'})
 
     def _inference_task_callback(self, model_details, original_df, is_inference_successfully_finished, app_context):
         with app_context:
@@ -209,11 +208,12 @@ class AiModelService:
             return jsonify({"msg": str(e)}), 500
         
 
-    def get_user_ai_models_by_id(self, user_id):
-           return self.ai_model_repository.get_user_ai_models_by_id(user_id, additonal_properties=['created_at', 'description'])
+    def get_user_models_by_id(self, user_id):
+           result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description'])
+           return result
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
-        return self.ai_model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
+        return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
                                                                                   additonal_properties=['created_at', 'description', 'columns', 'target_column', 'model_type', 'training_speed'])
 
 

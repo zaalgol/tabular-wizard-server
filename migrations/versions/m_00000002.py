@@ -5,7 +5,7 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['tabular-wizard']
 
 # Creating or getting the collection
-users_collection = db['aiModels']
+users_collection = db['models']
 
 # Creating indexes
 # Ensure an index on 'email' field, similar to the unique constraint in SQL

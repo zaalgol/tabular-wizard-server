@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 @dataclass
-class AiModel:
+class Model:
     id: str = field(default=None)
     user_id: str = field(default=None)
     model_name: str = field(default=None)

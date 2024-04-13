@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask import jsonify, make_response
-from app.entities.ai_model import AiModel
-from app.services.ai_model_service import AiModelService
+from app.entities.model import Model
+from app.services.model_service import ModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
 from flask_cors import CORS
@@ -14,7 +14,7 @@ CORS(bp)
 
 # Instantiate UsersService singleton
 user_service = UserService()
-ai_model_service = AiModelService()
+model_service = ModelService()
 tokenService = TokenService()
 
 @bp.route('/', methods=['GET'])
@@ -49,9 +49,9 @@ def train_model():
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
     training_speed = request.json.get('trainingSpeed', None)
-    ai_model = AiModel(user_id=user_id, model_name=model_name, description=description, model_type=model_type, training_speed=training_speed, target_column=target_column)
+    model = Model(user_id=user_id, model_name=model_name, description=description, model_type=model_type, training_speed=training_speed, target_column=target_column)
 
-    ai_model_service.train_model(ai_model, dataset)
+    model_service.train_model(model, dataset)
 
     return {}, 200, {}
 
@@ -66,7 +66,7 @@ def get_user_models():
     user = user_service.get_user_by_id(user_id)
     if not user:
         return {}, 401, {}
-    models =  ai_model_service.get_user_ai_models_by_id(user_id)
+    models =  model_service.get_user_models_by_id(user_id)
     return make_response(jsonify({"models": models}), 200)
 
 
@@ -81,7 +81,7 @@ def get_user_model():
     user = user_service.get_user_by_id(user_id)
     if not user:
         return {}, 401, {}
-    model =  ai_model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
+    model =  model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
     return make_response(jsonify({"model": model}), 200)
 
 
@@ -100,7 +100,7 @@ def infrernce():
     model_name = request.json.get('modelName', None)
     file_name = request.json.get('fileName', None)
 
-    ai_model_service.inference(user_id=user_id, model_name=model_name, file_name=file_name, dataset=dataset)
+    model_service.inference(user_id=user_id, model_name=model_name, file_name=file_name, dataset=dataset)
 
     return {}, 200, {}
 
@@ -110,5 +110,5 @@ def download_file(filename):
     # The token has been validated, proceed with sending the file
     user_id = get_jwt_identity()  # If you need to use user information from the token
     model_name = request.args.get('model_name')
-    return ai_model_service.downloadInferenceFile(user_id, model_name, filename)
+    return model_service.downloadInferenceFile(user_id, model_name, filename)
 

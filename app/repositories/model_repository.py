@@ -3,7 +3,7 @@ from flask import current_app
 from datetime import datetime, UTC
 from flask import current_app
 
-class AiModelRepository:
+class ModelRepository:
     def __init__(self):
         self.current_app = current_app
 
@@ -15,33 +15,33 @@ class AiModelRepository:
     def users_collection(self):
         return self.db['users']
     
-    def add_or_update_ai_model_for_user(self, ai_model, evaluations, columns, saved_model_file_path):
-        model_name = ai_model.model_name
+    def add_or_update_model_for_user(self, model, evaluations, columns, saved_model_file_path):
+        model_name = model.model_name
         # Define the field paths using dot notation
-        model_field_path = f"ai_models.{model_name}.filePath"
-        created_at_field_path = f"ai_models.{model_name}.created_at"
-        description_field_path = f"ai_models.{model_name}.description"
-        columns_field_path = f"ai_models.{model_name}.columns"
-        target_column_field_path = f"ai_models.{model_name}.target_column"
-        model_type_field_path = f"ai_models.{model_name}.model_type"
-        training_speed_field_path = f"ai_models.{model_name}.training_speed"
-        evaluations_field_path = f"ai_models.{model_name}.evaluations"
+        model_field_path = f"models.{model_name}.filePath"
+        created_at_field_path = f"models.{model_name}.created_at"
+        description_field_path = f"models.{model_name}.description"
+        columns_field_path = f"models.{model_name}.columns"
+        target_column_field_path = f"models.{model_name}.target_column"
+        model_type_field_path = f"models.{model_name}.model_type"
+        training_speed_field_path = f"models.{model_name}.training_speed"
+        evaluations_field_path = f"models.{model_name}.evaluations"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
         
         # Update the user document with the model path and current UTC datetime
         update_result = self.users_collection.update_one(
-            {"_id": ObjectId(ai_model.user_id), "isDeleted": {"$ne": True}},
+            {"_id": ObjectId(model.user_id), "isDeleted": {"$ne": True}},
             {
                 "$set": {
                     model_field_path: saved_model_file_path,
-                    description_field_path: ai_model.description,
+                    description_field_path: model.description,
                     created_at_field_path: current_utc_datetime,
                     columns_field_path: columns,
-                    target_column_field_path: ai_model.target_column,
-                    model_type_field_path: ai_model.model_type,
-                    training_speed_field_path: ai_model.training_speed,
+                    target_column_field_path: model.target_column,
+                    model_type_field_path: model.model_type,
+                    training_speed_field_path: model.training_speed,
                     evaluations_field_path: evaluations
                 }
             }
@@ -51,7 +51,7 @@ class AiModelRepository:
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {
-            model_name: f"$ai_models.{model_name}",
+            model_name: f"$models.{model_name}",
             "_id": 0  # Exclude the _id from the results if not needed
         }},
             {"$match": {"specific_model.isDeleted": {"$ne": True}}}  # Ensure the model is not marked as deleted
@@ -64,12 +64,12 @@ class AiModelRepository:
             return {}
 
     
-    def get_user_ai_models_by_id(self, user_id, additonal_properties):
+    def get_user_models_by_id(self, user_id, additonal_properties):
 
         # pipeline = [
         #     {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
         #     {"$project": {
-        #         "specific_model": f"$ai_models.with_columns_and_target_column",
+        #         "specific_model": f"$models.with_columns_and_target_column",
         #         "_id": 0  # Exclude the _id from the results if not needed
         #     }},
         #     {"$match": {"specific_model.isDeleted": {"$ne": True}}}  # Ensure the model is not marked as deleted
@@ -80,16 +80,16 @@ class AiModelRepository:
 
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
-            {"$project": {"ai_models": {"$objectToArray": "$ai_models"}}},
-            {"$addFields": {"ai_models": {"$filter": {
-                "input": "$ai_models",
+            {"$project": {"models": {"$objectToArray": "$models"}}},
+            {"$addFields": {"models": {"$filter": {
+                "input": "$models",
                 "cond": {"$not": "$$this.v.isDeleted"}
             }}}},
-            {"$project": {"ai_models": {"$arrayToObject": "$ai_models"}}}
+            {"$project": {"models": {"$arrayToObject": "$models"}}}
         ]
         result = self.users_collection.aggregate(pipeline).next()
-        if result:
-            return self._model_dict_to_front_list(result.get("ai_models", {}), additonal_properties)
+        if result and result["models"]:
+            return self._model_dict_to_front_list(result.get("models", {}), additonal_properties)
         else:
             return {}
         

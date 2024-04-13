@@ -42,10 +42,10 @@ class UserRepository:
         result = self.users_collection.insert_one(user)
         return {"_id": result.inserted_id, **user}
     
-    ### return all data beside ai_models
+    ### return all data beside models
     # pipeline = [
     # {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
-    # {"$project": {"ai_models": 0}}
+    # {"$project": {"models": 0}}
     # ]
 
     # result = self.users_collection.aggregate(pipeline).next()
@@ -56,7 +56,7 @@ class UserRepository:
 
     
 
-    ### return all data beside deleted ai_models
+    ### return all data beside deleted models
     # result = self.users_collection.aggregate(pipeline).next()
     # if result:
     #     return result
