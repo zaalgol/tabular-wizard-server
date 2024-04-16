@@ -8,11 +8,11 @@ from flask import current_app, jsonify, make_response, send_from_directory, send
 from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 import pandas as pd
+from app.tasks.inference_task import InferenceTask
+from app.tasks.training_task import TrainingTask
 from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate, KnnClassifier
 import threading
 import pickle
-
-from flask_socketio import SocketIO
 
 # socketio = SocketIO(cors_allowed_origins="*")
 from app import socketio
@@ -26,6 +26,8 @@ class ModelService:
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
+        self.training_task = TrainingTask()
+        self.inference_task = InferenceTask()
 
     def __new__(cls):
         if not cls._instance:
@@ -43,7 +45,7 @@ class ModelService:
         # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task, args=(model,  df.columns.tolist(), df, self._training_task_callback, app_context))
+        thread = threading.Thread(target=self.training_task.run_task, args=(model,  df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
 
     def _perprocess_data(self, df, target_column=None, drop_other_columns=None):
@@ -62,9 +64,9 @@ class ModelService:
         # df = self.data_preprocessing.fill_missing_numeric_cells(df)
         # df = self.data_preprocessing.sanitize_column_names(df)
 
-        cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
-        for feature in cat_features:
-            df[feature] = df[feature].astype('category')
+        # cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
+        # for feature in cat_features:
+        #     df[feature] = df[feature].astype('category')
         return df
     
     def _dataset_to_df(self, dataset):
@@ -86,55 +88,8 @@ class ModelService:
         
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.inference_task, args=(model_details, loaded_model, original_df, X_data, self._inference_task_callback, app_context))
+        thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, X_data, self._inference_task_callback, app_context))
         thread.start()
-
-        # if model_details.model_type == 'classification':
-        #     y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
-        #     print(self.classificationEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
-        # elif model_details.model_type == 'regression':
-        #     y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
-        #     print(self.RegressionEvaluate.evaluate_classification(df[model_details.target_column], y_predict))
-
-    def inference_task(self, model_details, loaded_model, original_df, X_data, inference_task_callback, app_context):
-        try:
-            is_inference_successfully_finished = False
-            if model_details.model_type == 'classification':
-                y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
-            elif model_details.model_type == 'regression':
-                y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
-            original_df[f'{model_details.target_column}_predict'] = y_predict
-            is_inference_successfully_finished = True
-        except Exception as e:
-            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-        finally:
-            inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
-
-    def training_task(self, model, headers, df, training_task_callback, app_context):
-        is_training_successfully_finished = False
-        trained_model = None
-        evaluations = None
-        try:
-            if model.model_type == 'classification':
-                training_model = LightgbmClassifier(train_df = df, prediction_column = model.target_column)
-                evaluate = self.classificationEvaluate
-
-            elif model.model_type == 'regression':
-                training_model = LightGBMRegressor(train_df = df, prediction_column = model.target_column)
-                evaluate = self.regressionEvaluate
-
-            if model.training_speed == 'slow':
-                model.tune_hyper_parameters()
-
-            trained_model = training_model.train()
-            evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
-            evaluate.print_train_and_test_evaluation(evaluations)
-            is_training_successfully_finished = True
-        except Exception as e:
-            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-        finally:
-            training_task_callback(model, trained_model, evaluations, headers, is_training_successfully_finished, app_context)
-
 
     def _training_task_callback(self, model, trained_model, evaluations, headers, is_training_successfully_finished, app_context):
         with app_context:
