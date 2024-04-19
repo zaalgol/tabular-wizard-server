@@ -26,6 +26,7 @@ class ModelRepository:
         model_type_field_path = f"models.{model_name}.model_type"
         training_speed_field_path = f"models.{model_name}.training_speed"
         evaluations_field_path = f"models.{model_name}.evaluations"
+        encoding_rules_field_path = f"models.{model_name}.encoding_rules"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
@@ -39,6 +40,7 @@ class ModelRepository:
                     description_field_path: model.description,
                     created_at_field_path: current_utc_datetime,
                     columns_field_path: columns,
+                    encoding_rules_field_path: model.encoding_rules,
                     target_column_field_path: model.target_column,
                     model_type_field_path: model.model_type,
                     training_speed_field_path: model.training_speed,

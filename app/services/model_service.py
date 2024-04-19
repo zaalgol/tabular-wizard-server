@@ -38,17 +38,17 @@ class ModelService:
         if dataset is None:
             return {"error": "No dataset provided"}, 400
         df = self._dataset_to_df(dataset)
-        df = self._perprocess_data(df, target_column=model.target_column)
+        # df = self._perprocess_data(df, target_column=model.target_column)
        
         # df.to_csv('after.csv')
 
         # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task.run_task, args=(model,  df.columns.tolist(), df, self._training_task_callback, app_context))
+        thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
 
-    def _perprocess_data(self, df, target_column=None, drop_other_columns=None):
+    def _perprocess_data(self, df, drop_other_columns=None):
         
         if drop_other_columns:
             df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
@@ -63,6 +63,7 @@ class ModelService:
         # df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, 'type')
         # df = self.data_preprocessing.fill_missing_numeric_cells(df)
         # df = self.data_preprocessing.sanitize_column_names(df)
+        # sampeling
 
         # cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
         # for feature in cat_features:
@@ -91,13 +92,14 @@ class ModelService:
         thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, X_data, self._inference_task_callback, app_context))
         thread.start()
 
-    def _training_task_callback(self, model, trained_model, evaluations, headers, is_training_successfully_finished, app_context):
+    def _training_task_callback(self, model, trained_model, encoding_rules, evaluations, headers, is_training_successfully_finished, app_context):
         with app_context:
             if not is_training_successfully_finished:
                 # Emit an event for training failure
                 socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             else:
                 saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
+                model.encoding_rules = encoding_rules
                 self.model_repository.add_or_update_model_for_user(model, evaluations, headers, saved_model_file_path)
                 # Emit an event for training success
                 socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training completed successfully.'})
@@ -169,7 +171,8 @@ class ModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
-                                                                                  additonal_properties=['created_at', 'description', 'columns', 'target_column', 'model_type', 'training_speed'])
+                                                                                  additonal_properties=['created_at', 'description', 'columns', 'encoding_rules',
+                                                                                                        'target_column', 'model_type', 'training_speed'])
 
 
 

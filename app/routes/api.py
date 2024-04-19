@@ -49,7 +49,10 @@ def train_model():
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
     training_speed = request.json.get('trainingSpeed', None)
-    model = Model(user_id=user_id, model_name=model_name, description=description, model_type=model_type, training_speed=training_speed, target_column=target_column)
+    ensemble = request.json.get('ensemble', None)
+    metric = request.json.get('metric', None)
+    model = Model(user_id=user_id, model_name=model_name, description=description,
+                   model_type=model_type, ensemble=ensemble, training_speed=training_speed, target_column=target_column, metric=metric)
 
     model_service.train_model(model, dataset)
 

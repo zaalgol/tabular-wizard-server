@@ -24,8 +24,9 @@ class InferenceTask:
 
     def run_task(self, model_details, loaded_model, original_df, X_data, inference_task_callback, app_context):
         try:
-            X_data = self.data_preprocessing.set_not_numeric_as_categorial(X_data)
             is_inference_successfully_finished = False
+            X_data = self._data_preprocessing(X_data, model_details.encoding_rules)
+            
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
             elif model_details.model_type == 'regression':
@@ -36,4 +37,15 @@ class InferenceTask:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
             inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
+
+    def _data_preprocessing(self, df, encoding_rules):
+        df_copy = df.copy()
+        df_copy = self.data_preprocessing.sanitize_dataframe(df_copy)
+        df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
+        df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df)
+        if encoding_rules:
+            df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
+        return df_copy
+
+
 
