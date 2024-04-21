@@ -23,7 +23,7 @@ class UserService:
         self.token_service = TokenService()
 
     def login(self, email, password):
-        # self.seed_admin_user() # TODO: find away to run migrations
+        self.seed_admin_user() # TODO: find away to run migrations
         user = self.user_repository.get_user_by_email(email)
         if user:
             is_valid_password = PasswordHasher.check_password(user['password'], password)

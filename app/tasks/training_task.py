@@ -33,20 +33,6 @@ class TrainingTask:
                 trained_model, evaluations, encoding_rules= self._train_multi_models(model, df)
             else:
                 trained_model, evaluations, encoding_rules = self._train_single_model(model, df)
-                # if model.model_type == 'classification':
-                #     training_model = LightgbmClassifier(train_df = df, prediction_column = model.target_column)
-                #     evaluate = self.classificationEvaluate
-
-                # elif model.model_type == 'regression':
-                #     training_model = LightGBMRegressor(train_df = df, prediction_column = model.target_column)
-                #     evaluate = self.regressionEvaluate
-
-                # if model.training_speed == 'slow':
-                #     model.tune_hyper_parameters(model.metric)
-
-                # trained_model = training_model.train()
-                # evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
-                # print(evaluate.format_train_and_test_evaluation(evaluations))
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
@@ -54,6 +40,7 @@ class TrainingTask:
             task_callback(model, trained_model, encoding_rules, evaluations, headers, is_training_successfully_finished, app_context)
 
     def _train_single_model(self, model, df):
+        df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
         if model.model_type == 'classification':
             training_model = LightgbmClassifier(train_df = df, prediction_column = model.target_column)
             evaluate = self.classificationEvaluate
@@ -73,7 +60,7 @@ class TrainingTask:
 
     def _train_multi_models(self, model, df):
         if model.model_type == 'classification':
-            df = self._data_preprocessing(df, model.target_column)
+            df = self._data_preprocessing(df)
             ensemble = Ensemble(train_df = df, prediction_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
             ensemble.create_models(df)
             ensemble.train_all_models()
@@ -87,14 +74,15 @@ class TrainingTask:
             print(evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations))
             return ensemble.trained_voting_classifier, ensemble.voting_classifier_evaluations, ensemble.encoding_rules
         
-    def _data_preprocessing(self, df, target_column=None):
+    def _data_preprocessing(self, df, fill_missing_numeric_cells=False):
         df_copy=df.copy()
           # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)    
         # columns_to_encode = df.columns[df.columns != target_column]
         # df = self.data_preprocessing.fill_missing_not_numeric_cells(df)
         data_preprocessing = DataPreprocessing()
         df_copy = data_preprocessing.sanitize_dataframe(df_copy)
-        df = data_preprocessing.fill_missing_numeric_cells(df_copy)
+        if fill_missing_numeric_cells:
+            df = data_preprocessing.fill_missing_numeric_cells(df_copy)
         # encoding_rules = data_preprocessing.create_encoding_rules(df_copy)
         # df_copy = data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
         # df = self.data_preprocessing.one_hot_encode_column(df, 'color')
