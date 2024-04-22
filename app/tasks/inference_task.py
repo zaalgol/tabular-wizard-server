@@ -30,7 +30,7 @@ class InferenceTask:
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
             elif model_details.model_type == 'regression':
-                y_predict = self.RegressionEvaluate.predict(loaded_model, X_data)
+                y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
             original_df[f'{model_details.target_column}_predict'] = y_predict
             is_inference_successfully_finished = True
         except Exception as e:

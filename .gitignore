@@ -1,6 +1,7 @@
 .venv
 *__pycache__/
-.vscode/
+.vscode
 instance/
 saved_models
 saved_inferences
+catboost_info
