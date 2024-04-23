@@ -43,11 +43,11 @@ class TrainingTask:
     def _train_single_model(self, model, df):
         df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, prediction_column = model.target_column)
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
-            training_model = LightGBMRegressor(train_df = df, prediction_column = model.target_column)
+            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column)
             evaluate = self.regressionEvaluate
 
         if model.training_speed == 'slow':
@@ -55,14 +55,15 @@ class TrainingTask:
 
         trained_model = training_model.train()
         evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
-        print(evaluate.format_train_and_test_evaluation(evaluations))
-        return trained_model, evaluations, None
+        format_evaluations = evaluate.format_train_and_test_evaluation(evaluations)
+        print(format_evaluations)
+        return trained_model, format_evaluations, None
         
 
     def _train_multi_models(self, model, df):
         if model.model_type == 'classification':
             df = self._data_preprocessing(df)
-            ensemble = ClassificationEnsemble(train_df = df, prediction_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
+            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
             ensemble.create_models(df)
             ensemble.train_all_models()
             ensemble.evaluate_all_models()
@@ -72,12 +73,13 @@ class TrainingTask:
             ensemble.evaluate_voting_classifier()
 
             evaluate = self.classificationEvaluate
-            print(evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations))
-            return ensemble.trained_voting_classifier, ensemble.voting_classifier_evaluations, ensemble.encoding_rules
+            format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations)
+            print(format_evaluations)
+            return ensemble.trained_voting_classifier, format_evaluations, ensemble.encoding_rules
         
         if model.model_type == 'regression':
             df = self._data_preprocessing(df)
-            ensemble = RegressionEnsemble(train_df = df, prediction_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
+            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
             ensemble.create_models(df)
             ensemble.train_all_models()
             ensemble.evaluate_all_models()
@@ -87,8 +89,9 @@ class TrainingTask:
             ensemble.evaluate_voting_regressor()
 
             evaluate = self.regressionEvaluate
-            print(evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations))
-            return ensemble.trained_voting_regressor, ensemble.voting_regressor_evaluations, ensemble.encoding_rules
+            format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
+            print(format_evaluations)
+            return ensemble.trained_voting_regressor, format_evaluations, ensemble.encoding_rules
         
     def _data_preprocessing(self, df, fill_missing_numeric_cells=False):
         df_copy=df.copy()

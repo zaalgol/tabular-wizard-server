@@ -113,5 +113,6 @@ def download_file(filename):
     # The token has been validated, proceed with sending the file
     user_id = get_jwt_identity()  # If you need to use user information from the token
     model_name = request.args.get('model_name')
-    return model_service.downloadInferenceFile(user_id, model_name, filename)
+    file_type = request.args.get('file_type')
+    return model_service.downloadFile(user_id, model_name, filename, file_type)
 
