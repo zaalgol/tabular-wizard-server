@@ -109,7 +109,11 @@ class ModelService:
                 if not os.path.exists(SAVED_MODEL_FOLDER):
                     os.makedirs(SAVED_MODEL_FOLDER)
                 with open(evaluations_filepath, 'w') as file:
-                    file.write(str(evaluations))
+                    file.write(str(f"Model Name: {model.model_name} \n\
+                    Model Type: {model.model_type} \n\
+                    Training Speed: {model.training_speed} \n\
+                    Ensemble: {model.ensemble} \n\n\
+                    evaluations: {evaluations}"))
                     
                 # Generate a unique URL for the txt file
                 scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
@@ -146,8 +150,8 @@ class ModelService:
                 # Emit event with the URL to the CSV file
                 socketio.emit('status', {
                     'status': 'success',
-                    'model_name': f'{model_details.model_name}',
                     'file_type': 'inference',
+                    'model_name': f'{model_details.model_name}',
                     'message': f'Model {model_details.model_name} inference completed successfully.',
                     'file_url': csv_url
                 })

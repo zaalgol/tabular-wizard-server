@@ -9,7 +9,7 @@ class Model:
     file_name: str = field(default=None)
     description: str = field(default=None)
     model_type: str = field(default=None)
-    ensemble: bool = field(default=False)
+    ensemble: str = field(default='multi')
     training_speed: str = field(default=None)
     target_column: str = field(default=None)
     created_at: datetime = field(default=None)

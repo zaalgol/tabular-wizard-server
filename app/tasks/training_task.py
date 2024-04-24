@@ -10,8 +10,6 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate \
     , KnnClassifier, ClassificationEnsemble, RegressionEnsemble
-import threading
-import pickle
 
 # socketio = SocketIO(cors_allowed_origins="*")
 from app import socketio
@@ -30,7 +28,7 @@ class TrainingTask:
         evaluations = None
         encoding_rules = None
         try:
-            if model.ensemble:
+            if model.ensemble == 'multi':
                 trained_model, evaluations, encoding_rules= self._train_multi_models(model, df)
             else:
                 trained_model, evaluations, encoding_rules = self._train_single_model(model, df)
@@ -51,7 +49,7 @@ class TrainingTask:
             evaluate = self.regressionEvaluate
 
         if model.training_speed == 'slow':
-            model.tune_hyper_parameters(model.metric)
+            training_model.tune_hyper_parameters(model.metric)
 
         trained_model = training_model.train()
         evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
@@ -62,11 +60,11 @@ class TrainingTask:
 
     def _train_multi_models(self, model, df):
         if model.model_type == 'classification':
-            df = self._data_preprocessing(df)
+            df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
             ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
             ensemble.create_models(df)
-            ensemble.train_all_models()
-            ensemble.evaluate_all_models()
+            # ensemble.train_all_models()
+            ensemble.sort_models_by_score()
 
             ensemble.create_voting_classifier()
             ensemble.train_voting_classifier()
@@ -79,10 +77,10 @@ class TrainingTask:
         
         if model.model_type == 'regression':
             df = self._data_preprocessing(df)
-            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
+            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True, create_transformations=True, apply_transformations=True)
             ensemble.create_models(df)
-            ensemble.train_all_models()
-            ensemble.evaluate_all_models()
+            # ensemble.train_all_models()
+            ensemble.sort_models_by_score()
 
             ensemble.create_voting_regressor()
             ensemble.train_voting_regressor()
