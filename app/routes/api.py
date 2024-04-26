@@ -48,15 +48,17 @@ def train_model():
     description = request.json.get('description', None)
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
-    training_speed = request.json.get('trainingSpeed', None)
-    ensemble = request.json.get('ensemble', None)
+    # training_speed = request.json.get('trainingSpeed', None)
+    # ensemble = request.json.get('ensemble', None)
+    training_strategy = request.json.get('trainingStrategy', None)
+    sampling_strategy = request.json.get('samplingStrategy', None)
     metric = request.json.get('metric', None)
     model = Model(user_id=user_id, model_name=model_name, description=description,
-                   model_type=model_type, ensemble=ensemble, training_speed=training_speed, target_column=target_column, metric=metric)
+                   model_type=model_type, training_strategy=training_strategy, sampling_strategy=sampling_strategy, target_column=target_column, metric=metric)
 
-    model_service.train_model(model, dataset)
+    return model_service.train_model(model, dataset)
 
-    return {}, 200, {}
+    
 
 @bp.route('/api/userModels/', methods=['GET'])
 @jwt_required()

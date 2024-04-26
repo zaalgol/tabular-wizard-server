@@ -47,6 +47,9 @@ class ModelService:
 
         thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self._training_task_callback, app_context))
         thread.start()
+        socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
+        
+        return {}, 200, {}
 
     def _perprocess_data(self, df, drop_other_columns=None):
         
@@ -85,46 +88,51 @@ class ModelService:
         model_details.file_name = file_name
         original_df = self._dataset_to_df(dataset)
         original_df = self._perprocess_data(original_df, drop_other_columns=model_details.columns)
-        X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=[model_details.target_column]).copy()
+
         
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, X_data, self._inference_task_callback, app_context))
+        thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, self._inference_task_callback, app_context))
         thread.start()
 
     def _training_task_callback(self, model, trained_model, encoding_rules, evaluations, headers, is_training_successfully_finished, app_context):
-        with app_context:
-            if not is_training_successfully_finished:
-                # Emit an event for training failure
-                socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
-            else:
-                saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
-                model.encoding_rules = encoding_rules
-                self.model_repository.add_or_update_model_for_user(model, evaluations, headers, saved_model_file_path)
-                
-                # Emit an event for training success
-                SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
-                evaluations_filename = f"{model.model_name}__evaluations.txt"
-                evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
-                if not os.path.exists(SAVED_MODEL_FOLDER):
-                    os.makedirs(SAVED_MODEL_FOLDER)
-                with open(evaluations_filepath, 'w') as file:
-                    file.write(str(f"Model Name: {model.model_name} \n\
-                    Model Type: {model.model_type} \n\
-                    Training Speed: {model.training_speed} \n\
-                    Ensemble: {model.ensemble} \n\n\
-                    evaluations: {evaluations}"))
+        try:
+            with app_context:
+                if not is_training_successfully_finished:
+                    # Emit an event for training failure
+                    socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+                else:
+                    saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
+                    model.encoding_rules = encoding_rules
+                    self.model_repository.add_or_update_model_for_user(model, evaluations, headers, saved_model_file_path)
                     
-                # Generate a unique URL for the txt file
-                scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
-                server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
-                evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
-                
-                socketio.emit('status', {'status': 'success',
-                                         'file_type': 'evaluations',
-                                         'model_name': f'{model.model_name}',
-                                         'message': f'Model {model.model_name} training completed successfully.',
-                                         'file_url': evaluations_url})
+                    # Emit an event for training success
+                    SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
+                    evaluations_filename = f"{model.model_name}__evaluations.txt"
+                    evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
+                    if not os.path.exists(SAVED_MODEL_FOLDER):
+                        os.makedirs(SAVED_MODEL_FOLDER)
+                    with open(evaluations_filepath, 'w') as file:
+                        file.write(str(f"Model Name: {model.model_name} \n\
+                        Model Type: {model.model_type} \n\
+                        Training Srategy: {model.training_strategy} \n\
+                        Sampling Strategy: {model.sampling_strategy} \n\n\
+                        evaluations: {evaluations}"))
+                        
+                    # Generate a unique URL for the txt file
+                    scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
+                    server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
+                    evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
+                    
+                    socketio.emit('status', {'status': 'success',
+                                            'file_type': 'evaluations',
+                                            'model_name': f'{model.model_name}',
+                                            'message': f'Model {model.model_name} training completed successfully.',
+                                            'file_url': evaluations_url})
+        except Exception as e:
+            print(f"Error downloading file: {e}")
+            
+            socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
 
     def _inference_task_callback(self, model_details, original_df, is_inference_successfully_finished, app_context):
         with app_context:
@@ -197,8 +205,8 @@ class ModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
-                                                                                  additonal_properties=['created_at', 'description', 'columns', 'encoding_rules',
-                                                                                                        'target_column', 'model_type', 'training_speed'])
+                                                                                  additonal_properties=['created_at', 'description', 'columns', 'encoding_rules', 'metric',
+                                                                                                        'target_column', 'model_type', 'training_strategy', 'sampling_strategy'])
 
 
 

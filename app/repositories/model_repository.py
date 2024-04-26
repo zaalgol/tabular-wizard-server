@@ -24,8 +24,10 @@ class ModelRepository:
         columns_field_path = f"models.{model_name}.columns"
         target_column_field_path = f"models.{model_name}.target_column"
         model_type_field_path = f"models.{model_name}.model_type"
-        training_speed_field_path = f"models.{model_name}.training_speed"
+        training_strategy_field_path = f"models.{model_name}.training_strategy"
+        sampling_strategy_field_path = f"models.{model_name}.sampling_strategy"
         evaluations_field_path = f"models.{model_name}.evaluations"
+        metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
         
         # Get the current UTC datetime
@@ -43,7 +45,9 @@ class ModelRepository:
                     encoding_rules_field_path: model.encoding_rules,
                     target_column_field_path: model.target_column,
                     model_type_field_path: model.model_type,
-                    training_speed_field_path: model.training_speed,
+                    training_strategy_field_path: model.training_strategy,
+                    sampling_strategy_field_path: model.sampling_strategy,
+                    metric_field_path: model.metric,
                     evaluations_field_path: evaluations
                 }
             }

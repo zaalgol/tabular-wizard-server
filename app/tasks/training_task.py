@@ -28,7 +28,7 @@ class TrainingTask:
         evaluations = None
         encoding_rules = None
         try:
-            if model.ensemble == 'multi':
+            if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
                 trained_model, evaluations, encoding_rules= self._train_multi_models(model, df)
             else:
                 trained_model, evaluations, encoding_rules = self._train_single_model(model, df)
@@ -41,14 +41,14 @@ class TrainingTask:
     def _train_single_model(self, model, df):
         df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column)
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
             training_model = LightGBMRegressor(train_df = df, target_column = model.target_column)
             evaluate = self.regressionEvaluate
 
-        if model.training_speed == 'slow':
+        if model.training_strategy == 'singleModelTuned':
             training_model.tune_hyper_parameters(model.metric)
 
         trained_model = training_model.train()
@@ -67,6 +67,8 @@ class TrainingTask:
             ensemble.sort_models_by_score()
 
             ensemble.create_voting_classifier()
+            if model.training_strategy == 'singleModelTuned':
+                ensemble.tune_hyper_parameters(model.metric)
             ensemble.train_voting_classifier()
             ensemble.evaluate_voting_classifier()
 
@@ -83,6 +85,8 @@ class TrainingTask:
             ensemble.sort_models_by_score()
 
             ensemble.create_voting_regressor()
+            if model.training_strategy == 'singleModelTuned':
+                ensemble.tune_hyper_parameters(model.metric)
             ensemble.train_voting_regressor()
             ensemble.evaluate_voting_regressor()
 

@@ -11,6 +11,7 @@ import pandas as pd
 from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate, KnnClassifier
 import threading
 import pickle
+from sklearn.metrics import accuracy_score
 
 # socketio = SocketIO(cors_allowed_origins="*")
 from app import socketio
@@ -22,15 +23,17 @@ class InferenceTask:
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
 
-    def run_task(self, model_details, loaded_model, original_df, X_data, inference_task_callback, app_context):
+    def run_task(self, model_details, loaded_model, original_df, inference_task_callback, app_context):
         try:
             is_inference_successfully_finished = False
+            X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=[model_details.target_column]).copy()
             X_data = self._data_preprocessing(X_data, model_details.encoding_rules)
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
             elif model_details.model_type == 'regression':
                 y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
+    
             original_df[f'{model_details.target_column}_predict'] = y_predict
             is_inference_successfully_finished = True
         except Exception as e:
@@ -46,6 +49,12 @@ class InferenceTask:
         if encoding_rules:
             df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
         return df_copy
+    
+    def _evaluate_inference(self, model_details, original_df):
+        # if not original_df[model_details.target_column].empty:
+        # original_df['model_accuracy'] = np.nan
+        #     original_df.at[0, 'model_accuracy'] = accuracy_score(original_df[model_details.target_column].values, y_predict)
+        pass
 
 
 
