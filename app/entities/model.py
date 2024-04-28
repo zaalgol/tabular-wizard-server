@@ -18,4 +18,5 @@ class Model:
     columns: list[str] = field(default=None)
     encoding_rules: dict[str, list[str]] = field(default_factory=dict)
     metric: str = field(default=None)
+    evaluations: str = field(default=None)
 	

@@ -15,7 +15,7 @@ class ModelRepository:
     def users_collection(self):
         return self.db['users']
     
-    def add_or_update_model_for_user(self, model, evaluations, columns, saved_model_file_path):
+    def add_or_update_model_for_user(self, model, columns, saved_model_file_path):
         model_name = model.model_name
         # Define the field paths using dot notation
         model_field_path = f"models.{model_name}.filePath"
@@ -48,7 +48,7 @@ class ModelRepository:
                     training_strategy_field_path: model.training_strategy,
                     sampling_strategy_field_path: model.sampling_strategy,
                     metric_field_path: model.metric,
-                    evaluations_field_path: evaluations
+                    evaluations_field_path: model.evaluations
                 }
             }
         )

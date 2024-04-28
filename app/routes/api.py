@@ -89,6 +89,20 @@ def get_user_model():
     model =  model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
     return make_response(jsonify({"model": model}), 200)
 
+@bp.route('/api/modelMetric', methods=['GET'])
+@jwt_required()
+def get_model_evaluations():
+    if request.method == 'OPTIONS':
+        # Handle the preflight request
+        return {}, 200, {}
+    model_name = request.args.get('model_name')
+    user_id =  tokenService.extract_user_id_from_token()
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        return {}, 401, {}
+    model_service.generate_model_metric_file(user_id, model_name)
+    return {}, 200, {}
+
 @bp.route('/api/model', methods=['OPTIONS', 'DELETE'])
 @jwt_required()
 def delete_model():
@@ -130,5 +144,5 @@ def download_file(filename):
     user_id = get_jwt_identity()  # If you need to use user information from the token
     model_name = request.args.get('model_name')
     file_type = request.args.get('file_type')
-    return model_service.downloadFile(user_id, model_name, filename, file_type)
+    return model_service.download_file(user_id, model_name, filename, file_type)
 

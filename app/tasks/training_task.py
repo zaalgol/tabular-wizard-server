@@ -36,7 +36,8 @@ class TrainingTask:
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            task_callback(model, trained_model, encoding_rules, evaluations, headers, is_training_successfully_finished, app_context)
+            model.evaluations = evaluations
+            task_callback(model, trained_model, encoding_rules, headers, is_training_successfully_finished, app_context)
 
     def _train_single_model(self, model, df):
         df = self._data_preprocessing(df, fill_missing_numeric_cells=True)

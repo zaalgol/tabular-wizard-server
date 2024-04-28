@@ -95,7 +95,7 @@ class ModelService:
         thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, self._inference_task_callback, app_context))
         thread.start()
 
-    def _training_task_callback(self, model, trained_model, encoding_rules, evaluations, headers, is_training_successfully_finished, app_context):
+    def _training_task_callback(self, model, trained_model, encoding_rules, headers, is_training_successfully_finished, app_context):
         try:
             with app_context:
                 if not is_training_successfully_finished:
@@ -104,25 +104,26 @@ class ModelService:
                 else:
                     saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
                     model.encoding_rules = encoding_rules
-                    self.model_repository.add_or_update_model_for_user(model, evaluations, headers, saved_model_file_path)
+                    self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     
-                    # Emit an event for training success
-                    SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
-                    evaluations_filename = f"{model.model_name}__evaluations.txt"
-                    evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
-                    if not os.path.exists(SAVED_MODEL_FOLDER):
-                        os.makedirs(SAVED_MODEL_FOLDER)
-                    with open(evaluations_filepath, 'w') as file:
-                        file.write(str(f"Model Name: {model.model_name} \n\
-                        Model Type: {model.model_type} \n\
-                        Training Srategy: {model.training_strategy} \n\
-                        Sampling Strategy: {model.sampling_strategy} \n\n\
-                        evaluations: {evaluations}"))
+                    # # Emit an event for training success
+                    # SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
+                    # evaluations_filename = f"{model.model_name}__evaluations.txt"
+                    # evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
+                    # if not os.path.exists(SAVED_MODEL_FOLDER):
+                    #     os.makedirs(SAVED_MODEL_FOLDER)
+                    # with open(evaluations_filepath, 'w') as file:
+                    #     file.write(str(f"Model Name: {model.model_name} \n\
+                    #     Model Type: {model.model_type} \n\
+                    #     Training Srategy: {model.training_strategy} \n\
+                    #     Sampling Strategy: {model.sampling_strategy} \n\n\
+                    #     evaluations: {model.evaluations}"))
                         
-                    # Generate a unique URL for the txt file
-                    scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
-                    server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
-                    evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
+                    # # Generate a unique URL for the txt file
+                    # scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
+                    # server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
+                    # evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
+                    evaluations_url = self._generate_model_evaluations_file(model)
                     
                     socketio.emit('status', {'status': 'success',
                                             'file_type': 'evaluations',
@@ -133,6 +134,27 @@ class ModelService:
             print(f"Error downloading file: {e}")
             
             socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+            
+    def _generate_model_evaluations_file(self, model):
+        # Emit an event for training success
+        SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
+        evaluations_filename = f"{model.model_name}__evaluations.txt"
+        evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
+        
+        if not os.path.exists(SAVED_MODEL_FOLDER):
+            os.makedirs(SAVED_MODEL_FOLDER)
+            
+        with open(evaluations_filepath, 'w') as file:
+            file.write(str(f"Model Name: {model.model_name} \n\
+            Model Type: {model.model_type} \n\
+            Training Srategy: {model.training_strategy} \n\
+            Sampling Strategy: {model.sampling_strategy} \n\n\
+            evaluations: {model.evaluations}"))
+            
+        # Generate a unique URL for the txt file
+        scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
+        server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
+        return f"{scheme}://{server_name}/download/{evaluations_filename}"
 
     def _inference_task_callback(self, model_details, original_df, is_inference_successfully_finished, app_context):
         with app_context:
@@ -179,7 +201,7 @@ class ModelService:
             pickle.dump(model, open(SAVED_MODEL_FILE, 'wb'))
             return SAVED_MODEL_FILE
     
-    def downloadFile(self, user_id, model_name, filename, file_type):
+    def download_file(self, user_id, model_name, filename, file_type):
         try:
             if file_type == 'inference':
                 saved_folder = current_app.config['SAVED_INFERENCES_FOLDER']
@@ -209,6 +231,27 @@ class ModelService:
                                                                                                       'encoding_rules', 'metric', 'target_column',
                                                                                                       'model_type', 'training_strategy', 'sampling_strategy'])
         
+    def generate_model_metric_file(self, user_id, model_name):
+        try:
+            model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
+                                                                                    additonal_properties=['evaluations',
+                                                                                                        'model_type', 'training_strategy', 'sampling_strategy'])
+            model_object = Model(**model)
+            model_object.user_id = user_id
+            model_object.model_name = model_name
+            evaluations_url = self._generate_model_evaluations_file(model_object)
+                        
+            socketio.emit('status', {'status': 'success',
+                                    'file_type': 'evaluations',
+                                    'model_name': f'{model_object.model_name}',
+                                    'message': f'Model {model_object.model_name} evaluations download successfully.',
+                                    'file_url': evaluations_url})
+        except Exception as e:
+            print(f"Error downloading file: {e}")
+            
+            socketio.emit('status', {'status': 'failed', 'message': f'Model {model_name} evaluations download failed.'})
+        
+    
     def delete_model_for_user(self, user_id, model_name):
         return self.model_repository.delete_model_for_user(user_id, model_name)
 
