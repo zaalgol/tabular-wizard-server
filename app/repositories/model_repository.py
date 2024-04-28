@@ -71,19 +71,6 @@ class ModelRepository:
 
     
     def get_user_models_by_id(self, user_id, additonal_properties):
-
-        # pipeline = [
-        #     {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
-        #     {"$project": {
-        #         "specific_model": f"$models.with_columns_and_target_column",
-        #         "_id": 0  # Exclude the _id from the results if not needed
-        #     }},
-        #     {"$match": {"specific_model.isDeleted": {"$ne": True}}}  # Ensure the model is not marked as deleted
-        # ]
-
-        # result =  self.users_collection.aggregate(pipeline).next()
-    
-
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {"models": {"$objectToArray": "$models"}}},
@@ -99,16 +86,16 @@ class ModelRepository:
         else:
             return {}
         
-    # def _model_dict_to_front_list(self, models_dict):
-    #     models_list = []
-    #     for name, details in models_dict.items():
-    #         model_info = {'id': name}
-    #         if 'created_at' in details:
-    #             model_info['created_at'] = details['created_at']
-    #         if 'description' in details:
-    #             model_info['description'] = details['description']
-    #         models_list.append(model_info)
-    #     return models_list
+    def delete_model_for_user(self, user_id, model_name):
+        """
+        Delete a model for a user by setting its 'isDeleted' field to True.
+        """
+        model_field_path = f"models.{model_name}"
+        return self.users_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {f"{model_field_path}.isDeleted": True}}
+        )
+        
 
     def _model_dict_to_front_list(self, models_dict, additonal_properties):
         models_list = []

@@ -41,11 +41,11 @@ class TrainingTask:
     def _train_single_model(self, model, df):
         df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric)
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric, sampling_strategy=model.sampling_strategy)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
-            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column)
+            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, scoring=model.metric)
             evaluate = self.regressionEvaluate
 
         if model.training_strategy == 'singleModelTuned':
@@ -61,14 +61,15 @@ class TrainingTask:
     def _train_multi_models(self, model, df):
         if model.model_type == 'classification':
             df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
-            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True)
+            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True,
+                                              sampling_strategy=model.sampling_strategy, scoring=model.metric)
             ensemble.create_models(df)
             # ensemble.train_all_models()
             ensemble.sort_models_by_score()
 
             ensemble.create_voting_classifier()
-            if model.training_strategy == 'singleModelTuned':
-                ensemble.tune_hyper_parameters(model.metric)
+            if model.training_strategy == 'ensembleModelsTuned':
+                ensemble.tuning_top_models()
             ensemble.train_voting_classifier()
             ensemble.evaluate_voting_classifier()
 
@@ -79,14 +80,15 @@ class TrainingTask:
         
         if model.model_type == 'regression':
             df = self._data_preprocessing(df)
-            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True, create_transformations=True, apply_transformations=True)
+            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
+                                          apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
             ensemble.create_models(df)
             # ensemble.train_all_models()
             ensemble.sort_models_by_score()
 
             ensemble.create_voting_regressor()
-            if model.training_strategy == 'singleModelTuned':
-                ensemble.tune_hyper_parameters(model.metric)
+            if model.training_strategy == 'ensembleModelsTuned':
+                ensemble.tuning_top_models()
             ensemble.train_voting_regressor()
             ensemble.evaluate_voting_regressor()
 

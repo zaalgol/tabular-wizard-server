@@ -205,8 +205,12 @@ class ModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
-                                                                                  additonal_properties=['created_at', 'description', 'columns', 'encoding_rules', 'metric',
-                                                                                                        'target_column', 'model_type', 'training_strategy', 'sampling_strategy'])
+                                                                                additonal_properties=['created_at', 'description', 'columns',
+                                                                                                      'encoding_rules', 'metric', 'target_column',
+                                                                                                      'model_type', 'training_strategy', 'sampling_strategy'])
+        
+    def delete_model_for_user(self, user_id, model_name):
+        return self.model_repository.delete_model_for_user(user_id, model_name)
 
 
 
