@@ -4,11 +4,6 @@ from app.services.hassing_service import PasswordHasher
 from app.services.token_serivce import TokenService
 from flask import current_app, jsonify, make_response
 
-import os
-import pandas as pd
-from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor
-import threading
-import pickle
 
 class UserService:
     _instance = None

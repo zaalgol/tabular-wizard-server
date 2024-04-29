@@ -1,4 +1,5 @@
 import os
+from app.ai.data_preprocessing import DataPreprocessing
 import app.app as app
 from datetime import datetime, UTC
 from app.entities.model import Model
@@ -10,7 +11,8 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from app.tasks.inference_task import InferenceTask
 from app.tasks.training_task import TrainingTask
-from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate, KnnClassifier
+from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
+from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 import threading
 import pickle
 

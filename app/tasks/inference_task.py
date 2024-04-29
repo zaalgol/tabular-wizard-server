@@ -1,5 +1,7 @@
 import pandas as pd
-from tabularwizard import DataPreprocessing, ClassificationEvaluate, RegressionEvaluate
+from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
+from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
+from app.ai.data_preprocessing import DataPreprocessing
 
 
 class InferenceTask:

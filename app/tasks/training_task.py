@@ -1,5 +1,11 @@
-from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate \
-    ,ClassificationEnsemble, RegressionEnsemble
+from app.ai.models.classification.implementations.lightgbm_classifier import LightgbmClassifier
+from app.ai.data_preprocessing import DataPreprocessing 
+from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
+from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
+from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
+from app.ai.models.regression.implementations.ensemble import Ensemble as ClassificationEnsemble
+from app.ai.models.classification.implementations.ensemble import Ensemble as RegressionEnsemble
+
 
 class TrainingTask:
     def __init__(self) -> None:
