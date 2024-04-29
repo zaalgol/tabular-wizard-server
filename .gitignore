@@ -5,3 +5,4 @@ instance/
 saved_models
 saved_inferences
 catboost_info
+.env
