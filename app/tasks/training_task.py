@@ -1,23 +1,8 @@
-import os
-import app.app as app
-from datetime import datetime, UTC
-from app.entities.model import Model
-from app.repositories.model_repository import ModelRepository
-from app.repositories.user_repository import UserRepository
-from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
-from werkzeug.utils import safe_join
-from werkzeug.utils import secure_filename
-import pandas as pd
 from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate \
-    , KnnClassifier, ClassificationEnsemble, RegressionEnsemble
-
-# socketio = SocketIO(cors_allowed_origins="*")
-from app.app import socketio
-
+    ,ClassificationEnsemble, RegressionEnsemble
 
 class TrainingTask:
     def __init__(self) -> None:
-        self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
         self.data_preprocessing = DataPreprocessing()

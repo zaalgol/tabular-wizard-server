@@ -1,20 +1,5 @@
-import os
-import app.app as app
-from datetime import datetime, UTC
-from app.entities.model import Model
-from app.repositories.model_repository import ModelRepository
-from app.repositories.user_repository import UserRepository
-from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
-from werkzeug.utils import safe_join
-from werkzeug.utils import secure_filename
 import pandas as pd
-from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate, KnnClassifier
-import threading
-import pickle
-from sklearn.metrics import accuracy_score
-
-# socketio = SocketIO(cors_allowed_origins="*")
-from app.app import socketio
+from tabularwizard import DataPreprocessing, ClassificationEvaluate, RegressionEvaluate
 
 
 class InferenceTask:
