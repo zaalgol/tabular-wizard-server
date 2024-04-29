@@ -1,5 +1,5 @@
 import os
-import app
+import app.app as app
 from datetime import datetime, UTC
 from app.entities.model import Model
 from app.repositories.model_repository import ModelRepository
@@ -12,7 +12,7 @@ from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegress
     , KnnClassifier, ClassificationEnsemble, RegressionEnsemble
 
 # socketio = SocketIO(cors_allowed_origins="*")
-from app import socketio
+from app.app import socketio
 
 
 class TrainingTask:

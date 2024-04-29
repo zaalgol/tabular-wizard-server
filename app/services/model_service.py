@@ -1,5 +1,5 @@
 import os
-import app
+import app.app as app
 from datetime import datetime, UTC
 from app.entities.model import Model
 from app.repositories.model_repository import ModelRepository
@@ -15,7 +15,7 @@ import threading
 import pickle
 
 # socketio = SocketIO(cors_allowed_origins="*")
-from app import socketio
+from app.app import socketio
 
 
 class ModelService:
@@ -107,7 +107,7 @@ class ModelService:
                     self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     
                     # # Emit an event for training success
-                    # SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
+                    # SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
                     # evaluations_filename = f"{model.model_name}__evaluations.txt"
                     # evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
                     # if not os.path.exists(SAVED_MODEL_FOLDER):
@@ -137,7 +137,7 @@ class ModelService:
             
     def _generate_model_evaluations_file(self, model):
         # Emit an event for training success
-        SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
+        SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
         evaluations_filename = f"{model.model_name}__evaluations.txt"
         evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
         
@@ -164,7 +164,7 @@ class ModelService:
             else:
                 # TODO: Add logs to DB
                 current_utc_datetime = datetime.now(UTC).strftime('%Y-%m-%d_%H-%M-%S')
-                SAVED_INFERENCES_FOLDER = os.path.join(app.config.config.Config.SAVED_INFERENCES_FOLDER, model_details.user_id, model_details.model_name)
+                SAVED_INFERENCES_FOLDER = os.path.join(app.Config.SAVED_INFERENCES_FOLDER, model_details.user_id, model_details.model_name)
                 uploaf_file_without_sufix = model_details.file_name[:model_details.file_name.index(".")]
                 csv_filename = f"{current_utc_datetime}__{model_details.model_name}__{uploaf_file_without_sufix}__inference.csv"
                 csv_filepath = os.path.join(SAVED_INFERENCES_FOLDER, csv_filename)
@@ -187,14 +187,14 @@ class ModelService:
                 })
 
     def load_model(self, user_id, model_name):
-        SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, user_id, model_name)
+        SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, user_id, model_name)
         SAVED_MODEL_FILE = os.path.join(SAVED_MODEL_FOLDER, 'model.sav')
         if not os.path.exists(SAVED_MODEL_FOLDER):
             raise Exception(f"Model {SAVED_MODEL_FILE} not found")
         return pickle.load(open(SAVED_MODEL_FILE, 'rb'))
 
     def save_model(self, model, user_id, model_name):
-            SAVED_MODEL_FOLDER = os.path.join(app.config.config.Config.SAVED_MODELS_FOLDER, user_id, model_name)
+            SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, user_id, model_name)
             SAVED_MODEL_FILE = os.path.join(SAVED_MODEL_FOLDER, 'model.sav')
             if not os.path.exists(SAVED_MODEL_FOLDER):
                 os.makedirs(SAVED_MODEL_FOLDER)

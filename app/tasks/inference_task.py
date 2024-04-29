@@ -1,5 +1,5 @@
 import os
-import app
+import app.app as app
 from datetime import datetime, UTC
 from app.entities.model import Model
 from app.repositories.model_repository import ModelRepository
@@ -14,7 +14,7 @@ import pickle
 from sklearn.metrics import accuracy_score
 
 # socketio = SocketIO(cors_allowed_origins="*")
-from app import socketio
+from app.app import socketio
 
 
 class InferenceTask:

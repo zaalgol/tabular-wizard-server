@@ -1,4 +1,4 @@
-import app
+import app.app as app
 from app.repositories.user_repository import UserRepository
 from app.services.hassing_service import PasswordHasher
 from app.services.token_serivce import TokenService
@@ -34,8 +34,8 @@ class UserService:
         return jsonify({'message': 'Invalid credentials'}), 401
     
     def seed_admin_user(self):
-        email=f'admin@{app.config.config.Config.EMAIL_DOMAIN}'
-        password=app.config.config.Config.ADMIN_PASSWORD
+        email=f'admin@{app.Config.EMAIL_DOMAIN}'
+        password=app.Config.ADMIN_PASSWORD
         return self.create_user(email, password)
 
     def create_user(self, email, password):

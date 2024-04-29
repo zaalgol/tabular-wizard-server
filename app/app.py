@@ -8,7 +8,7 @@ from flask_socketio import SocketIO
 
 jwt = JWTManager()
 migrate = Migrate()
-socketio = SocketIO(cors_allowed_origins="*")  # Initialize SocketIO
+socketio = SocketIO(cors_allowed_origins="*")
 
 def create_app():
     app = Flask(__name__)
