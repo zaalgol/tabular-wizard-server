@@ -1,8 +1,8 @@
 from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
 from xgboost import plot_importance
-from src.data_preprocessing import DataPreprocessing
-from src.models.regression.implementations.base_regressor_model import BaseRegressorModel
+from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 
 DEFAULT_PARAMS = {

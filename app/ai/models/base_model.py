@@ -6,7 +6,7 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.model_selection import train_test_split
 from skopt.callbacks import DeadlineStopper, DeltaYStopper
 
-from src.data_preprocessing import DataPreprocessing
+from app.ai.data_preprocessing import DataPreprocessing
 
 
 class BaseModel:

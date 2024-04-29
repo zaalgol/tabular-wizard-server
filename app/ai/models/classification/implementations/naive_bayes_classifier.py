@@ -1,5 +1,5 @@
 from sklearn.naive_bayes import GaussianNB
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 from skopt.space import Real
 
 # Default parameters for Gaussian Naive Bayes

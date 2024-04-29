@@ -2,7 +2,7 @@ import os
 import numpy as np
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.neural_network import MLPClassifier
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 import matplotlib.pyplot as plt
 from skopt.space import Real, Categorical, Integer
 

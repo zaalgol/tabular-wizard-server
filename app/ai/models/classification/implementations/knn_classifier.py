@@ -1,5 +1,5 @@
 from sklearn.neighbors import KNeighborsClassifier
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 from skopt.space import Categorical, Integer
 
 

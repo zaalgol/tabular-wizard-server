@@ -13,3 +13,8 @@ class Config:
     SAVED_MODELS_FOLDER = os.getenv('SAVED_MODELS_FOLDER')
     SAVED_INFERENCES_FOLDER = os.getenv('SAVED_INFERENCES_FOLDER')
     SERVER_NAME = os.getenv('SERVER_NAME')
+    
+    AWS_ACCESS_KEY = os.getenv('AWS_ACCESS_KEY')
+    AWS_SECRET_KEY = os.getenv('AWS_SECRET_KEY')
+    BUCKET_NAME = os.getenv('BUCKET_NAME')
+    

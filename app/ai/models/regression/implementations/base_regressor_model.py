@@ -1,6 +1,6 @@
 from sklearn.model_selection import KFold
 from skopt import BayesSearchCV
-from src.models.base_model import BaseModel
+from app.ai.models.base_model import BaseModel
 
 
 class BaseRegressorModel(BaseModel):

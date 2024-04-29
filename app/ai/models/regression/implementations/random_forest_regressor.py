@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestRegressor
-from src.data_preprocessing import DataPreprocessing
-from src.models.regression.implementations.base_regressor_model import BaseRegressorModel
+from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 DEFAULT_PARAMS_RF = {
     'n_estimators': (100, 1000),

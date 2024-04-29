@@ -1,7 +1,7 @@
 from skopt.space import Real, Integer
 
 from catboost import CatBoostRegressor
-from src.models.regression.implementations.base_regressor_model import BaseRegressorModel
+from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 
 DEFAULT_PARAMS = {

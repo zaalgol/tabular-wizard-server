@@ -4,15 +4,15 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mode
 from sklearn.model_selection import cross_val_score
-from src.data_preprocessing import DataPreprocessing
-from src.models.regression.implementations.base_regressor_model import BaseRegressorModel
-from src.models.regression.implementations.random_forest_regressor import RandomForestRegressorModel
-from src.models.regression.implementations.svr_regressor import SVRRegressorModel
-from src.models.regression.implementations.catboot_regressor import CatboostRegressor
-from src.models.regression.evaluate import Evaluate
-from src.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
-from src.models.regression.implementations.mlrpregressor import MLPNetRegressor
-from src.models.regression.implementations.xgboost_regressor import XgboostRegressor
+from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
+from app.ai.models.regression.implementations.random_forest_regressor import RandomForestRegressorModel
+from app.ai.models.regression.implementations.svr_regressor import SVRRegressorModel
+from app.ai.models.regression.implementations.catboot_regressor import CatboostRegressor
+from app.ai.models.regression.evaluate import Evaluate
+from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
+from app.ai.models.regression.implementations.mlrpregressor import MLPNetRegressor
+from app.ai.models.regression.implementations.xgboost_regressor import XgboostRegressor
 from sklearn.ensemble import VotingRegressor
 from itertools import islice
 

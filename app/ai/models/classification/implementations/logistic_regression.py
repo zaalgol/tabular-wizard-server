@@ -1,5 +1,5 @@
 from sklearn.linear_model import LogisticRegression
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 from sklearn.preprocessing import StandardScaler
 from skopt.space import Real, Categorical, Integer
 

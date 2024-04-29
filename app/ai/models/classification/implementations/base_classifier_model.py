@@ -2,7 +2,7 @@ from abc import abstractmethod
 import os
 from sklearn.model_selection import KFold
 from skopt import BayesSearchCV
-from src.models.base_model import BaseModel
+from app.ai.models.base_model import BaseModel
 import matplotlib.pyplot as plt
 import numpy as np
 from imblearn.over_sampling import RandomOverSampler

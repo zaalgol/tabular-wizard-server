@@ -3,8 +3,8 @@
 
 import os
 from lightgbm import LGBMClassifier, plot_tree
-from src.data_preprocessing import DataPreprocessing
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 import matplotlib.pyplot as plt
 from skopt.space import Real, Categorical, Integer
 

@@ -7,18 +7,18 @@ from sklearn.ensemble import VotingClassifier
 from itertools import islice
 
 
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from src.models.classification.implementations.knn_classifier import KnnClassifier
-from src.models.classification.implementations.logistic_regression import LRegression
-from src.models.classification.implementations.mlpclassifier import MLPNetClassifier
-from src.models.classification.implementations.lightgbm_classifier import LightgbmClassifier
-from src.models.classification.implementations.random_forest_classifier import RandomForestClassifierCustom
-from src.models.classification.implementations.xgboost_classifier import XgboostClassifier
-from src.models.classification.implementations.catboot_classifier import CatboostClassifier
-from src.models.classification.implementations.naive_bayes_classifier import NaiveBayesClassifier
-from src.models.classification.implementations.svm_classifier import SvmClassifier
-from src.models.classification.evaluate import Evaluate
-from src.data_preprocessing import DataPreprocessing
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.knn_classifier import KnnClassifier
+from app.ai.models.classification.implementations.logistic_regression import LRegression
+from app.ai.models.classification.implementations.mlpclassifier import MLPNetClassifier
+from app.ai.models.classification.implementations.lightgbm_classifier import LightgbmClassifier
+from app.ai.models.classification.implementations.random_forest_classifier import RandomForestClassifierCustom
+from app.ai.models.classification.implementations.xgboost_classifier import XgboostClassifier
+from app.ai.models.classification.implementations.catboot_classifier import CatboostClassifier
+from app.ai.models.classification.implementations.naive_bayes_classifier import NaiveBayesClassifier
+from app.ai.models.classification.implementations.svm_classifier import SvmClassifier
+from app.ai.models.classification.evaluate import Evaluate
+from app.ai.data_preprocessing import DataPreprocessing
 from sklearn.model_selection import cross_val_score
 
 class Ensemble(BaseClassfierModel):

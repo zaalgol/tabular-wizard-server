@@ -9,6 +9,7 @@ from flask import current_app, jsonify, make_response, send_from_directory, send
 from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 import pandas as pd
+from app.storage.model_storage import ModelStorage
 from app.tasks.inference_task import InferenceTask
 from app.tasks.training_task import TrainingTask
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
@@ -30,6 +31,7 @@ class ModelService:
         self.regressionEvaluate = RegressionEvaluate()
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
+        self.model_storage = ModelStorage()
 
     def __new__(cls):
         if not cls._instance:
@@ -82,7 +84,7 @@ class ModelService:
         return df
     
     def inference(self, user_id, model_name, file_name, dataset):
-        loaded_model = self.load_model(user_id, model_name)
+        loaded_model =  self.model_storage.load_model(user_id, model_name)
         model_details_dict =  self.get_user_model_by_user_id_and_model_name(user_id, model_name)
         model_details = Model(**model_details_dict)
         model_details.user_id = user_id
@@ -104,7 +106,7 @@ class ModelService:
                     # Emit an event for training failure
                     socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
                 else:
-                    saved_model_file_path = self.save_model(trained_model, model.user_id, model.model_name)
+                    saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
                     model.encoding_rules = encoding_rules
                     self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     

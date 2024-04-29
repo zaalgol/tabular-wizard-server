@@ -1,14 +1,23 @@
-from app.ai.models.classification.implementations.lightgbm_classifier import LightgbmClassifier
-from app.ai.data_preprocessing import DataPreprocessing 
-from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
-from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
-from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
-from app.ai.models.regression.implementations.ensemble import Ensemble as RegressionEnsemble
-from app.ai.models.classification.implementations.ensemble import Ensemble as ClassificationEnsemble
+import os
+import app.ai.app as app
+from datetime import datetime, UTC
+from app.ai.entities.model import Model
+from app.ai.repositories.model_repository import ModelRepository
+from app.ai.repositories.user_repository import UserRepository
+from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
+from werkzeug.utils import safe_join
+from werkzeug.utils import secure_filename
+import pandas as pd
+from tabularwizard import DataPreprocessing, LightgbmClassifier, LightGBMRegressor, ClassificationEvaluate, RegressionEvaluate \
+    , KnnClassifier, ClassificationEnsemble, RegressionEnsemble
+
+# socketio = SocketIO(cors_allowed_origins="*")
+# from app.app import socketio
 
 
 class TrainingTask:
     def __init__(self) -> None:
+        self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
         self.data_preprocessing = DataPreprocessing()

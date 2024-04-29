@@ -1,9 +1,9 @@
 import os
 from xgboost import XGBClassifier, plot_tree
 import matplotlib.pyplot as plt
-from src.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 from skopt.space import Real, Categorical, Integer
-from src.data_preprocessing import DataPreprocessing 
+from app.ai.data_preprocessing import DataPreprocessing 
 
 DEFAULT_PARAMS = {
 'learning_rate': Real(0.01, 0.5, prior='log-uniform'),  # Log-uniform is more suitable for learning rates
