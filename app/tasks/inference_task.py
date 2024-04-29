@@ -31,10 +31,15 @@ class InferenceTask:
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
+                original_df[f'{model_details.target_column}_predict'] = y_predict
+                y_predict_proba = self.classificationEvaluate.predict_proba(loaded_model, X_data)
+                proba_df = pd.DataFrame(y_predict_proba.round(2), columns=[f'Prob_{cls}' for cls in loaded_model.classes_])
+                original_df = pd.concat([original_df, proba_df], axis=1)
+
             elif model_details.model_type == 'regression':
                 y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
-    
-            original_df[f'{model_details.target_column}_predict'] = y_predict
+                original_df[f'{model_details.target_column}_predict'] = y_predict
+                
             is_inference_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
@@ -43,7 +48,7 @@ class InferenceTask:
 
     def _data_preprocessing(self, df, encoding_rules):
         df_copy = df.copy()
-        df_copy = self.data_preprocessing.sanitize_dataframe(df_copy)
+        df_copy = self.data_preprocessing.sanitize_cells(df_copy)
         df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
         df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df)
         if encoding_rules:
