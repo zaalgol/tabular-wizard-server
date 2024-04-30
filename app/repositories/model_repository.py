@@ -29,13 +29,14 @@ class ModelRepository:
         evaluations_field_path = f"models.{model_name}.evaluations"
         metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
+        isDeleted_fieled_path= f"models.{model_name}.isDeleted"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
         
         # Update the user document with the model path and current UTC datetime
         update_result = self.users_collection.update_one(
-            {"_id": ObjectId(model.user_id), "isDeleted": {"$ne": True}},
+            {"_id": ObjectId(model.user_id)},
             {
                 "$set": {
                     model_field_path: saved_model_file_path,
@@ -48,7 +49,8 @@ class ModelRepository:
                     training_strategy_field_path: model.training_strategy,
                     sampling_strategy_field_path: model.sampling_strategy,
                     metric_field_path: model.metric,
-                    evaluations_field_path: model.evaluations
+                    evaluations_field_path: model.evaluations,
+                    isDeleted_fieled_path: False
                 }
             }
         )
@@ -86,7 +88,7 @@ class ModelRepository:
         else:
             return {}
         
-    def delete_model_for_user(self, user_id, model_name):
+    def delete_model_of_user(self, user_id, model_name):
         """
         Delete a model for a user by setting its 'isDeleted' field to True.
         """

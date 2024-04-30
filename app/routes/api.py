@@ -114,7 +114,7 @@ def delete_model():
     user = user_service.get_user_by_id(user_id)
     if not user:
         return {}, 401, {}
-    result =  model_service.delete_model_for_user(user_id, model_name)
+    result =  model_service.delete_model_of_user(user_id, model_name)
     return {}, 200, {}
 
 

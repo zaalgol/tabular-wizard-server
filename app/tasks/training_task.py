@@ -56,9 +56,10 @@ class TrainingTask:
             ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True,
                                               sampling_strategy=model.sampling_strategy, scoring=model.metric)
             ensemble.create_models(df)
-            # ensemble.train_all_models()
+            print("#" * 500)
+            ensemble.train_all_models()
             ensemble.sort_models_by_score()
-
+            print("*" * 500)
             ensemble.create_voting_classifier()
             if model.training_strategy == 'ensembleModelsTuned':
                 ensemble.tuning_top_models()

@@ -11,7 +11,7 @@ from app.ai.data_preprocessing import DataPreprocessing
 
 class BaseModel:
     def __init__(self, train_df, target_column, scoring, split_column, 
-                 create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, test_size=0.2,
+                 create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, test_size=0.25,
                  already_splitted_data=None):
         self.search = None
         self.scoring = scoring

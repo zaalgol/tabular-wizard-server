@@ -35,8 +35,3 @@ class ModelStorage:
         except NoCredentialsError:
             raise Exception("Credentials not available")
 
-# Example Usage
-# model_storage = ModelStorage()
-# model = ... # Your trained model
-# model_storage.save_model(model, 'user123', 'mymodel')
-# loaded_model = model_storage.load_model('user123', 'mymodel')

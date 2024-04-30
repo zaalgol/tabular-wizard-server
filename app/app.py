@@ -13,6 +13,7 @@ socketio = SocketIO(cors_allowed_origins="*")
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
     mongo_client = MongoClient(app.config['MONGODB_URI'])
     db = mongo_client.get_default_database()
     app.db = db

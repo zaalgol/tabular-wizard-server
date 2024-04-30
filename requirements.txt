@@ -38,3 +38,4 @@ tzdata
 xgboost
 imbalanced-learn
 category_encoders
+certifi
