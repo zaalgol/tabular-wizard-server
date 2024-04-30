@@ -15,12 +15,10 @@ DEFAULT_PARAMS = {
 
 
 class CatboostRegressor(BaseRegressorModel):
-    def __init__(self, train_df, target_column, split_column=None, test_size=0.3, 
-                 create_encoding_rules=False, apply_encoding_rules=False, already_splitted_data=None, verbose=False,
-                 scoring='r2', *args, **kwargs):
-        super().__init__(train_df, target_column, split_column=split_column, test_size=test_size,
-                         create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules,
-                         already_splitted_data=already_splitted_data, scoring=scoring, *args, **kwargs)
+    def __init__(self, train_df, target_column, verbose=False,
+                  *args, **kwargs):
+        super().__init__(train_df, target_column, *args, **kwargs)
+        self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = CatBoostRegressor(verbose=verbose, *args, **kwargs)
 
     @property

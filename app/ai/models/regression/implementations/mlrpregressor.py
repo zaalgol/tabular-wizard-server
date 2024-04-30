@@ -14,13 +14,10 @@ DEFAULT_PARAMS = {
 }
 
 class MLPNetRegressor(BaseRegressorModel):
-    def __init__(self, train_df, target_column, split_column=None, create_encoding_rules=False, apply_encoding_rules=False, 
-                 create_transformations=False, apply_transformations=False, test_size=0.3, already_splitted_data=None, scoring='r2',
+    def __init__(self, train_df, target_column,
                  *args, **kwargs):
-        super().__init__(train_df, target_column, split_column=split_column, test_size=test_size,  
-                         create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
-                         create_transformations=create_transformations, apply_transformations=apply_transformations,
-                         already_splitted_data=already_splitted_data, scoring=scoring, *args, **kwargs)
+        super().__init__(train_df, target_column, *args, **kwargs)
+        self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = MLPRegressor(*args, **kwargs)
 
     def train(self):

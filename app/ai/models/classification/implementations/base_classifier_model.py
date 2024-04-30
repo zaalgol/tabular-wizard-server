@@ -32,7 +32,7 @@ class BaseClassfierModel(BaseModel):
                                         n_jobs=1, 
                                         n_points=3,
                                         cv=Kfold,
-                                        verbose=0,
+                                        verbose=-1,
                                         random_state=0)
             
         def train(self):
@@ -64,6 +64,11 @@ class BaseClassfierModel(BaseModel):
         def apply_smote(self):
             random_pver_sampler = RandomOverSampler(random_state=0)
             self.X_train, self.y_train = random_pver_sampler.fit_resample(self.X_train, self.y_train)
+            
+        @property
+        def unnecessary_parameters(self):
+            return ['scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules', 'create_transformations', 'apply_transformations', 'test_size',
+                    'already_splitted_data', 'sampling_strategy']
         
         def save_feature_importances(self, model_folder='', filename='feature_importances.png'):
             # Default implementation, to be overridden in derived classes

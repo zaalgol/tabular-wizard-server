@@ -10,7 +10,7 @@ from app.ai.data_preprocessing import DataPreprocessing
 
 
 class BaseModel:
-    def __init__(self, train_df, target_column, scoring, split_column, 
+    def __init__(self, train_df, target_column, scoring, split_column=None,
                  create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, test_size=0.25,
                  already_splitted_data=None):
         self.search = None
@@ -54,7 +54,10 @@ class BaseModel:
         if apply_transformations:
             self.X_train = self.data_preprocessing.transformed_numeric_column_details(self.X_train, self.transformations)
             self.X_test = self.data_preprocessing.transformed_numeric_column_details(self.X_test, self.transformations)
-
+            
+    def remove_unnecessary_parameters_for_implementations(self, kwargs):
+        for parameter in self.unnecessary_parameters:
+             kwargs.pop(parameter, None)
 
     @property
     def callbacks(self):
@@ -65,6 +68,11 @@ class BaseModel:
         # overdone_control = DeltaYStopper(delta=0.0001) # We stop if the gain of the optimization becomes too small
         # return [overdone_control, time_limit_control]
 
+    @property
+    @abstractmethod
+    def unnecessary_parameters(self):
+        return {}
+      
     @property
     @abstractmethod
     def default_params(self):

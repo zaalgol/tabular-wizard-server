@@ -58,13 +58,9 @@ DEFAULT_PARAMS = [
 
 
 class LRegression(BaseClassfierModel):
-    def __init__(self, train_df, target_column, split_column=None, create_encoding_rules=False, apply_encoding_rules=False, test_size=0.3,
-                 already_splitted_data=None, sampling_strategy='conditionalOversampling', *args, **kwargs):
-        super().__init__(train_df, target_column, split_column=split_column, create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
-                         test_size=test_size, already_splitted_data=already_splitted_data, sampling_strategy=sampling_strategy, *args, **kwargs)
-        # sc=StandardScaler()
-        # self.X_train=sc.fit_transform(self.X_train)
-        # self.X_test=sc.transform(self.X_test)
+    def __init__(self, train_df, target_column, *args, **kwargs):
+        super().__init__(train_df, target_column, *args, **kwargs)
+        self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = LogisticRegression(*args, **kwargs)
 
 

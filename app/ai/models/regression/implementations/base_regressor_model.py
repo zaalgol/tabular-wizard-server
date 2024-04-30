@@ -4,12 +4,10 @@ from app.ai.models.base_model import BaseModel
 
 
 class BaseRegressorModel(BaseModel):
-        def __init__(self, train_df, target_column, split_column=None, test_size=0.2, scoring='r2',
-                      create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, *args, **kwargs):
-            super().__init__(train_df, target_column, scoring, split_column, 
-                             create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules,
-                             create_transformations=create_transformations, apply_transformations=apply_transformations, test_size=test_size, *args, **kwargs)
-        
+        def __init__(self, train_df, target_column,  scoring='r2',
+                       *args, **kwargs):
+            super().__init__(train_df, target_column, scoring, *args, **kwargs)
+
         def tune_hyper_parameters(self, params=None, kfold=5, n_iter=50, *args,**kwargs):
             if params is None:
                 params = self.default_params
@@ -33,5 +31,12 @@ class BaseRegressorModel(BaseModel):
             else:
                 result = self.estimator.fit(self.X_train, self.y_train)
             return result
+        
+        @property
+        def unnecessary_parameters(self):
+            return ['scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules', 'create_transformations', 'apply_transformations', 'test_size',
+                    'already_splitted_data']
+        
+        
 
                 

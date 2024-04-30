@@ -13,7 +13,7 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 # Install uWSGI
 RUN pip install uwsgi
 
-# Expose port 8080 to be accessible from the outside
+# Expose port 5000 to be accessible from the outside
 EXPOSE 5000
 
 # Run uWSGI with the ini file

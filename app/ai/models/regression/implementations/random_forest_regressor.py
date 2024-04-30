@@ -12,14 +12,9 @@ DEFAULT_PARAMS_RF = {
 }
 
 class RandomForestRegressorModel(BaseRegressorModel):
-    def __init__(self, train_df, target_column, split_column=None,
-                 create_encoding_rules=False, apply_encoding_rules=False,
-                 test_size=0.3, already_splitted_data=None, scoring='r2', *args, **kwargs):
-        
-        super().__init__(train_df, target_column, split_column=split_column, test_size=test_size,
-                         create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules,
-                         already_splitted_data=already_splitted_data, scoring=scoring, *args, **kwargs)
-        
+    def __init__(self, train_df, target_column, *args, **kwargs):
+        super().__init__(train_df, target_column, *args, **kwargs)
+        self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = RandomForestRegressor(*args, **kwargs)
 
     @property
