@@ -8,6 +8,7 @@ from itertools import islice
 
 
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
+from app.ai.models.classification.implementations.decsision_tree_classifier import DecisionTreeClassifierWrapper
 from app.ai.models.classification.implementations.knn_classifier import KnnClassifier
 from app.ai.models.classification.implementations.logistic_regression import LRegression
 from app.ai.models.classification.implementations.mlpclassifier import MLPNetClassifier
@@ -35,6 +36,8 @@ class Ensemble(BaseClassfierModel):
         self.top_n_best_models = top_n_best_models
 
     def create_models(self, df):
+        
+        self.classifiers['dtc_classifier'] = {'model':DecisionTreeClassifierWrapper(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['svr_classifier'] = {'model':SvmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['cat_classifier'] = {'model':CatboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['lgbm_classifier'] = {'model':LightgbmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
@@ -43,8 +46,8 @@ class Ensemble(BaseClassfierModel):
         self.classifiers['mlp_classifier'] = {'model':MLPNetClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['rf_classifier'] = {'model':RandomForestClassifierCustom(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['nb_classifier'] = {'model':NaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        if df[self.target_column].dtype not in ['category', 'object']:
-            self.classifiers['xgb_classifier'] = {'model':XgboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        # if df[self.target_column].dtype not in ['category', 'object']:
+        #     self.classifiers['xgb_classifier'] = {'model':XgboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
 
         
     def tune_hyper_parameters(self):
@@ -52,7 +55,8 @@ class Ensemble(BaseClassfierModel):
             classifier_value['model'].tune_hyper_parameters(scoring=self.scoring)
 
     def train_all_models(self):
-        for classifier_value in self.classifiers.values():
+        for name, classifier_value in self.classifiers.items():
+            print(f'Training model {name}')
             classifier_value['trained_model'] = classifier_value['model'].train()
 
     def sort_models_by_score(self):

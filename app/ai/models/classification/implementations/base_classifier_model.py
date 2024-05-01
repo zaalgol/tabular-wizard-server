@@ -32,7 +32,7 @@ class BaseClassfierModel(BaseModel):
                                         n_jobs=1, 
                                         n_points=3,
                                         cv=Kfold,
-                                        verbose=-1,
+                                        verbose=0,
                                         random_state=0)
             
         def train(self):

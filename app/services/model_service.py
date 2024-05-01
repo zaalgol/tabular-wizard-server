@@ -42,11 +42,6 @@ class ModelService:
         if dataset is None:
             return {"error": "No dataset provided"}, 400
         df = self._dataset_to_df(dataset)
-        # df = self._perprocess_data(df, target_column=model.target_column)
-       
-        # df.to_csv('after.csv')
-
-        # Capture the app context here
         app_context = current_app._get_current_object().app_context()
 
         thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self._training_task_callback, app_context))
@@ -99,7 +94,7 @@ class ModelService:
         thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, self._inference_task_callback, app_context))
         thread.start()
 
-    def _training_task_callback(self, model, trained_model, encoding_rules, headers, is_training_successfully_finished, app_context):
+    def _training_task_callback(self, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished, app_context):
         try:
             with app_context:
                 if not is_training_successfully_finished:
@@ -108,6 +103,7 @@ class ModelService:
                 else:
                     saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
                     model.encoding_rules = encoding_rules
+                    model.transformations = transformations
                     self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     
                     # # Emit an event for training success
@@ -217,7 +213,7 @@ class ModelService:
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
                                                                                 additonal_properties=['created_at', 'description', 'columns',
-                                                                                                      'encoding_rules', 'metric', 'target_column',
+                                                                                                      'encoding_rules', 'transformations', 'metric', 'target_column',
                                                                                                       'model_type', 'training_strategy', 'sampling_strategy'])
         
     def generate_model_metric_file(self, user_id, model_name):

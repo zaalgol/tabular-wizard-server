@@ -17,6 +17,7 @@ class Model:
     created_at: datetime = field(default=None)
     columns: list[str] = field(default=None)
     encoding_rules: dict[str, list[str]] = field(default_factory=dict)
+    transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
     evaluations: str = field(default=None)
 	

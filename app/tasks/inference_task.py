@@ -15,7 +15,7 @@ class InferenceTask:
         try:
             is_inference_successfully_finished = False
             X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=[model_details.target_column]).copy()
-            X_data = self._data_preprocessing(X_data, model_details.encoding_rules)
+            X_data = self._data_preprocessing(X_data, model_details.encoding_rules, model_details.transformations)
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
@@ -38,13 +38,17 @@ class InferenceTask:
         finally:
             inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
 
-    def _data_preprocessing(self, df, encoding_rules):
+    def _data_preprocessing(self, df, encoding_rules, transformations):
         df_copy = df.copy()
         df_copy = self.data_preprocessing.sanitize_cells(df_copy)
         df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
-        df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df)
+        df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df_copy)
+        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)
         if encoding_rules:
             df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
+        if transformations:
+             df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, transformations)
+        df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)
         return df_copy
     
     def _evaluate_inference(self, model_details, original_df, y_predict, y_predict_proba):
@@ -53,11 +57,6 @@ class InferenceTask:
                 inference_evaluations = self.classificationEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict, y_predict_proba)
             elif model_details.model_type == 'regression':
                 inference_evaluations =   self.regressionEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict)
-                # inference_evaluations = 
-        # if not original_df[model_details.target_column].empty:
-        # original_df['model_accuracy'] = np.nan
-        #     original_df.at[0, 'model_accuracy'] = accuracy_score(original_df[model_details.target_column].values, y_predict)
-            # Create new columns initialized with NaN or empty string
             for key in inference_evaluations.keys():
                 original_df[f"{key}_inference"] = np.nan  # or "" for empty string
 

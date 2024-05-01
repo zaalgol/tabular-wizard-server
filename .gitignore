@@ -7,3 +7,5 @@ saved_inferences
 catboost_info
 .env
 global-bundle.pem
+datasets
+playground

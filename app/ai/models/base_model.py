@@ -19,12 +19,11 @@ class BaseModel:
         self.data_preprocessing = DataPreprocessing()
         self.encoding_rules = None
 
-
         if already_splitted_data:
             self.X_train, self.X_test, self.y_train, self.y_test = \
                 already_splitted_data['X_train'], already_splitted_data['X_test'], already_splitted_data['y_train'], already_splitted_data['y_test']
             return
-
+        
         if split_column is None:
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(train_df,
                                                                                         train_df[target_column],
@@ -41,9 +40,15 @@ class BaseModel:
 
         self.X_train = self.X_train.drop([target_column], axis=1)
         self.X_test = self.X_test.drop([target_column], axis=1)
-
+        
+        self._preprocess_data(create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations)
+        self.X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_train)
+        self.X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_test)
+            
+    def _preprocess_data(self, create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations):
         if create_encoding_rules:
             self.encoding_rules = self.data_preprocessing.create_encoding_rules(self.X_train)
+            
         if apply_encoding_rules:
             self.X_train = self.data_preprocessing.apply_encoding_rules(self.X_train, self.encoding_rules)
             self.X_test = self.data_preprocessing.apply_encoding_rules(self.X_test, self.encoding_rules)
@@ -51,9 +56,11 @@ class BaseModel:
         if create_transformations:
             numeric_columns = self.data_preprocessing.get_numeric_columns(self.X_train)
             self.transformations = self.data_preprocessing.create_transformed_numeric_column_details(self.X_train, numeric_columns)
+            
         if apply_transformations:
             self.X_train = self.data_preprocessing.transformed_numeric_column_details(self.X_train, self.transformations)
             self.X_test = self.data_preprocessing.transformed_numeric_column_details(self.X_test, self.transformations)
+        
             
     def remove_unnecessary_parameters_for_implementations(self, kwargs):
         for parameter in self.unnecessary_parameters:

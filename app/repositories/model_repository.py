@@ -29,6 +29,7 @@ class ModelRepository:
         evaluations_field_path = f"models.{model_name}.evaluations"
         metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
+        transformations_field_path = f"models.{model_name}.transformations"
         isDeleted_fieled_path= f"models.{model_name}.isDeleted"
         
         # Get the current UTC datetime
@@ -50,6 +51,7 @@ class ModelRepository:
                     sampling_strategy_field_path: model.sampling_strategy,
                     metric_field_path: model.metric,
                     evaluations_field_path: model.evaluations,
+                    transformations_field_path: model.transformations,
                     isDeleted_fieled_path: False
                 }
             }

@@ -125,7 +125,8 @@ class DataPreprocessing:
         return [f for f in df.columns if df.dtypes[f] == 'object' or df.dtypes[f] == 'category']
     
     def get_numeric_columns(self, df):
-        return [f for f in df.columns if df.dtypes[f] != 'object'or df.dtypes[f] == 'category']
+        return [f for f in df.columns if df.dtypes[f] != 'object' and df.dtypes[f] != 'category' 
+                and df.dtypes[f] != 'datetime' and df.dtypes[f] !='datetime64[ns]'] 
     
     
     def fill_missing_numeric_cells(self, df, median_stratay=False):
@@ -237,9 +238,36 @@ class DataPreprocessing:
                 df_encoded[col] = df_encoded[col].astype(bool)
 
         return df_encoded
+    
+    def split_dataframe(self, df, ratio, suffle=True):
+        df_copy = df.copy()
+        if suffle:
+            df_copy = df_copy.sample(frac=1).reset_index(drop=True)
+        split_index = int(ratio * len(df_copy))   
+        df1 = df_copy.iloc[:split_index]
+        df2 = df_copy.iloc[split_index:]
+        
+        return df1, df2
 
-
-
+    def convert_tdatetime_columns_to_datetime_dtype(self, df):
+        df_copy=df.copy()
+        for col in df_copy.columns:
+            if df_copy[col].dtype in ['object', 'category']:
+                # Try converting the column to datetime
+                temp = pd.to_datetime(df_copy[col], errors='coerce')
+                # Check if there are any non-null datetime values
+                if not temp.isna().all():  # Only convert if there are any successful conversions
+                    df_copy[col] = temp
+                    print(f"Converted {col} to datetime")
+        return df_copy
+    
+    def convert_datatimes_columns_to_normalized_floats(self, df):
+        df_copy = df.copy()
+        for col in df_copy.select_dtypes(include=['datetime']):
+            df_copy[col] = df_copy[col].astype('int64')  / 10**19 # to normalize all values between 0 and 1
+        return df_copy
+        
+        
 
 
 
