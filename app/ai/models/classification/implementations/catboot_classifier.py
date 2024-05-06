@@ -28,7 +28,7 @@ class CatboostClassifier(BaseClassfierModel):
                  verbose=False, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = CatBoostClassifier(task_type = 'GPU', devices='0', verbose=verbose, *args, **kwargs)
+        self.estimator = CatBoostClassifier(verbose=verbose, *args, **kwargs)
 
     @property
     def default_params(self):

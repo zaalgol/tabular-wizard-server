@@ -7,6 +7,9 @@ from sklearn.ensemble import VotingClassifier
 from itertools import islice
 
 
+from app.ai.models.classification.implementations.QuadraticDiscriminantAnalysisClassifier import QuadraticDiscriminantAnalysisClassifier
+from app.ai.models.classification.implementations.LinearDiscriminantAnalysis_Classifier import LinearDiscriminantAnalysisClassifier
+from app.ai.models.classification.implementations.NuSVC_Classifier import NuSVCClassifier
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 from app.ai.models.classification.implementations.decsision_tree_classifier import DecisionTreeClassifierWrapper
 from app.ai.models.classification.implementations.knn_classifier import KnnClassifier
@@ -16,7 +19,8 @@ from app.ai.models.classification.implementations.lightgbm_classifier import Lig
 from app.ai.models.classification.implementations.random_forest_classifier import RandomForestClassifierCustom
 from app.ai.models.classification.implementations.xgboost_classifier import XgboostClassifier
 from app.ai.models.classification.implementations.catboot_classifier import CatboostClassifier
-from app.ai.models.classification.implementations.naive_bayes_classifier import NaiveBayesClassifier
+from app.ai.models.classification.implementations.gaussianNB_classifier import GaussianNaiveBayesClassifier
+from app.ai.models.classification.implementations.BernoulliNB_classifier import BernoulliNaiveBayesClassifier
 from app.ai.models.classification.implementations.svm_classifier import SvmClassifier
 from app.ai.models.classification.evaluate import Evaluate
 from app.ai.data_preprocessing import DataPreprocessing
@@ -24,9 +28,9 @@ from sklearn.model_selection import cross_val_score
 
 class Ensemble(BaseClassfierModel):
     def __init__(self, train_df, target_column, split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
-                  create_transformations=False, apply_transformations=False, test_size=0.3, scoring='accuracy', 
+                  create_transformations=False, apply_transformations=False, scoring='accuracy', 
                   sampling_strategy='conditionalOversampling', top_n_best_models=3):
-        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring, split_column=split_column, test_size=test_size,
+        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring, split_column=split_column,
                     create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
                     create_transformations=create_transformations, apply_transformations=apply_transformations, sampling_strategy=sampling_strategy)
         self.classifiers = {}
@@ -39,13 +43,18 @@ class Ensemble(BaseClassfierModel):
         
         self.classifiers['dtc_classifier'] = {'model':DecisionTreeClassifierWrapper(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['svr_classifier'] = {'model':SvmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['nsvc_classifier'] = {'model':NuSVCClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['cat_classifier'] = {'model':CatboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['lgbm_classifier'] = {'model':LightgbmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['knn_classifier'] = {'model':KnnClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['LRegression'] = {'model':LRegression(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['lRegression_classifier'] = {'model':LRegression(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['mlp_classifier'] = {'model':MLPNetClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
         self.classifiers['rf_classifier'] = {'model':RandomForestClassifierCustom(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['nb_classifier'] = {'model':NaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['gnb_classifier'] = {'model':GaussianNaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['bnb_classifier'] = {'model':BernoulliNaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['ldac_classifier'] = {'model':LinearDiscriminantAnalysisClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        self.classifiers['qdac_classifier'] = {'model':QuadraticDiscriminantAnalysisClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        i=0
         # if df[self.target_column].dtype not in ['category', 'object']:
         #     self.classifiers['xgb_classifier'] = {'model':XgboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
 

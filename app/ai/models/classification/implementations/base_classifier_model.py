@@ -9,11 +9,11 @@ from imblearn.over_sampling import RandomOverSampler
 
 
 class BaseClassfierModel(BaseModel):
-        def __init__(self, train_df, target_column, split_column=None, test_size=0.2, scoring='accuracy', sampling_strategy='conditionalOversampling',
+        def __init__(self, train_df, target_column, split_column=None, scoring='accuracy', sampling_strategy='conditionalOversampling',
                       create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, *args, **kwargs):
             super().__init__(train_df, target_column, scoring, split_column, 
                              create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
-                             create_transformations=create_transformations, apply_transformations=apply_transformations, test_size=test_size, *args, **kwargs)
+                             create_transformations=create_transformations, apply_transformations=apply_transformations, *args, **kwargs)
             
             if sampling_strategy == 'conditionalOversampling':
                 self.apply_conditional_smote()

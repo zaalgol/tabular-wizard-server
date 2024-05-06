@@ -21,7 +21,10 @@ class MLPNetClassifier(BaseClassfierModel):
     def __init__(self, train_df, target_column, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = MLPClassifier(max_iter=500, *args, **kwargs)
+         # Choose the solver based on the number of rows in the dataset
+        # if len(train_df) <= 1000 and 'solver' not in kwargs:
+        #      kwargs['solver'] = 'lbfgs'
+        self.estimator = MLPClassifier(max_iter=1000, *args, **kwargs)
 
     def train(self):
             if self.search: # with hyperparameter tuining
