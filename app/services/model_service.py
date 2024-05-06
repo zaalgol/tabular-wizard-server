@@ -41,16 +41,16 @@ class ModelService:
     def train_model(self, model, dataset):
         if dataset is None:
             return {"error": "No dataset provided"}, 400
-        df = self._dataset_to_df(dataset)
+        df = self.__dataset_to_df(dataset)
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self._training_task_callback, app_context))
+        thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self.__training_task_callback, app_context))
         thread.start()
         socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
         
         return {}, 200, {}
 
-    def _perprocess_data(self, df, drop_other_columns=None):
+    def __perprocess_data(self, df, drop_other_columns=None):
         
         if drop_other_columns:
             df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
@@ -72,7 +72,7 @@ class ModelService:
         #     df[feature] = df[feature].astype('category')
         return df
     
-    def _dataset_to_df(self, dataset):
+    def __dataset_to_df(self, dataset):
         headers = dataset[0]
         data_rows = dataset[1:]
         df = pd.DataFrame(data_rows, columns=headers)
@@ -85,16 +85,16 @@ class ModelService:
         model_details.user_id = user_id
         model_details.model_name = model_name
         model_details.file_name = file_name
-        original_df = self._dataset_to_df(dataset)
-        original_df = self._perprocess_data(original_df, drop_other_columns=model_details.columns)
+        original_df = self.__dataset_to_df(dataset)
+        original_df = self.__perprocess_data(original_df, drop_other_columns=model_details.columns)
 
         
         app_context = current_app._get_current_object().app_context()
 
-        thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, self._inference_task_callback, app_context))
+        thread = threading.Thread(target=self.inference_task.run_task, args=(model_details, loaded_model, original_df, self.__inference_task_callback, app_context))
         thread.start()
 
-    def _training_task_callback(self, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished, app_context):
+    def __training_task_callback(self, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished, app_context):
         try:
             with app_context:
                 if not is_training_successfully_finished:
@@ -123,7 +123,7 @@ class ModelService:
                     # scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
                     # server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
                     # evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
-                    evaluations_url = self._generate_model_evaluations_file(model)
+                    evaluations_url = self.__generate_model_evaluations_file(model)
                     
                     socketio.emit('status', {'status': 'success',
                                             'file_type': 'evaluations',
@@ -135,7 +135,7 @@ class ModelService:
             
             socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             
-    def _generate_model_evaluations_file(self, model):
+    def __generate_model_evaluations_file(self, model):
         # Emit an event for training success
         SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
         evaluations_filename = f"{model.model_name}__evaluations.txt"
@@ -156,7 +156,7 @@ class ModelService:
         server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
         return f"{scheme}://{server_name}/download/{evaluations_filename}"
 
-    def _inference_task_callback(self, model_details, original_df, is_inference_successfully_finished, app_context):
+    def __inference_task_callback(self, model_details, original_df, is_inference_successfully_finished, app_context):
         with app_context:
             if not is_inference_successfully_finished:
                 # Emit an event for training failure
@@ -224,7 +224,7 @@ class ModelService:
             model_object = Model(**model)
             model_object.user_id = user_id
             model_object.model_name = model_name
-            evaluations_url = self._generate_model_evaluations_file(model_object)
+            evaluations_url = self.__generate_model_evaluations_file(model_object)
                         
             socketio.emit('status', {'status': 'success',
                                     'file_type': 'evaluations',

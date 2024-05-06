@@ -52,8 +52,6 @@ class Ensemble(BaseRegressorModel):
             )
         }
         
-        
-    
     def tune_hyper_parameters(self):
         for regressor_value in self.regressors.values():
             regressor_value['model'].tune_hyper_parameters()

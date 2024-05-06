@@ -40,24 +40,36 @@ class Ensemble(BaseClassfierModel):
         self.top_n_best_models = top_n_best_models
 
     def create_models(self, df):
-        
-        self.classifiers['dtc_classifier'] = {'model':DecisionTreeClassifierWrapper(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['svr_classifier'] = {'model':SvmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['nsvc_classifier'] = {'model':NuSVCClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['cat_classifier'] = {'model':CatboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['lgbm_classifier'] = {'model':LightgbmClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['knn_classifier'] = {'model':KnnClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['lRegression_classifier'] = {'model':LRegression(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['mlp_classifier'] = {'model':MLPNetClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['rf_classifier'] = {'model':RandomForestClassifierCustom(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['gnb_classifier'] = {'model':GaussianNaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['bnb_classifier'] = {'model':BernoulliNaiveBayesClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['ldac_classifier'] = {'model':LinearDiscriminantAnalysisClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        self.classifiers['qdac_classifier'] = {'model':QuadraticDiscriminantAnalysisClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
-        i=0
-        # if df[self.target_column].dtype not in ['category', 'object']:
-        #     self.classifiers['xgb_classifier'] = {'model':XgboostClassifier(train_df = df.copy(), target_column = self.target_column, already_splitted_data=self.already_splitted_data, sampling_strategy='dontOversample')}
+        model_classes = {
+            'dtc_classifier':DecisionTreeClassifierWrapper,
+            'svr_classifier':SvmClassifier,
+            'nsvc_classifier':NuSVCClassifier,
+            'lgbm_classifier' :LightgbmClassifier,
+            'knn_classifier' :KnnClassifier,
+            'lRegression_classifier':LRegression,
+            'mlp_classifier' :MLPNetClassifier,
+            'rf_classifier' :RandomForestClassifierCustom,
+            'gnb_classifier':GaussianNaiveBayesClassifier,
+            'bnb_classifier' :BernoulliNaiveBayesClassifier,
+            'ldac_classifier' :LinearDiscriminantAnalysisClassifier,
+            'qdac_classifier' :QuadraticDiscriminantAnalysisClassifier
+            # 'xgb_classifier':XgboostClassifier
+        }
+        self.classifiers = {
+            key: self.__classifier_factory(model_class, df)
+            for key, model_class in model_classes.items()
+        }
 
+    def __classifier_factory(self, model_class, train_df):
+        return {
+        'model': model_class(
+                train_df=train_df.copy(), 
+                target_column=self.target_column, 
+                already_splitted_data=self.already_splitted_data,
+                scoring=self.scoring,
+                sampling_strategy='dontOversample'
+            )
+        }
         
     def tune_hyper_parameters(self):
         for classifier_value in self.classifiers.values():

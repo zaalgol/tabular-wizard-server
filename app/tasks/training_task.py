@@ -21,9 +21,9 @@ class TrainingTask:
         transformations = None
         try:
             if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
-                trained_model, evaluations, encoding_rules, transformations = self._train_multi_models(model, df)
+                trained_model, evaluations, encoding_rules, transformations = self.__train_multi_models(model, df)
             else:
-                trained_model, evaluations, encoding_rules, transformations = self._train_single_model(model, df)
+                trained_model, evaluations, encoding_rules, transformations = self.__train_single_model(model, df)
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
@@ -31,8 +31,8 @@ class TrainingTask:
             model.evaluations = evaluations
             task_callback(model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
 
-    def _train_single_model(self, model, df):
-        df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
+    def __train_single_model(self, model, df):
+        df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)
         if model.model_type == 'classification':
             training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric, 
                                                 sampling_strategy=model.sampling_strategy)
@@ -52,9 +52,9 @@ class TrainingTask:
         return trained_model, format_evaluations, None, None
         
 
-    def _train_multi_models(self, model, df):
+    def __train_multi_models(self, model, df):
         if model.model_type == 'classification':
-            df = self._data_preprocessing(df, fill_missing_numeric_cells=True)
+            df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)
             ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True,
                                               create_transformations=True, apply_transformations=True,
                                               sampling_strategy=model.sampling_strategy, scoring=model.metric)
@@ -73,7 +73,7 @@ class TrainingTask:
             return ensemble.trained_voting_classifier, format_evaluations, ensemble.encoding_rules, ensemble.transformations
         
         if model.model_type == 'regression':
-            df = self._data_preprocessing(df)
+            df = self.__data_preprocessing(df)
             ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
                                           apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
             ensemble.create_models(df)
@@ -91,7 +91,7 @@ class TrainingTask:
             print(format_evaluations)
             return ensemble.trained_voting_regressor, format_evaluations, ensemble.encoding_rules, ensemble.transformations
         
-    def _data_preprocessing(self, df, fill_missing_numeric_cells=False):
+    def __data_preprocessing(self, df, fill_missing_numeric_cells=False):
         df_copy=df.copy()
           # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)    
         # columns_to_encode = df.columns[df.columns != target_column]
