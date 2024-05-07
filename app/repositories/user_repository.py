@@ -32,15 +32,19 @@ class UserRepository:
         return self.users_collection.find_one({"email": email, "password": password, "isDeleted": {"$ne": True}})
 
     def create_user(self, email, password):
-        user_exists = self.users_collection.find_one({"email": email})
-        if user_exists:
-            return f"user with email {email} already exist"
-        user = {
-            "email": email,
-            "password": password,  # Ensure password is hashed appropriately
-        }
-        result = self.users_collection.insert_one(user)
-        return {"_id": result.inserted_id, **user}
+        try:
+            user_exists = self.users_collection.find_one({"email": email})
+            if user_exists:
+                return f"user with email {email} already exist"
+            user = {
+                "email": email,
+                "password": password,  # Ensure password is hashed appropriately
+            }
+            result = self.users_collection.insert_one(user)
+            return {"_id": result.inserted_id, **user}
+        except Exception as e:
+            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+        
     
     ### return all data beside models
     # pipeline = [

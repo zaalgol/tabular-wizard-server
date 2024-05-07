@@ -3,7 +3,7 @@ Flask-JWT-Extended
 flask-cors
 Flask-Migrate
 python-dotenv
-psycopg2
+psycopg2-binary
 bcrypt
 mongoengine
 celery

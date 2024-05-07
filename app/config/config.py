@@ -6,6 +6,7 @@ class Config:
     # SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL') # use for multi Docker container deployment
     # SQLALCHEMY_DATABASE_URI = 'sqlite:///mydatabase.db'  # Use SQLite for local development
     MONGODB_URI = os.getenv('MONGODB_URI')
+    IS_MONGO_LOCAL = os.getenv('IS_MONGO_LOCAL')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
     EMAIL_DOMAIN = os.getenv('EMAIL_DOMAIN')
     JWT_HEADER_NAME = JWT_QUERY_STRING_NAME = 'Authorization'

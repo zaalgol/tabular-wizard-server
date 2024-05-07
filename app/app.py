@@ -10,13 +10,32 @@ jwt = JWTManager()
 migrate = Migrate()
 socketio = SocketIO(cors_allowed_origins="*")
 
+def generate_mongo_client(app):
+    MONGODB_URI = app.config['MONGODB_URI']
+    
+    if int(app.config['IS_MONGO_LOCAL']):
+        mongo_client = MongoClient(MONGODB_URI)
+    else:
+        mongo_client = MongoClient(
+        MONGODB_URI,
+        tls=True,
+        retryWrites=False,
+        tlsCAFile="global-bundle.pem",  # Adjust path accordingly
+        socketTimeoutMS=60000,
+        connectTimeoutMS=60000
+
+    )
+    db = mongo_client['tabular-wizard-db']
+    app.db = db
+    
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    mongo_client = MongoClient(app.config['MONGODB_URI'])
-    db = mongo_client.get_default_database()
-    app.db = db
+    generate_mongo_client(app)
+    # mongo_client = MongoClient(app.config['MONGODB_URI'])
+    # db = mongo_client.get_default_database()
+    # app.db = db
     
     jwt.init_app(app)
     socketio.init_app(app)  # Attach SocketIO to Flask app
