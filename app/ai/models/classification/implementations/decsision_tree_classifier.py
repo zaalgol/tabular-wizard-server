@@ -5,8 +5,8 @@ from skopt.space import Categorical, Integer
 DEFAULT_PARAMS = {
     'criterion': Categorical(['gini', 'entropy']),  # The function to measure the quality of a split
     'max_depth': Integer(1, 30),  # Maximum depth of the tree
-    'min_samples_split': Integer(2, 20),  # Minimum number of samples required to split an internal node
-    'max_features': Categorical(['auto', 'sqrt', 'log2', None]),  # The number of features to consider when looking for the best split
+    'min_samples_split': Integer(2, 100, prior='log-uniform'),  # Minimum number of samples required to split an internal node
+    'max_features': Categorical(['sqrt', 'log2', None]),  # The number of features to consider when looking for the best split
 }
 
 class DecisionTreeClassifierWrapper(BaseClassfierModel):

@@ -88,12 +88,7 @@ class Ensemble(BaseClassfierModel):
 
         for name, avg_score in average_scores.items():
             print(f"{name}: Average CV Score = {avg_score}")
-        # for classifier_value in self.classifiers.values():
-        #     classifier_value['evaluations'] = self.evaluate.evaluate_train_and_test(classifier_value['trained_model'], classifier_value['model'])
-        # self.classifiers= dict(sorted(self.classifiers.items(), key=lambda item:
-        #     item[1]['evaluations']['test_metrics'][self.scoring], reverse=self.scoring != 'loss')) # for loss metrics, lower is better, so we will sort in ascending order
-
-
+    
     def tuning_top_models(self):
         top_models = list(islice(self.classifiers.items(), self.top_n_best_models))
         for name, model_info in top_models:

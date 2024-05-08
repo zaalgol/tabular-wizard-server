@@ -5,7 +5,6 @@ from skopt.space import Real, Categorical
 # Default parameters for Linear Discriminant Analysis
 DEFAULT_PARAMS_LDA = {
     'solver': Categorical(['svd', 'lsqr', 'eigen']),  # Solver types
-    'shrinkage': Categorical([None, 'auto']),         # Shrinkage parameter for 'lsqr' and 'eigen' solvers
 }
 
 class LinearDiscriminantAnalysisClassifier(BaseClassfierModel):
