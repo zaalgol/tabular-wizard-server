@@ -6,11 +6,12 @@ from app.services.model_service import ModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
 from flask_cors import CORS
+import logging
 
 from flask_jwt_extended import create_access_token, verify_jwt_in_request
 # Create a Blueprint
 bp = Blueprint('main', __name__)
-CORS(bp)
+# CORS(bp)
 
 # Instantiate UsersService singleton
 user_service = UserService()
@@ -18,7 +19,7 @@ model_service = ModelService()
 tokenService = TokenService()
 
 @bp.route('/', methods=['GET'])
-# @jwt_required()
+#@jwt_required()
 def hello_world():
     return 'Hello, World!'
 
@@ -27,7 +28,6 @@ def login():
     if request.method == 'OPTIONS':
         # Handle the preflight request
         return {}, 200, {}
-
     email = request.json.get('email', None)
     password = request.json.get('password', None)
     if not email or not password:

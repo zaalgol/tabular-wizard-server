@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load the .env file
+dotenv_path = '/tabular-wizard-server/.env'  # Adjust the path as needed
+load_dotenv(dotenv_path)
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')

@@ -5,6 +5,8 @@ from flask_migrate import Migrate
 from pymongo import MongoClient
 from app.config.config import Config 
 from flask_socketio import SocketIO
+import logging
+from logging.handlers import RotatingFileHandler
 
 jwt = JWTManager()
 migrate = Migrate()
@@ -28,6 +30,25 @@ def generate_mongo_client(app):
     db = mongo_client['tabular-wizard-db']
     app.db = db
     
+def set_logger(app):
+    
+    # Set up the logging handler
+    handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
+    handler.setLevel(logging.INFO)
+
+    # Create a custom logging format
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
+
+    # Attach the handler to the application's logger
+    app.logger.addHandler(handler)
+
+    # Example log messages
+    app.logger.info('Logging is configured!')
+    app.logger.error('Sample error message')
+    
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -38,10 +59,9 @@ def create_app():
     # app.db = db
     
     jwt.init_app(app)
-    socketio.init_app(app)  # Attach SocketIO to Flask app
-    CORS(app, supports_credentials=True)
+    socketio.init_app(app, cors_allowed_origins="*", async_mode='gevent')  # Attach SocketIO to Flask app
+    CORS(app, supports_credentials=True, origins="*")
 
     from app.routes.api import bp as main_blueprint
     app.register_blueprint(main_blueprint)
-
     return app
