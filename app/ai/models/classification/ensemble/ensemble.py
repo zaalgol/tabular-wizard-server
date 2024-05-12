@@ -43,7 +43,7 @@ class Ensemble(BaseClassfierModel):
         model_classes = {
             'dtc_classifier':DecisionTreeClassifierWrapper,
             'svr_classifier':SvmClassifier,
-            'nsvc_classifier':NuSVCClassifier,
+            # 'nsvc_classifier':NuSVCClassifier, # doesn't have a proba
             'lgbm_classifier' :LightgbmClassifier,
             'knn_classifier' :KnnClassifier,
             'lRegression_classifier':LRegression,

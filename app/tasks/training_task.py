@@ -4,7 +4,9 @@ from app.ai.models.classification.evaluate import Evaluate as ClassificationEval
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
 from app.ai.models.regression.ensemble.ensemble_parallel import EnsembleParallel as RegressionEnsemble
+from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
 from app.ai.models.classification.ensemble.ensemble_parallel import EnsembleParallel as ClassificationEnsemble
+from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
 
 
 class TrainingTask:
