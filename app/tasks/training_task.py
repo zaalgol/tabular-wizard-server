@@ -75,23 +75,27 @@ class TrainingTask:
             return ensemble.trained_voting_classifier, format_evaluations, ensemble.encoding_rules, ensemble.transformations
         
         if model.model_type == 'regression':
-            df = self.__data_preprocessing(df)
-            ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
-                                          apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
-            ensemble.create_models(df)
-            # ensemble.train_all_models()
-            ensemble.sort_models_by_score()
+            try:
+                df = self.__data_preprocessing(df)
+                ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
+                                            apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
+                ensemble.create_models(df)
+                # ensemble.train_all_models()
+                ensemble.sort_models_by_score()
 
-            ensemble.create_voting_regressor()
-            if model.training_strategy == 'ensembleModelsTuned':
-                ensemble.tuning_top_models()
-            ensemble.train_voting_regressor()
-            ensemble.evaluate_voting_regressor()
+                ensemble.create_voting_regressor()
+                if model.training_strategy == 'ensembleModelsTuned':
+                    ensemble.tuning_top_models()
+                ensemble.train_voting_regressor()
+                ensemble.evaluate_voting_regressor()
 
-            evaluate = self.regressionEvaluate
-            format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
-            print(format_evaluations)
+                evaluate = self.regressionEvaluate
+                format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
+                print(format_evaluations)
+            except Exception as e:
+                pass
             return ensemble.trained_voting_regressor, format_evaluations, ensemble.encoding_rules, ensemble.transformations
+            
         
     def __data_preprocessing(self, df, fill_missing_numeric_cells=False):
         df_copy=df.copy()
