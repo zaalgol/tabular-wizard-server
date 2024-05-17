@@ -1,5 +1,4 @@
 from flask_jwt_extended import create_access_token, verify_jwt_in_request
-from flask import jsonify, make_response
 from datetime import timedelta
 
 class TokenService():

@@ -45,25 +45,3 @@ class UserRepository:
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         
-    
-    ### return all data beside models
-    # pipeline = [
-    # {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
-    # {"$project": {"models": 0}}
-    # ]
-
-    # result = self.users_collection.aggregate(pipeline).next()
-    # if result:
-    #     return result
-    # else:
-    #     return {}
-
-    
-
-    ### return all data beside deleted models
-    # result = self.users_collection.aggregate(pipeline).next()
-    # if result:
-    #     return result
-    # else:
-    #     return {}
-        

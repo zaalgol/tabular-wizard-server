@@ -104,27 +104,10 @@ class ModelService:
                     saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
                     model.encoding_rules = encoding_rules
                     model.transformations = transformations
+
                     self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     
-                    # # Emit an event for training success
-                    # SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
-                    # evaluations_filename = f"{model.model_name}__evaluations.txt"
-                    # evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
-                    # if not os.path.exists(SAVED_MODEL_FOLDER):
-                    #     os.makedirs(SAVED_MODEL_FOLDER)
-                    # with open(evaluations_filepath, 'w') as file:
-                    #     file.write(str(f"Model Name: {model.model_name} \n\
-                    #     Model Type: {model.model_type} \n\
-                    #     Training Srategy: {model.training_strategy} \n\
-                    #     Sampling Strategy: {model.sampling_strategy} \n\n\
-                    #     evaluations: {model.evaluations}"))
-                        
-                    # # Generate a unique URL for the txt file
-                    # scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
-                    # server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
-                    # evaluations_url = f"{scheme}://{server_name}/download/{evaluations_filename}"
                     evaluations_url = self.__generate_model_evaluations_file(model)
-                    
                     socketio.emit('status', {'status': 'success',
                                             'file_type': 'evaluations',
                                             'model_name': f'{model.model_name}',

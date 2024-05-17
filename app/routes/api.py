@@ -5,10 +5,10 @@ from app.entities.model import Model
 from app.services.model_service import ModelService
 from app.services.token_serivce import TokenService
 from app.services.user_service import UserService
-from flask_cors import CORS
 import logging
 
-from flask_jwt_extended import create_access_token, verify_jwt_in_request
+from flask_jwt_extended import verify_jwt_in_request
+
 # Create a Blueprint
 bp = Blueprint('main', __name__)
 # CORS(bp)
@@ -48,8 +48,6 @@ def train_model():
     description = request.json.get('description', None)
     target_column = request.json.get('targetColumn', None)
     model_type = request.json.get('modelType', None)
-    # training_speed = request.json.get('trainingSpeed', None)
-    # ensemble = request.json.get('ensemble', None)
     training_strategy = request.json.get('trainingStrategy', None)
     sampling_strategy = request.json.get('samplingStrategy', None)
     metric = request.json.get('metric', None)
@@ -141,7 +139,7 @@ def infrernce():
 def download_file(filename):
     verify_jwt_in_request(locations='query_string')
     # The token has been validated, proceed with sending the file
-    user_id = get_jwt_identity()  # If you need to use user information from the token
+    user_id = get_jwt_identity()
     model_name = request.args.get('model_name')
     file_type = request.args.get('file_type')
     return model_service.download_file(user_id, model_name, filename, file_type)

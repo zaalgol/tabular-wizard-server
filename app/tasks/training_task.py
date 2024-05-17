@@ -3,9 +3,7 @@ from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
-# from app.ai.models.regression.ensemble.ensemble_parallel import EnsembleParallel as RegressionEnsemble
 from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
-# from app.ai.models.classification.ensemble.ensemble_parallel import EnsembleParallel as ClassificationEnsemble
 from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
 
 
@@ -61,7 +59,6 @@ class TrainingTask:
                                               create_transformations=True, apply_transformations=True,
                                               sampling_strategy=model.sampling_strategy, scoring=model.metric)
             ensemble.create_models(df)
-            # ensemble.train_all_models()
             ensemble.sort_models_by_score()
             ensemble.create_voting_classifier()
             if model.training_strategy == 'ensembleModelsTuned':
@@ -80,7 +77,6 @@ class TrainingTask:
                 ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
                                             apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
                 ensemble.create_models(df)
-                # ensemble.train_all_models()
                 ensemble.sort_models_by_score()
 
                 ensemble.create_voting_regressor()
@@ -99,21 +95,12 @@ class TrainingTask:
         
     def __data_preprocessing(self, df, fill_missing_numeric_cells=False):
         df_copy=df.copy()
-          # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)    
-        # columns_to_encode = df.columns[df.columns != target_column]
-        # df = self.data_preprocessing.fill_missing_not_numeric_cells(df)
         data_preprocessing = DataPreprocessing()
         df_copy = data_preprocessing.sanitize_dataframe(df_copy)
         if fill_missing_numeric_cells:
             df_copy = data_preprocessing.fill_missing_numeric_cells(df_copy)
         df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)
-        # encoding_rules = data_preprocessing.create_encoding_rules(df_copy)
-        # df_copy = data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
-        # df = self.data_preprocessing.one_hot_encode_column(df, 'color')
-        # df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, 'type')
-        # df = self.data_preprocessing.fill_missing_numeric_cells(df)
-        # df = self.data_preprocessing.sanitize_column_names(df)
-        return df_copy #, encoding_rules 
+        return df_copy 
 
 
     

@@ -24,13 +24,6 @@ class RandomForestClassifierCustom(BaseClassfierModel):
     @property
     def default_params(self):
         return DEFAULT_PARAMS
-
-    # def train(self):
-    #     result = self.search.fit(self.X_train, self.y_train.values.ravel())  # using values.ravel() to get a 1-D array
-    #     print("Best parameters:", self.search.best_params_)
-    #     print("Best accuracy:", self.search.best_score_)
-
-    #     return result
     
     def save_tree_diagram(self, tree_index=0, model_folder='', filename='random_forest_tree_diagram.png', dpi=300):
         plt.figure(figsize=(20, 10))

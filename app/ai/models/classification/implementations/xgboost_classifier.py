@@ -39,37 +39,3 @@ class XgboostClassifier(BaseClassfierModel):
         plt.savefig(os.path.join(model_folder, filename), bbox_inches='tight')
         plt.close()
 
-    # def plot (self, result):
-    #     from xgboost import plot_importance
-    #     import matplotlib.pyplot as plt
-    #     plt.style.use ('fivethirtyeight')
-    #     plt.rcParams.update ({'font.size': 16})
-
-    #     fig, ax = plt.subplots (figsize=(12, 6))
-    #     plot_importance (result.best_estimator_, max_num_features=8, ax=ax)
-    #     plt.show()
-
-    #     # xgb.plot_tree (result.best_estimator_, num_trees=2)
-    #     # fig = matplotlib.pyplot.gcf ()
-    #     # fig.set_size_inches (150, 100)
-    #     # fig.savefig ('tree.png')
-
-    #     # plot_tree (result.best_estimator_)
-
-    # def predict_test (self):
-    #     self.test_predictions = self.search.predict (self.X_test)
-
-    # def predict_train (self):
-    #     self.train_predictions = self.search.predict (self.X_train)
-
-    # def predict_true (self):
-    #     self.true_predictions = self.search.predict (self.X_true)
-
-    # def evaluate_predictions (self):
-    #     cm = confusion_matrix (self.y_test, self.test_predictions)
-    #     print (classification_report (self.y_test, self.test_predictions))
-    #     print (f"confusion_matrix of test is {cm}")
-
-    #     cm = confusion_matrix (self.y_train, self.train_predictions)
-    #     print (classification_report (self.y_train, self.train_predictions))
-    #     print (f"confusion_matrix of train is {cm}")

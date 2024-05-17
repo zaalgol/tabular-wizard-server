@@ -29,7 +29,6 @@ class InferenceTask:
                 y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
                 original_df[f'{model_details.target_column}_predict'] = y_predict
                 self.__evaluate_inference(model_details, original_df, y_predict, None)
-            # if model_details.target_column in original_df.columns:
                 
                 
             is_inference_successfully_finished = True
@@ -57,9 +56,9 @@ class InferenceTask:
                 inference_evaluations = self.classificationEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict, y_predict_proba)
             elif model_details.model_type == 'regression':
                 inference_evaluations =   self.regressionEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict)
+                
             for key in inference_evaluations.keys():
-                original_df[f"{key}_inference"] = np.nan  # or "" for empty string
-
+                original_df[f"{key}_inference"] = np.nan
             # Assign the values only to the first row
             for key, value in inference_evaluations.items():
                 original_df.at[0, f"{key}_inference"] = value
