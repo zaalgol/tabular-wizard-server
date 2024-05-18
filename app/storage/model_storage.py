@@ -1,5 +1,4 @@
 import boto3
-import os
 import pickle
 from botocore.exceptions import NoCredentialsError
 from app.config.config import Config
@@ -32,6 +31,17 @@ class ModelStorage:
             model_data = pickle.dumps(model)
             s3_client.put_object(Body=model_data, Bucket=BUCKET_NAME, Key=SAVED_MODEL_KEY)
             return SAVED_MODEL_KEY
+        except NoCredentialsError:
+            raise Exception("Credentials not available")
+        
+    def delete_model(self, user_id, model_name):
+        # S3 Key for the model file
+        SAVED_MODEL_KEY = f'models/{user_id}/{model_name}/model.sav'
+        try:
+            s3_client.delete_object(Bucket=BUCKET_NAME, Key=SAVED_MODEL_KEY)
+            return f"Model {SAVED_MODEL_KEY} successfully deleted from S3 bucket."
+        except s3_client.exceptions.NoSuchKey:
+            print(f"Model {SAVED_MODEL_KEY} not found in S3 bucket.")
         except NoCredentialsError:
             raise Exception("Credentials not available")
 

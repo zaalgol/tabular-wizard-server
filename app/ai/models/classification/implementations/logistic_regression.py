@@ -1,20 +1,6 @@
 from sklearn.linear_model import LogisticRegression
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from sklearn.preprocessing import StandardScaler
 from skopt.space import Real, Categorical, Integer
-
-
-# DEFAULT_PARAMS= {
-#     'class_weight': ['balanced', None],
-#     'penalty': ['l1', 'l2', 'elasticnet', None],  # Penalty term, categorical. Choose from L1, L2, ElasticNet or none.
-#     'C': (1e-4, 10, 'log-uniform'),  # Inverse of regularization strength; smaller values specify stronger regularization.
-#     'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],  # Algorithm to use in the optimization problem, categorical.
-#     'class_weight': ['balanced', None],  # Weights associated with classes, categorical.
-#     'l1_ratio': (0, 1, 'uniform'),  # The Elastic-Net mixing parameter, only used if penalty is 'elasticnet'.
-#     'fit_intercept': [True, False],  # Specifies if a constant (a.k.a. bias or intercept) should be added to the decision function.
-#     'max_iter': (100, 1000, 'uniform'),  # Maximum number of iterations taken for the solvers to converge.
-#     'tol': (1e-6, 1e-2, 'log-uniform')  # Tolerance for stopping criteria.
-# }
 
 DEFAULT_PARAMS = [
     {

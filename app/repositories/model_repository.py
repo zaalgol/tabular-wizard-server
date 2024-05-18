@@ -36,7 +36,7 @@ class ModelRepository:
         current_utc_datetime = datetime.now(UTC)
         
         # Update the user document with the model path and current UTC datetime
-        update_result = self.users_collection.update_one(
+        return self.users_collection.update_one(
             {"_id": ObjectId(model.user_id)},
             {
                 "$set": {
@@ -90,15 +90,23 @@ class ModelRepository:
         else:
             return {}
         
-    def delete_model_of_user(self, user_id, model_name):
+    def delete_model_of_user(self, user_id, model_name, hard_delete=False):
         """
-        Delete a model for a user by setting its 'isDeleted' field to True.
+        Delete a model for a user. 
+        If hard_delete is True, delete the model physically from the database.
+        Otherwise, set its 'isDeleted' field to True.
         """
         model_field_path = f"models.{model_name}"
-        return self.users_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {f"{model_field_path}.isDeleted": True}}
-        )
+        if hard_delete:
+            return self.users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$unset": {model_field_path: ""}}
+            )
+        else:
+            return self.users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {f"{model_field_path}.isDeleted": True}}
+            )
         
 
     def _model_dict_to_front_list(self, models_dict, additonal_properties):

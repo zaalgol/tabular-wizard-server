@@ -51,25 +51,8 @@ class ModelService:
         return {}, 200, {}
 
     def __perprocess_data(self, df, drop_other_columns=None):
-        
         if drop_other_columns:
             df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
-
-        # if target_column: 
-        #     df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, target_column)
-
-        # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df)    
-        # columns_to_encode = df.columns[df.columns != target_column]
-        # df = self.data_preprocessing.one_hot_encode_all_categorical_columns(df, columns_to_encode)
-        # df = self.data_preprocessing.one_hot_encode_column(df, 'color')
-        # df = self.data_preprocessing.convert_column_categircal_values_to_numerical_values(df, 'type')
-        # df = self.data_preprocessing.fill_missing_numeric_cells(df)
-        # df = self.data_preprocessing.sanitize_column_names(df)
-        # sampeling
-
-        # cat_features  =  self.data_preprocessing.get_all_categorical_columns_names(df)
-        # for feature in cat_features:
-        #     df[feature] = df[feature].astype('category')
         return df
     
     def __dataset_to_df(self, dataset):
@@ -128,11 +111,7 @@ class ModelService:
             os.makedirs(SAVED_MODEL_FOLDER)
             
         with open(evaluations_filepath, 'w') as file:
-            file.write(str(f"Model Name: {model.model_name} \n\
-            Model Type: {model.model_type} \n\
-            Training Srategy: {model.training_strategy} \n\
-            Sampling Strategy: {model.sampling_strategy} \n\n\
-            evaluations: {model.evaluations}"))
+            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\n\nevaluations:\n {model.evaluations}"))
             
         # Generate a unique URL for the txt file
         scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
@@ -221,12 +200,6 @@ class ModelService:
         
     
     def delete_model_of_user(self, user_id, model_name):
-        return self.model_repository.delete_model_of_user(user_id, model_name)
-
-
-
-
-        
-
-
-
+        self.model_storage.delete_model(user_id, model_name)
+        return self.model_repository.delete_model_of_user(user_id, model_name, hard_delete=True)
+    

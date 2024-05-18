@@ -14,20 +14,6 @@ class Evaluate:
         # rmsle = np.sqrt(mean_squared_log_error(y_true, y_pred))
 
         return {'MSE': mse, 'MAE': mae, 'R2': r2, 'RMSE':rmse, 'MAPE': mape}# , 'RMSLE':rmsle }
-
-        # Construct results string
-        # results_lines = {
-        #     'mae': f"Mean Absolute Error - mae: {mae}",
-        #     'mse': f"Mean Squared Error - mse: {mse}",
-        #     'rmse': f"Root Mean Squared Error - rmse: {rmse}",
-        #     'r2': f"R2 Score: {r2}",
-        #     'rmsle': f"Root Mean Squared Logarithmic Error - rmsle: {rmsle}"
-        # }
-
-        # if title is not None:
-        #     results_lines[title]= title
-
-        # return results_lines
     
     def evaluate_train_and_test(self, model, regressor):
         y_train_predict = self.predict(model, regressor.X_train)
@@ -44,10 +30,8 @@ class Evaluate:
     def format_train_and_test_evaluation(self, evaluations):
          return "\n".join([
             "Train metrics: {}", 
-            "{}",  
             "Test metrics: {}", 
-            "\n"
-        ]).format(evaluations['train_metrics'], "*" * 100, evaluations['test_metrics'])
+        ]).format(evaluations['train_metrics'], evaluations['test_metrics'])
 
 
 

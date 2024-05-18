@@ -1,5 +1,6 @@
 import os
 import pickle
+import app.app as app
 
 
 class LocalModelStorage:

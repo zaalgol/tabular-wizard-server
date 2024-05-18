@@ -70,15 +70,12 @@ class Ensemble(BaseRegressorModel):
 
     def sort_models_by_score(self):
         
-        scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring) for name, value in self.regressors.items()}
+        scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring) 
+                  for name, value in self.regressors.items()}
         average_scores = {name: score.mean() for name, score in scores.items()}
+        print(f"average cross validation scores {average_scores}")
         sorted_names = sorted(average_scores, key=average_scores.get, reverse=True)# self.scoring=='neg_mean_absolute_error')
         self.regressors = OrderedDict((name, self.regressors[name]) for name in sorted_names)
-        
-        # for regressor_value in self.regressors.values():
-        #     regressor_value['evaluations'] = self.evaluate.evaluate_train_and_test(regressor_value['trained_model'], regressor_value['model'])
-        # self.regressors= dict(sorted(self.regressors.items(), key=lambda item:
-        #     item[1]['evaluations']['test_metrics'][self.scoring], reverse=self.scoring=='R2')) # for R2 metrics, high is better, so reverse sroting.
 
     def create_voting_regressor(self):
         model_list = [(name, info['model'].estimator) for name, info in islice(self.regressors.items(), self.top_n_best_models)]

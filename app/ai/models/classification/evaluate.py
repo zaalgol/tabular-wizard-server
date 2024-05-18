@@ -60,10 +60,10 @@ class Evaluate:
     
     def format_train_and_test_evaluation(self, evaluations):
          return "\n".join([
-            "\nTrain eval:\n {}", 
-            "Train metrics: {}", 
+            "\nTrain eval:\n {}\n", 
+            "Train metrics: {}\n", 
             "{}", 
-            "\nTest eval:\n {}", 
+            "\nTest eval:\n {}\n", 
             "Test metrics: {}", 
             "\n"
         ]).format(str(evaluations['train_confution_matrix']), evaluations['train_metrics'], "*" * 100, str(evaluations['test_confution_matrix']), evaluations['test_metrics'])

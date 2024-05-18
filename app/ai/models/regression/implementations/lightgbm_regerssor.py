@@ -14,8 +14,8 @@ DEFAULT_PARAMS = {
     'subsample': (0.5, 1.0, 'uniform'),  # commonly used range
     'subsample_freq': (1, 10),  # frequency for bagging
     'colsample_bytree': (0.5, 1.0, 'uniform'),  # fraction of features that can be selected for each tree
-    'reg_alpha': (1e-9, 10.0, 'log-uniform'),  # L1 regularization term
-    'reg_lambda': (1e-9, 10.0, 'log-uniform'),  # L2 regularization term
+    'reg_alpha': (1e-9, 20.0, 'log-uniform'),  # L1 regularization term
+    'reg_lambda': (1e-9, 20.0, 'log-uniform'),  # L2 regularization term
     'n_estimators': (50, 1000),  # number of boosted trees to fit
 }
 

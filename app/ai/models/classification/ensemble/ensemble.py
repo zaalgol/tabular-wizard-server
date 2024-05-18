@@ -29,7 +29,7 @@ from sklearn.model_selection import cross_val_score
 class Ensemble(BaseClassfierModel):
     def __init__(self, train_df, target_column, split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
                   create_transformations=False, apply_transformations=False, scoring='accuracy', 
-                  sampling_strategy='conditionalOversampling', top_n_best_models=3):
+                  sampling_strategy='conditionalOversampling', number_of_n_best_models=3):
         super().__init__(train_df=train_df, target_column=target_column, scoring=scoring, split_column=split_column,
                     create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
                     create_transformations=create_transformations, apply_transformations=apply_transformations, sampling_strategy=sampling_strategy)
@@ -37,7 +37,8 @@ class Ensemble(BaseClassfierModel):
         self.temp = {}
         self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}
         self.evaluate = Evaluate()
-        self.top_n_best_models = top_n_best_models
+        self.number_of_n_best_models = number_of_n_best_models
+        self.list_of_n_best_models = []
 
     def create_models(self, df):
         model_classes = {
@@ -90,7 +91,7 @@ class Ensemble(BaseClassfierModel):
             print(f"{name}: Average CV Score = {avg_score}")
     
     def tuning_top_models(self):
-        top_models = list(islice(self.classifiers.items(), self.top_n_best_models))
+        top_models = list(islice(self.classifiers.items(), self.number_of_n_best_models))
         for name, model_info in top_models:
             print(f"Tuning and retraining {name}...")
             model_info['model'].tune_hyper_parameters(n_iter=150)
@@ -99,22 +100,14 @@ class Ensemble(BaseClassfierModel):
             self.temp[name]=model_info['evaluations']
 
     def create_voting_classifier(self):
-        model_list = [(name, info['model'].estimator) for name, info in islice(self.classifiers.items(), self.top_n_best_models)]
-        self.voting_classifier = VotingClassifier(estimators=model_list, voting='soft')
+        self.list_of_n_best_models = [(name, info['model'].estimator) for name, info in islice(self.classifiers.items(), self.number_of_n_best_models)]
+        self.voting_classifier = VotingClassifier(estimators=self.list_of_n_best_models, voting='soft')
 
     def train_voting_classifier(self):
         self.trained_voting_classifier = self.voting_classifier.fit(self.X_train, self.y_train)
 
     def evaluate_voting_classifier(self):
         self.voting_classifier_evaluations = self.evaluate.evaluate_train_and_test(self.trained_voting_classifier, self)
-
-    def hard_predict(self, trained_models):
-        predictions = [model.predict(X_test) for model, X_test in trained_models]
-
-        # Use mode to find the most common class label
-        predictions = np.array(predictions)
-        return mode(predictions, axis=0)[0].flatten()
-
 
 if __name__ == "__main__":
     # target_column = 'price_range'
