@@ -86,38 +86,3 @@ class Ensemble(BaseRegressorModel):
 
     def evaluate_voting_regressor(self):
         self.voting_regressor_evaluations = self.evaluate.evaluate_train_and_test(self.trained_voting_regressor, self)
-
-if __name__ == '__main__':
-    target_column = 'SalePrice'
-    train_path = "tabularwizard/datasets/house_prices_train.csv"
-    
-    # target_column = 'price'
-    # train_path = "tabularwizard/datasets/diamonds.csv"
-    
-    
-    train_data = pd.read_csv(train_path)
-    train_data_capy = train_data.copy()
-
-    data_preprocessing = DataPreprocessing()
-    train_data = data_preprocessing.sanitize_dataframe(train_data)
-    train_data = data_preprocessing.fill_missing_numeric_cells(train_data)
-    # train_data = data_preprocessing.exclude_columns(train_data, [target_column])
-    # train_data[target_column] = train_data_capy[target_column]
-    ensemble = Ensemble(train_df=train_data, target_column=target_column,
-                            create_encoding_rules=True, apply_encoding_rules=True,
-                            create_transformations=True, apply_transformations=True)
-    ensemble.create_models(train_data)
-    # ensemble.train_all_models()
-    ensemble.sort_models_by_score()
-    # for name, value in ensemble.regressors.items():
-    #     print("<" * 20 +  f" Name {name}, train: {value['evaluations']['train_metrics'][ensemble.scoring]} test: {value['evaluations']['test_metrics'][ensemble.scoring]}")
-
-    ensemble.create_voting_regressor()
-    ensemble.tuning_top_models()
-    ensemble.train_voting_regressor()
-    ensemble.evaluate_voting_regressor()
-
-    # for name, value in ensemble.regressors.items():
-    #     print("<" * 20 +  f" Name {name}, train: {value['evaluations']['train_metrics'][ensemble.scoring]} test: {value['evaluations']['test_metrics'][ensemble.scoring]}")
-    print(ensemble.evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations))
-

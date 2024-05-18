@@ -1,3 +1,5 @@
+jinja2==3.1.4
+werkzeug==3.0.3
 Flask
 Flask-JWT-Extended
 flask-cors
@@ -41,3 +43,4 @@ category_encoders
 certifi
 gevent
 gevent-websocket
+
