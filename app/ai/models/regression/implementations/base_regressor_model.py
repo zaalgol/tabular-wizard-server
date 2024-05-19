@@ -27,7 +27,7 @@ class BaseRegressorModel(BaseModel):
             if self.search:
                 result = self.search.fit(self.X_train, self.y_train)
                 print("Best parameters:", self.search.best_params_)
-                print("Lowest RMSE: ", (-self.search.best_score_) ** (1 / 2.0))
+                # print("Lowest RMSE: ", (-self.search.best_score_) ** (1 / 2.0))
             else:
                 result = self.estimator.fit(self.X_train, self.y_train)
             return result

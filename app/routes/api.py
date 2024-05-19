@@ -38,6 +38,9 @@ def login():
 @bp.route('/api/trainModel/', methods=['POST'])
 @jwt_required()
 def train_model():
+    if request.method == 'OPTIONS':
+        # Handle the preflight request
+        return {}, 200, {}
     user_id =  tokenService.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
