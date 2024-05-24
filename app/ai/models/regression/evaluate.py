@@ -23,7 +23,7 @@ class Evaluate:
         y_test_predict = self.predict(model, regressor.X_test)
         test_metrics = self.calculate_metrics(regressor.y_test, y_test_predict)
 
-        return {'train_metrics':train_metrics, 'test_metrics': test_metrics}
+        return {'train_metrics': train_metrics, 'test_metrics': test_metrics}
         # model["test_evaluation"] = test_evaluation
 
     

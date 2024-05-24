@@ -53,7 +53,8 @@ class Ensemble(BaseClassfierModel):
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
             'ldac_classifier' :LinearDiscriminantAnalysisClassifier,
-            'qdac_classifier' :QuadraticDiscriminantAnalysisClassifier
+            'qdac_classifier' :QuadraticDiscriminantAnalysisClassifier,
+            'catboost_classifier':CatboostClassifier
             # 'xgb_classifier':XgboostClassifier
         }
         self.classifiers = {

@@ -43,4 +43,6 @@ category_encoders
 certifi
 gevent
 gevent-websocket
-
+torch
+torchvision
+torchaudio

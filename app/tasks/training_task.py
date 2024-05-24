@@ -89,7 +89,7 @@ class TrainingTask:
                 format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
                 print(format_evaluations)
             except Exception as e:
-                pass
+                print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             return ensemble.trained_voting_regressor, format_evaluations, ensemble.encoding_rules, ensemble.transformations
             
         

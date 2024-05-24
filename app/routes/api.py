@@ -119,7 +119,7 @@ def delete_model():
     return {}, 200, {}
 
 
-@bp.route('/api/inference//', methods=['POST'])
+@bp.route('/api/inference/', methods=['POST'])
 @jwt_required()
 def infrernce():
     if request.method == 'OPTIONS':
