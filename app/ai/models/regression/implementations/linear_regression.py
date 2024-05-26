@@ -1,19 +1,17 @@
-from sklearn.svm import SVR
+from sklearn.linear_model import LinearRegression
 from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 DEFAULT_PARAMS = {
-    'C': (0.1, 1000, "log-uniform"),
-    'epsilon': (0.01, 1.0, "uniform"),
-    'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
-    'gamma': ['scale', 'auto'],
-    'degree': (1, 5)  # Only relevant for poly kernel
+    'fit_intercept': [True, False],
+    'normalize': [True, False],
+    'copy_X': [True, False]
 }
 
-class SVRRegressorModel(BaseRegressorModel):
+class LinearRegressorModel(BaseRegressorModel):
     def __init__(self, train_df, target_column, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = SVR(*args, **kwargs)
+        self.estimator = LinearRegression(*args, **kwargs)
 
     @property
     def default_params(self):

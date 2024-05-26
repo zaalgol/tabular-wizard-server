@@ -111,7 +111,7 @@ class ModelService:
             os.makedirs(SAVED_MODEL_FOLDER)
             
         with open(evaluations_filepath, 'w') as file:
-            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\n\nevaluations:\n {model.evaluations}"))
+            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\n\nEvaluations:\n{model.evaluations}"))
             
         # Generate a unique URL for the txt file
         scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'

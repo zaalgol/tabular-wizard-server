@@ -6,6 +6,7 @@ from scipy.stats import mode
 from sklearn.model_selection import cross_val_score
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
+from app.ai.models.regression.implementations.linear_regression import LinearRegressorModel
 from app.ai.models.regression.implementations.random_forest_regressor import RandomForestRegressorModel
 from app.ai.models.regression.implementations.svr_regressor import SVRRegressorModel
 from app.ai.models.regression.implementations.catboot_regressor import CatboostRegressor
@@ -35,7 +36,8 @@ class Ensemble(BaseRegressorModel):
             'xgb_regressor': XgboostRegressor,
             'rf_regressor': RandomForestRegressorModel,
             'svr_regressor': SVRRegressorModel,
-            'cat_regressor': CatboostRegressor
+            'cat_regressor': CatboostRegressor,
+            'linear_regressor': LinearRegressorModel
         }
         self.regressors = {
             key: self._regressor_factory(model_class, df)

@@ -14,11 +14,16 @@ DEFAULT_PARAMS = {
 }
 
 class MLPNetRegressor(BaseRegressorModel):
-    def __init__(self, train_df, target_column,
+    def __init__(self, train_df, target_column, hidden_layer_sizes=None,
                  *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = MLPRegressor(*args, **kwargs)
+        
+        if not hidden_layer_sizes:
+            first_layer_size=max(len(self.X_train.columns), 2)
+            second_layer_size=max(int(first_layer_size /2), 2)
+            hidden_layer_sizes=(first_layer_size, second_layer_size)
+        self.estimator = MLPRegressor(max_iter=500, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
 
     def train(self):
             if self.search: # with hyperparameter tuning
