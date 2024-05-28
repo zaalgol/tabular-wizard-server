@@ -2,17 +2,16 @@ from sklearn.ensemble import RandomForestClassifier
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 import matplotlib.pyplot as plt
 from sklearn.tree import plot_tree
-from skopt.space import Real, Categorical, Integer
 import os
 
 DEFAULT_PARAMS = {
-    'n_estimators': Integer(50, 300),  # Number of trees in the forest
-    'max_depth': Categorical([3, 4, 5, 6, 7, 8, 9, None]),  # Maximum depth of each tree
-    'min_samples_split': Categorical([2, 5, 10]),  # Minimum number of samples required to split an internal node
-    'min_samples_leaf': Categorical([1, 2, 4]),  # Minimum number of samples required to be at a leaf node
-    'bootstrap': Categorical([True, False]),  # Method for sampling data points (with or without replacement)
-    'criterion': Categorical(['gini', 'entropy']),  # The function to measure the quality of a split
-    'max_features': Integer(1, 19)  # The number of features to consider when looking for the best split
+    'n_estimators': (50, 300, 'int'),  # Number of trees in the forest
+    'max_depth': [3, 4, 5, 6, 7, 8, 9, None],  # Maximum depth of each tree
+    'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split an internal node
+    'min_samples_leaf': [1, 2, 4],  # Minimum number of samples required to be at a leaf node
+    'bootstrap': [True, False],  # Method for sampling data points (with or without replacement)
+    'criterion': ['gini', 'entropy'],  # The function to measure the quality of a split
+    'max_features': (1, 19, 'int')  # The number of features to consider when looking for the best split
 }
 
 class RandomForestClassifierCustom(BaseClassfierModel):

@@ -1,10 +1,9 @@
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from skopt.space import Real
 
 # Default parameters for Quadratic Discriminant Analysis
 DEFAULT_PARAMS_QDA = {
-    'reg_param': Real(0.0, 1.0, prior='uniform'),  # Regularization parameter
+    'reg_param':(0.0, 1.0, 'uniform'),  # Regularization parameter
 }
 
 class QuadraticDiscriminantAnalysisClassifier(BaseClassfierModel):

@@ -1,6 +1,6 @@
-# flask-uwsgi-docker
+# tabular-wizard-server
 
-`flask-uwsgi-docker` is a template for creating a Flask server utilizing uWSGI and Docker containers. This project simplifies the process of deploying Flask applications, making them ready for development and production environments.
+`tabular-wizard-server` Runnnig the tabular-wizard server utilizing uWSGI and Docker containers.
 
 ## Getting Started
 
@@ -20,27 +20,33 @@ Follow these steps to get your development environment running:
 1. **Clone the repository**
 
    ```sh
-   git clone https://github.com/zaalgol/flask-uwsgi-docker.git
+   git clone https://github.com/zaalgol/tabular-wizard-server
 
 2. **Navigate to the project director**
 
    ```sh
-   cd flask-uwsgi-docker
+   cd tabular-wizard-server
 
 3. **Build the Docker image**
 
    ```sh
-   docker build -t flask-uwsgi-docker .
+   docker build -t tabular-wizard-server .
 
-4. **Run the Docker container**
+4. **Download global-bundle.pem file**
+
+5. **Set the correct IP in the .env file. set also the other settings there**
+
+6. **Run the Docker container**
 
    ```sh
-   docker run -p 8080:8080 flask-uwsgi-docke
+   docker run -p 8080:8080 -v ./.env:/tabular-wizard-server/.env -v ./global-bundle.pem:/tabular-wizard-server/global-bundle.pem tabular-wizard-server
    ```
 
    Alternatively, if you're using Docker Compose to manage multiple containers:
+
    ```sh
    docker-compose up
+   ````
 
 ## Accessing the Application
 

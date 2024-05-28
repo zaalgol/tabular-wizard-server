@@ -6,7 +6,7 @@ DEFAULT_PARAMS = {
     'epsilon': (0.01, 1.0, "uniform"),
     'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
     'gamma': ['scale', 'auto'],
-    'degree': (1, 5)  # Only relevant for poly kernel
+    'degree': (1, 5, 'int')  # Only relevant for poly kernel
 }
 
 class SVRRegressorModel(BaseRegressorModel):

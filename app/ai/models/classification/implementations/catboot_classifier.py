@@ -1,6 +1,5 @@
 import os
 import matplotlib.pyplot as plt
-from skopt.space import Real, Categorical, Integer
 
 from catboost import CatBoostClassifier
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
@@ -13,12 +12,12 @@ DEFAULT_PARAMS = {
     # 'iterations': [100, 500, 1000]
 
     # https://www.kaggle.com/code/lucamassaron/tutorial-bayesian-optimization-with-catboost
-    'iterations': Integer(20, 150, 'log-uniform'),
-    'depth': Integer(2, 12),
-    'learning_rate': Real(0.01, 0.1, 'log-uniform'),
-    'random_strength': Real(1e-9, 10, 'log-uniform'), # randomness for scoring splits
-    'bagging_temperature': Real(0.0, 1.0), # settings of the Bayesian bootstrap
-    'l2_leaf_reg': Integer(2, 20, 'log-uniform'), # L2 regularization
+    'iterations': [150, 300, 500, 700, 1000],
+    'depth': (2, 12, 'int'),
+    'learning_rate': (0.01, 0.1, 'log-uniform'),
+    'random_strength': (1e-9, 10, 'log-uniform'), # randomness for scoring splits
+    'bagging_temperature': (0.0, 1.0), # settings of the Bayesian bootstrap
+    'l2_leaf_reg': (2, 20, 'int-log-uniform'), # L2 regularization
 }
 
 

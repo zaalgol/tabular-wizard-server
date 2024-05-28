@@ -6,35 +6,18 @@ from lightgbm import LGBMClassifier, plot_tree
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
 import matplotlib.pyplot as plt
-from skopt.space import Real, Categorical, Integer
-
-DEFAULT_PARAMS_OLD = {
-    'class_weight': ['balanced', None],  # Keep as is, categorical.
-    'boosting_type': ['gbdt', 'dart'],  # Keep as is, categorical.
-    'num_leaves': (3, 150, 'uniform'),  # Convert to uniform distribution, specifying as integer is implied.
-    'learning_rate': (0.01, 0.1, 'log-uniform'),  # Use log-uniform to explore more granularly at lower values.
-    'subsample_for_bin': (20000, 150000, 'uniform'),  # Convert to uniform distribution.
-    'min_child_samples': (20, 500, 'uniform'),  # Convert to uniform distribution.
-    'colsample_bytree': (0.6, 1, 'uniform'),  # Convert to uniform distribution.
-    "max_depth": (5, 100, 'uniform'),  # Keep as uniform, but ensuring integer values are sampled.
-    'lambda_l1': (1e-9, 100, 'log-uniform'),  # Keep as log-uniform for fine-grained exploration of regularization.
-    'lambda_l2': (1e-9, 100, 'log-uniform')  # Keep as log-uniform for fine-grained exploration of regularization.
-}
 
 DEFAULT_PARAMS = {
-    'learning_rate': Real(0.01, 0.1, 'log-uniform'),     # Boosting learning rate
-    'n_estimators': Integer(30, 5000),                   # Number of boosted trees to fit
-    # 'n_estimators': Integer(30, 5000),                   # Number of boosted trees to fit
-    'num_leaves': Integer(2, 512),                       # Maximum tree leaves for base learners
-    'max_depth': Integer(-1, 256),                       # Maximum tree depth for base learners, <=0 means no limit
-    'min_child_samples': Integer(1, 256),                # Minimal number of data in one leaf
-    'max_bin': Integer(100, 1000),                       # Max number of bins that feature values will be bucketed
-    'subsample': Real(0.01, 1.0, 'uniform'),             # Subsample ratio of the training instance
-    'subsample_freq': Integer(0, 10),                    # Frequency of subsample, <=0 means no enable
-    'colsample_bytree': Real(0.01, 1.0, 'uniform'),      # Subsample ratio of columns when constructing each tree
-    'min_child_weight': Real(0.01, 10.0, 'uniform'),     # Minimum sum of instance weight (hessian) needed in a child (leaf)
-    'reg_lambda': Real(1e-9, 100.0, 'log-uniform'),      # L2 regularization
-    'reg_alpha': Real(1e-9, 100.0, 'log-uniform'),       # L1 regularization
+    'class_weight': ['balanced', None],  # Keep as is, categorical.
+    'boosting_type': ['gbdt', 'dart'],  # Keep as is, categorical.
+    'num_leaves': (3, 150, 'int'),  # Convert to uniform distribution, specifying as integer is implied.
+    'learning_rate': (0.01, 0.1, 'log-uniform'),  # Use log-uniform to explore more granularly at lower values.
+    'subsample_for_bin': (20000, 150000, 'int'),  # Convert to uniform distribution.
+    'min_child_samples': (20, 500, 'int'),  # Convert to uniform distribution.
+    'colsample_bytree': (0.6, 1, 'uniform'),  # Convert to uniform distribution.
+    "max_depth": (5, 100, 'int'),  # Keep as uniform, but ensuring integer values are sampled.
+    'lambda_l1': (1e-9, 100, 'log-uniform'),  # Keep as log-uniform for fine-grained exploration of regularization.
+    'lambda_l2': (1e-9, 100, 'log-uniform')  # Keep as log-uniform for fine-grained exploration of regularization.
 }
 
 class LightgbmClassifier(BaseClassfierModel):
@@ -48,7 +31,7 @@ class LightgbmClassifier(BaseClassfierModel):
 
     @property
     def default_params(self):
-        default_params = DEFAULT_PARAMS_OLD
+        default_params = DEFAULT_PARAMS
         return default_params
     
 

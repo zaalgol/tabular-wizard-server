@@ -30,7 +30,7 @@ python-dateutil
 pytz
 PyYAML
 scikit-learn
-scikit-optimize
+optuna
 scipy
 seaborn
 six

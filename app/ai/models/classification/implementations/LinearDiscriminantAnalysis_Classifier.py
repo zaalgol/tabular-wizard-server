@@ -1,10 +1,9 @@
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from skopt.space import Real, Categorical
 
 # Default parameters for Linear Discriminant Analysis
 DEFAULT_PARAMS_LDA = {
-    'solver': Categorical(['svd', 'lsqr', 'eigen']),  # Solver types
+    'solver': (['svd', 'lsqr', 'eigen']),  # Solver types
 }
 
 class LinearDiscriminantAnalysisClassifier(BaseClassfierModel):

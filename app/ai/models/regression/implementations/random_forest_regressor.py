@@ -2,11 +2,11 @@ from sklearn.ensemble import RandomForestRegressor
 from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 DEFAULT_PARAMS_RF = {
-    'n_estimators': (100, 1000),
+    'n_estimators': (20, 1000, 'int'),
     'max_features': (0.1, 1.0, "uniform"),
-    'max_depth': (3, 30),
-    'min_samples_split': (2, 10),
-    'min_samples_leaf': (1, 10),
+    'max_depth': (3, 30, 'int'),
+    'min_samples_split': (2, 20, 'int'),
+    'min_samples_leaf': (1, 20, 'int'),
     'bootstrap': [True, False]
 }
 

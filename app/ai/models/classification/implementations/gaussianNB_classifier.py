@@ -1,10 +1,9 @@
 from sklearn.naive_bayes import GaussianNB
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from skopt.space import Real
 
 # Default parameters for Gaussian Naive Bayes
 DEFAULT_PARAMS = {
-    'var_smoothing': Real(1e-9, 1e-6, prior='log-uniform'),  # Portion of the largest variance of all features to be added to variances for stability
+    'var_smoothing': (1e-9, 1e-6, 'log-uniform'),  # Portion of the largest variance of all features to be added to variances for stability
 }
 
 class GaussianNaiveBayesClassifier(BaseClassfierModel):

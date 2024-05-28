@@ -1,11 +1,10 @@
 from sklearn.naive_bayes import BernoulliNB
 from app.ai.models.classification.implementations.base_classifier_model import BaseClassfierModel
-from skopt.space import Real
 
 # Default parameters for Bernoulli Naive Bayes
 DEFAULT_PARAMS = {
-    'alpha': Real(1e-3, 1e0, prior='log-uniform'),  # Additive (Laplace/Lidstone) smoothing parameter
-    'binarize': Real(0, 1, prior='uniform'),       # Threshold for binarizing (mapping to {0, 1}) input features
+    'alpha': (1e-3, 1e0, "log-uniform"),  # Additive (Laplace/Lidstone) smoothing parameter
+    'binarize': (0, 1, "uniform"),       # Threshold for binarizing (mapping to {0, 1}) input features
 }
 
 class BernoulliNaiveBayesClassifier(BaseClassfierModel):
