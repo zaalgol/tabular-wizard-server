@@ -266,6 +266,9 @@ class DataPreprocessing:
         for col in df_copy.select_dtypes(include=['datetime']):
             df_copy[col] = df_copy[col].astype('int64')  / 10**19 # to normalize all values between 0 and 1
         return df_copy
+    
+    def get_class_num(self, y):
+        return np.unique(y).size
         
         
 

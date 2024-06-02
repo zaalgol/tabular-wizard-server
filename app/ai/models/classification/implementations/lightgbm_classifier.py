@@ -12,8 +12,6 @@ DEFAULT_PARAMS = {
     'boosting_type': ['gbdt', 'dart'],  # Keep as is, categorical.
     'num_leaves': (3, 150, 'int'),  # Convert to uniform distribution, specifying as integer is implied.
     'learning_rate': (0.01, 0.1, 'log-uniform'),  # Use log-uniform to explore more granularly at lower values.
-    'subsample_for_bin': (20000, 150000, 'int'),  # Convert to uniform distribution.
-    'min_child_samples': (20, 500, 'int'),  # Convert to uniform distribution.
     'colsample_bytree': (0.6, 1, 'uniform'),  # Convert to uniform distribution.
     "max_depth": (5, 100, 'int'),  # Keep as uniform, but ensuring integer values are sampled.
     'lambda_l1': (1e-9, 100, 'log-uniform'),  # Keep as log-uniform for fine-grained exploration of regularization.
@@ -27,12 +25,16 @@ class LightgbmClassifier(BaseClassfierModel):
         self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
         self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = LGBMClassifier(objective=objective, verbosity=-1, *args, **kwargs)
+        self.estimator = LGBMClassifier(objective=objective, verbosity=-1, **kwargs)
 
     @property
     def default_params(self):
         default_params = DEFAULT_PARAMS
         return default_params
+    
+    def train(self):
+        # return super().train(eval_metric=self.scoring)
+        return super().train()
     
 
     def save_tree_diagram(self, tree_index=0, model_folder='', filename='tree_diagram.png'):

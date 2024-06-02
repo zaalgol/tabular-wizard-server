@@ -9,6 +9,7 @@ class Model:
     file_name: str = field(default=None)
     description: str = field(default=None)
     model_type: str = field(default=None)
+    is_multi_class: bool = field(default=False)
     # ensemble: str = field(default='multi')
     # training_speed: str = field(default=None)
     training_strategy: str = field(default=None)
@@ -20,4 +21,5 @@ class Model:
     transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
     evaluations: str = field(default=None)
+    is_llm: bool = field(default=False)
 	

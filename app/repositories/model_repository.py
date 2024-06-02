@@ -31,6 +31,8 @@ class ModelRepository:
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
         transformations_field_path = f"models.{model_name}.transformations"
         isDeleted_fieled_path= f"models.{model_name}.isDeleted"
+        is_multi_class_fieled_path= f"models.{model_name}.is_multi_class"
+        
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
@@ -52,7 +54,8 @@ class ModelRepository:
                     metric_field_path: model.metric,
                     evaluations_field_path: model.evaluations,
                     transformations_field_path: model.transformations,
-                    isDeleted_fieled_path: False
+                    isDeleted_fieled_path: False,
+                    is_multi_class_fieled_path: model.is_multi_class
                 }
             }
         )

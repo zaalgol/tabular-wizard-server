@@ -62,7 +62,7 @@ class Ensemble(BaseRegressorModel):
         top_models = list(islice(self.regressors.items(), self.top_n_best_models))
         for name, model_info in top_models:
             print(f"Tuning and retraining {name}...")
-            model_info['model'].tune_hyper_parameters()
+            model_info['model'].tune_hyper_parameters(scoring=self.scoring)
             model_info['trained_model'] = model_info['model'].train()
             model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], model_info['model'])
 
@@ -71,7 +71,6 @@ class Ensemble(BaseRegressorModel):
             regressor_value['trained_model'] = regressor_value['model'].train()
 
     def sort_models_by_score(self):
-        
         scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring) 
                   for name, value in self.regressors.items()}
         average_scores = {name: score.mean() for name, score in scores.items()}

@@ -111,7 +111,7 @@ class ModelService:
             os.makedirs(SAVED_MODEL_FOLDER)
             
         with open(evaluations_filepath, 'w') as file:
-            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\n\nEvaluations:\n{model.evaluations}"))
+            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\nMetric: {model.metric}\n\nEvaluations:\n{model.evaluations}"))
             
         # Generate a unique URL for the txt file
         scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
@@ -169,14 +169,15 @@ class ModelService:
         
 
     def get_user_models_by_id(self, user_id):
-           result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description'])
+           result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description', 'metric', 'target_column',
+                                                                                                'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class'])
            return result
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
                                                                                 additonal_properties=['created_at', 'description', 'columns',
                                                                                                       'encoding_rules', 'transformations', 'metric', 'target_column',
-                                                                                                      'model_type', 'training_strategy', 'sampling_strategy'])
+                                                                                                      'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class'])
         
     def generate_model_metric_file(self, user_id, model_name):
         try:

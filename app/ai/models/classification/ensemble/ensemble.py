@@ -83,9 +83,9 @@ class Ensemble(BaseClassfierModel):
             classifier_value['trained_model'] = classifier_value['model'].train()
 
     def sort_models_by_score(self):
-        scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5) for name, value in self.classifiers.items()}
+        scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring) for name, value in self.classifiers.items()}
         average_scores = {name: score.mean() for name, score in scores.items()}
-        sorted_names = sorted(average_scores, key=average_scores.get, reverse=self.scoring != 'log loss')
+        sorted_names = sorted(average_scores, key=average_scores.get, reverse=True)
         self.classifiers = OrderedDict((name, self.classifiers[name]) for name in sorted_names)
 
         for name, avg_score in average_scores.items():

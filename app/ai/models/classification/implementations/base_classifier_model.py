@@ -1,11 +1,17 @@
 from abc import abstractmethod
 import os
+from lightgbm import LGBMClassifier
+import numpy as np
 from sklearn.model_selection import KFold, cross_val_score
 import optuna
 from app.ai.models.base_model import BaseModel
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.utils import resample
+from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.models.classification.evaluate import Evaluate
+from sklearn.metrics import classification_report, confusion_matrix, make_scorer, accuracy_score, log_loss, precision_score, recall_score, roc_auc_score, f1_score
+
 
 class BaseClassfierModel(BaseModel):
     def __init__(self, train_df, target_column, split_column=None, scoring='accuracy', sampling_strategy='conditionalOversampling',
@@ -13,11 +19,12 @@ class BaseClassfierModel(BaseModel):
         super().__init__(train_df, target_column, scoring, split_column,
                          create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules,
                          create_transformations=create_transformations, apply_transformations=apply_transformations, *args, **kwargs)
-        
         if sampling_strategy == 'conditionalOversampling':
             self.apply_conditional_oversampling()
         elif sampling_strategy == 'oversampling':
             self.apply_oversampling()
+        self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
+        self.scoring = Evaluate().get_scoring_metric(scoring, self.is_multi_class)
 
     def tune_hyper_parameters(self, params=None, kfold=5, n_iter=50, timeout=45*60):
         if params is None:
@@ -41,22 +48,22 @@ class BaseClassfierModel(BaseModel):
                     param_grid[k] = trial.suggest_categorical(k, v)
                 else:
                     raise ValueError(f"Unsupported parameter format for {k}: {v}")
-            estimator = self.estimator.set_params(**param_grid)
-            cv_results = cross_val_score(estimator, self.X_train, self.y_train, cv=kfold, scoring=self.scoring)
+                
+            cv_results = cross_val_score(self.estimator, self.X_train, self.y_train, cv=kfold, scoring=self.scoring)
             return cv_results.mean()
 
-        self.study = optuna.create_study(direction="maximize" if self.scoring in ["accuracy", "roc_auc", "f1"] else "minimize")
+        self.study = optuna.create_study(direction="maximize") #if self.scoring in ["accuracy", "roc_auc", "f1_macro"] else "minimize")
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
-    def train(self):
+    def train(self, *args, **kwargs):
         if self.study:  # with hyperparameter tuning
             best_params = self.study.best_params
             self.estimator.set_params(**best_params)
-            result = self.estimator.fit(self.X_train, self.y_train)
+            result = self.estimator.fit(self.X_train, self.y_train, *args, **kwargs)
             print("Best Cross-Validation parameters:", best_params)
             print("Best Cross-Validation score:", self.study.best_value)
         else:  # without hyperparameter tuning
-            result = self.estimator.fit(self.X_train, self.y_train)
+            result = self.estimator.fit(self.X_train, self.y_train, *args, **kwargs)
         return result
 
     def apply_conditional_oversampling(self):

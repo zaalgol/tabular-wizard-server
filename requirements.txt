@@ -46,3 +46,4 @@ gevent-websocket
 torch
 torchvision
 torchaudio
+openai

@@ -48,6 +48,7 @@ class TrainingTask:
         trained_model = training_model.train()
         evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
         format_evaluations = evaluate.format_train_and_test_evaluation(evaluations)
+        print(model.metric)
         print(format_evaluations)
         return trained_model, format_evaluations, None, None
         

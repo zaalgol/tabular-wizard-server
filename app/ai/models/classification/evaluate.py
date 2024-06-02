@@ -1,6 +1,6 @@
 # https://chat.openai.com/c/00f0f9f4-1e06-471d-a202-cdbd2d9a6a8c
 import numpy as np
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, log_loss, precision_score, recall_score, roc_auc_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix, make_scorer, accuracy_score, log_loss, precision_score, recall_score, roc_auc_score, f1_score
 
 class Evaluate:
     def predict(self, model, X_data):
@@ -15,30 +15,47 @@ class Evaluate:
     def get_accurecy_score(self, y_true, y_predict):
         return round(accuracy_score(y_true, y_predict), 4)
     
+    def get_scoring_metric(self, scoring, is_multi_class=False, is_train_multi_class=False):
+        if scoring == 'accuracy':
+            return 'accuracy'
+        elif scoring == 'precision':
+            return 'precision_macro'
+        elif scoring == 'recall':
+            return 'recall_macro'
+        elif scoring == 'f1':
+            return 'f1_macro'
+        elif scoring == 'roc_auc' and not is_multi_class and not is_train_multi_class:
+            return 'roc_auc_ovo'
+        else:
+            return scoring
+    
+    # 
+    
     def calculate_metrics(self, y_true, y_pred, y_proba):
-        # Determine the number of unique classes
+    # Determine the number of unique classes
         num_classes = np.unique(y_true).size
+        is_multi_class = num_classes > 2
 
-        # Calculate metrics
+        # Calculate metrics using the scoring function
         accuracy = accuracy_score(y_true, y_pred)
         loss = log_loss(y_true, y_proba)
 
-        if num_classes == 2:
-            # Binary classification metrics
-            accuracy = self.get_accurecy_score(y_true, y_pred)
-            precision = precision_score(y_true, y_pred)
-            recall = recall_score(y_true, y_pred)
-            f1 = f1_score(y_true, y_pred)  # Direct calculation for binary
-            auc = roc_auc_score(y_true, y_proba[:, 1])  # Use probabilities for the positive class
-        else:
-            # Multi-class classification metrics
-            accuracy = self.get_accurecy_score(y_true, y_pred)
+        if is_multi_class:
             precision = precision_score(y_true, y_pred, average='macro')
             recall = recall_score(y_true, y_pred, average='macro')
-            f1 = f1_score(y_true, y_pred, average='macro')  # Specify averaging method
-            auc = roc_auc_score(y_true, y_proba, multi_class='ovo')  # Use One-vs-One strategy
+            f1 = f1_score(y_true, y_pred, average='macro')
+            auc = roc_auc_score(y_true, y_proba, multi_class='ovo')
+        else:
+            # For binary classification, set pos_label based on unique classes in y_true
+            unique_classes = np.unique(y_true)
+            pos_label = unique_classes[1] if len(unique_classes) > 1 else unique_classes[0]
+            precision = precision_score(y_true, y_pred, pos_label=pos_label)
+            recall = recall_score(y_true, y_pred, pos_label=pos_label)
+            f1 = f1_score(y_true, y_pred, pos_label=pos_label)
+            auc = roc_auc_score(y_true, y_proba[:, 1])
 
-        return {'accuracy':accuracy, 'log loss': loss, 'precision': precision, 'recall': recall, 'f1': f1, 'roc auc': auc}
+        return {'accuracy': accuracy, 'log_loss': loss, 'precision': precision, 'recall': recall, 'f1': f1, 'roc_auc': auc}
+
 
     def evaluate_train_and_test(self, model, classifier):
         y_predict = model.predict(classifier.X_train)
