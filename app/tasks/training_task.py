@@ -28,11 +28,14 @@ class TrainingTask:
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            model.evaluations = evaluations
+            model.formated_evaluations = evaluations['formated_evaluations']
+            model.train_score = evaluations['train_score']
+            model.test_score = evaluations['test_score']
             task_callback(model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
 
     def __train_single_model(self, model, df):
         df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)
+        metric = model.metric
         if model.model_type == 'classification':
             training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric, 
                                                 sampling_strategy=model.sampling_strategy)
@@ -41,16 +44,21 @@ class TrainingTask:
         elif model.model_type == 'regression':
             training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, scoring=model.metric)
             evaluate = self.regressionEvaluate
+            metric = evaluate.get_metric_mapping(model.metric)
 
         if model.training_strategy == 'singleModelTuned':
             training_model.tune_hyper_parameters()
 
         trained_model = training_model.train()
         evaluations = evaluate.evaluate_train_and_test(trained_model, training_model)
-        format_evaluations = evaluate.format_train_and_test_evaluation(evaluations)
-        print(model.metric)
-        print(format_evaluations)
-        return trained_model, format_evaluations, None, None
+        formated_evaluations = evaluate.format_train_and_test_evaluation(evaluations)
+        print(formated_evaluations)
+
+        train_score = evaluations['train_metrics'][metric]
+        test_score = evaluations['test_metrics'][metric]
+        evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+        
+        return trained_model, evaluations, None, None
         
 
     def __train_multi_models(self, model, df):
@@ -68,9 +76,13 @@ class TrainingTask:
             ensemble.evaluate_voting_classifier()
 
             evaluate = self.classificationEvaluate
-            format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations)
-            print(format_evaluations)
-            return ensemble.trained_voting_classifier, format_evaluations, ensemble.encoding_rules, ensemble.transformations
+            formated_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations)
+            print(formated_evaluations)
+            train_score = ensemble.voting_classifier_evaluations['train_metrics'][model.metric]
+            test_score = ensemble.voting_classifier_evaluations['test_metrics'][model.metric]
+            evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+            
+            return ensemble.trained_voting_classifier, evaluations, ensemble.encoding_rules, ensemble.transformations
         
         if model.model_type == 'regression':
             try:
@@ -87,11 +99,16 @@ class TrainingTask:
                 ensemble.evaluate_voting_regressor()
 
                 evaluate = self.regressionEvaluate
-                format_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
-                print(format_evaluations)
+                formated_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
+                print(formated_evaluations)
+                metric = self.regressionEvaluate.get_metric_mapping(model.metric)
+                train_score = ensemble.voting_regressor_evaluations['train_metrics'][metric]
+                test_score = ensemble.voting_regressor_evaluations['test_metrics'][metric]
+                evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+                
             except Exception as e:
                 print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-            return ensemble.trained_voting_regressor, format_evaluations, ensemble.encoding_rules, ensemble.transformations
+            return ensemble.trained_voting_regressor, evaluations, ensemble.encoding_rules, ensemble.transformations
             
         
     def __data_preprocessing(self, df, fill_missing_numeric_cells=False):

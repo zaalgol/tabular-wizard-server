@@ -7,6 +7,7 @@ class Model:
     user_id: str = field(default=None)
     model_name: str = field(default=None)
     file_name: str = field(default=None)
+    file_line_num: int = field(default=0)
     description: str = field(default=None)
     model_type: str = field(default=None)
     is_multi_class: bool = field(default=False)
@@ -20,6 +21,6 @@ class Model:
     encoding_rules: dict[str, list[str]] = field(default_factory=dict)
     transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
-    evaluations: str = field(default=None)
+    formated_evaluations: str = field(default=None)
     is_llm: bool = field(default=False)
 	

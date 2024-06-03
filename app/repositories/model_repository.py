@@ -17,6 +17,8 @@ class ModelRepository:
     
     def add_or_update_model_for_user(self, model, columns, saved_model_file_path):
         model_name = model.model_name
+        file_name_path = f"models.{model_name}.file_name"
+        file_line_num_path = f"models.{model_name}.file_line_num"
         # Define the field paths using dot notation
         model_field_path = f"models.{model_name}.filePath"
         created_at_field_path = f"models.{model_name}.created_at"
@@ -26,12 +28,14 @@ class ModelRepository:
         model_type_field_path = f"models.{model_name}.model_type"
         training_strategy_field_path = f"models.{model_name}.training_strategy"
         sampling_strategy_field_path = f"models.{model_name}.sampling_strategy"
-        evaluations_field_path = f"models.{model_name}.evaluations"
+        formated_evaluations_field_path = f"models.{model_name}.formated_evaluations"
         metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
         transformations_field_path = f"models.{model_name}.transformations"
-        isDeleted_fieled_path= f"models.{model_name}.isDeleted"
-        is_multi_class_fieled_path= f"models.{model_name}.is_multi_class"
+        isDeleted_fieled_path = f"models.{model_name}.isDeleted"
+        is_multi_class_fieled_path = f"models.{model_name}.is_multi_class"
+        train_score_column_field_path = f"models.{model_name}.train_score"
+        test_score_column_field_path = f"models.{model_name}.test_score"
         
         
         # Get the current UTC datetime
@@ -42,6 +46,8 @@ class ModelRepository:
             {"_id": ObjectId(model.user_id)},
             {
                 "$set": {
+                    file_name_path: model.file_name,
+                    file_line_num_path: model.file_line_num,
                     model_field_path: saved_model_file_path,
                     description_field_path: model.description,
                     created_at_field_path: current_utc_datetime,
@@ -52,10 +58,12 @@ class ModelRepository:
                     training_strategy_field_path: model.training_strategy,
                     sampling_strategy_field_path: model.sampling_strategy,
                     metric_field_path: model.metric,
-                    evaluations_field_path: model.evaluations,
+                    formated_evaluations_field_path: model.formated_evaluations,
                     transformations_field_path: model.transformations,
                     isDeleted_fieled_path: False,
-                    is_multi_class_fieled_path: model.is_multi_class
+                    is_multi_class_fieled_path: model.is_multi_class,
+                    train_score_column_field_path: model.train_score,
+                    test_score_column_field_path: model.test_score
                 }
             }
         )

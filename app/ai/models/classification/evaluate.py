@@ -24,12 +24,12 @@ class Evaluate:
             return 'recall_macro'
         elif scoring == 'f1':
             return 'f1_macro'
-        elif scoring == 'roc_auc' and not is_multi_class and not is_train_multi_class:
+        elif scoring == 'log_loss':
+            return 'neg_log_loss'
+        elif scoring == 'roc_auc' and is_multi_class: # and is_train_multi_class:
             return 'roc_auc_ovo'
         else:
             return scoring
-    
-    # 
     
     def calculate_metrics(self, y_true, y_pred, y_proba):
     # Determine the number of unique classes

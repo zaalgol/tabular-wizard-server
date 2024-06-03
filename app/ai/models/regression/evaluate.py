@@ -2,9 +2,21 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_squared_log_error, mean_absolute_percentage_error
 
 class Evaluate:
+    def __init__(self):
+        self.metric_mapping = {
+            'r2': 'R2',
+            'neg_root_mean_squared_error': 'RMSE',
+            'neg_mean_squared_error': 'MSE',
+            'neg_mean_absolute_error': 'MAE',
+            'neg_mean_absolute_percentage_error': 'MAPE'
+        }
+
     def predict(self, model, X_data):
         return model.predict (X_data)
     
+    def get_metric_mapping(self, metric):
+        return self.metric_mapping.get(metric, metric)
+
     def calculate_metrics(self, y_true, y_pred):
         mse = mean_squared_error(y_true, y_pred)
         rmse = np.sqrt(mse)  # Calculating RMSE

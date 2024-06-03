@@ -41,6 +41,7 @@ class ModelService:
     def train_model(self, model, dataset):
         if dataset is None:
             return {"error": "No dataset provided"}, 400
+        model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
         app_context = current_app._get_current_object().app_context()
 
@@ -111,7 +112,7 @@ class ModelService:
             os.makedirs(SAVED_MODEL_FOLDER)
             
         with open(evaluations_filepath, 'w') as file:
-            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\nMetric: {model.metric}\n\nEvaluations:\n{model.evaluations}"))
+            file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\nMetric: {model.metric}\n\nEvaluations:\n{model.formated_evaluations}"))
             
         # Generate a unique URL for the txt file
         scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
@@ -169,8 +170,9 @@ class ModelService:
         
 
     def get_user_models_by_id(self, user_id):
-           result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description', 'metric', 'target_column',
-                                                                                                'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class'])
+           result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
+                                                                                                'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
+                                                                                                'file_line_num', 'file_name'])
            return result
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
@@ -182,8 +184,8 @@ class ModelService:
     def generate_model_metric_file(self, user_id, model_name):
         try:
             model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
-                                                                                    additonal_properties=['evaluations',
-                                                                                                        'model_type', 'training_strategy', 'sampling_strategy'])
+                                                                                    additonal_properties=['formated_evaluations',
+                                                                                                        'model_type', 'training_strategy', 'sampling_strategy', 'metric'])
             model_object = Model(**model)
             model_object.user_id = user_id
             model_object.model_name = model_name

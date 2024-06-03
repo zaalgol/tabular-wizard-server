@@ -46,6 +46,7 @@ def train_model():
     if not user:
         return {}, 401, {}
     
+    file_name = request.json.get('fileName', None)
     dataset = request.json.get('dataset', None)
     model_name = request.json.get('modelName', None)
     description = request.json.get('description', None)
@@ -54,7 +55,7 @@ def train_model():
     training_strategy = request.json.get('trainingStrategy', None)
     sampling_strategy = request.json.get('samplingStrategy', None)
     metric = request.json.get('metric', None)
-    model = Model(user_id=user_id, model_name=model_name, description=description,
+    model = Model(user_id=user_id, file_name=file_name, model_name=model_name, description=description,
                    model_type=model_type, training_strategy=training_strategy, sampling_strategy=sampling_strategy, target_column=target_column, metric=metric)
 
     return model_service.train_model(model, dataset)
