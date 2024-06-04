@@ -12,6 +12,7 @@ class Config:
     # SQLALCHEMY_DATABASE_URI = 'sqlite:///mydatabase.db'  # Use SQLite for local development
     MONGODB_URI = os.getenv('MONGODB_URI')
     IS_MONGO_LOCAL = os.getenv('IS_MONGO_LOCAL')
+    IS_STORAGE_LOCAL = os.getenv('IS_STORAGE_LOCAL')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
     QUEST_PASSWORD = os.getenv('QUEST_PASSWORD')
     EMAIL_DOMAIN = os.getenv('EMAIL_DOMAIN')

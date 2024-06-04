@@ -5,10 +5,12 @@ from datetime import datetime, UTC
 from app.entities.model import Model
 from app.repositories.model_repository import ModelRepository
 from app.repositories.user_repository import UserRepository
+from app.config.config import Config 
 from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
 from werkzeug.utils import safe_join
 from werkzeug.utils import secure_filename
 import pandas as pd
+from app.storage.local_model_storage import LocalModelStorage
 from app.storage.model_storage import ModelStorage
 from app.tasks.inference_task import InferenceTask
 from app.tasks.training_task import TrainingTask
@@ -31,7 +33,11 @@ class ModelService:
         self.regressionEvaluate = RegressionEvaluate()
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
-        self.model_storage = ModelStorage()
+        
+        if int(Config.IS_STORAGE_LOCAL):
+            self.model_storage = LocalModelStorage()
+        else:
+            self.model_storage = ModelStorage()
 
     def __new__(cls):
         if not cls._instance:
@@ -172,7 +178,7 @@ class ModelService:
     def get_user_models_by_id(self, user_id):
            result = self.model_repository.get_user_models_by_id(user_id, additonal_properties=['created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
                                                                                                 'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
-                                                                                                'file_line_num', 'file_name'])
+                                                                                                'file_line_num', 'file_name', 'sampling_strategy'])
            return result
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):

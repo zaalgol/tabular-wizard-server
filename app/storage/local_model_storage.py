@@ -1,5 +1,6 @@
 import os
 import pickle
+import shutil
 import app.app as app
 
 
@@ -19,3 +20,11 @@ class LocalModelStorage:
                 os.makedirs(SAVED_MODEL_FOLDER)
             pickle.dump(model, open(SAVED_MODEL_FILE, 'wb'))
             return SAVED_MODEL_FILE
+        
+    def delete_model(self, user_id, model_name):
+        SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, user_id, model_name)
+        if not os.path.exists(SAVED_MODEL_FOLDER):
+            pass
+            # raise Exception(f"Model {model_name} for user {user_id} not found")
+        shutil.rmtree(SAVED_MODEL_FOLDER)
+        return f"Model {model_name} for user {user_id} has been deleted"
