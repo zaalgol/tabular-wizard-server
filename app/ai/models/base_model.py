@@ -70,6 +70,10 @@ class BaseModel:
     def remove_unnecessary_parameters_for_implementations(self, kwargs):
         for parameter in self.unnecessary_parameters:
             kwargs.pop(parameter, None)
+            
+    @property
+    def default_values(self):
+        return {}
 
     @property
     def callbacks(self):

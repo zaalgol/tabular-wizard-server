@@ -1,7 +1,5 @@
 from abc import abstractmethod
 import os
-from lightgbm import LGBMClassifier
-import numpy as np
 from sklearn.model_selection import KFold, cross_val_score
 import optuna
 from app.ai.models.base_model import BaseModel
@@ -53,6 +51,7 @@ class BaseClassfierModel(BaseModel):
             return cv_results.mean()
 
         self.study = optuna.create_study(direction="maximize") #if self.scoring in ["accuracy", "roc_auc", "f1_macro"] else "minimize")
+        self.study.enqueue_trial(self.default_values)
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
     def train(self, *args, **kwargs):

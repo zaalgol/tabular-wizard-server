@@ -32,6 +32,24 @@ class LightgbmClassifier(BaseClassfierModel):
         default_params = DEFAULT_PARAMS
         return default_params
     
+    @property
+    def default_values(self):
+        return {
+            'boosting_type':'gbdt',
+            'learning_rate': 0.1,
+            'num_leaves': 31,
+            'max_depth': -1,
+            'min_child_samples': 20,
+            'min_child_weight': 1e-3,
+            'subsample': 1.0,
+            'subsample_freq': 0,
+            'colsample_bytree': 1.0,
+            'reg_alpha': 1e-9,
+            'reg_lambda': 1e-9,
+            'n_estimators': 100,
+        }
+
+    
     def train(self):
         # return super().train(eval_metric=self.scoring)
         return super().train()

@@ -22,17 +22,20 @@ class BaseRegressorModel(BaseModel):
                     param_grid[k] = trial.suggest_float(k, v[0], v[1])
                 elif isinstance(v, tuple) and len(v) == 3 and v[2] == 'int':
                     param_grid[k] = trial.suggest_int(k, v[0], v[1])
-                elif isinstance(v, tuple) and len(v) == 3 and v[2] == 'int-log-uniform':
-                    param_grid[k] = int(trial.suggest_float(k, v[0], v[1], log=True))
                 elif isinstance(v, tuple) and len(v) == 2:
                     param_grid[k] = trial.suggest_float(k, v[0], v[1])
                 else:
                     raise ValueError(f"Unsupported parameter format for {k}: {v}")
+
             estimator = self.estimator.set_params(**param_grid)
             cv_results = cross_val_score(estimator, self.X_train, self.y_train, cv=kfold, scoring=self.scoring)
             return cv_results.mean()
 
-        self.study = optuna.create_study(direction="maximize" if self.scoring in ["accuracy", "roc_auc", "f1", "r2"] else "minimize")
+        self.study = optuna.create_study(direction="maximize")# if self.scoring in ["neg_root_mean_squared_error", "roc_auc", "f1", "r2"] else "minimize")
+
+        # Add a trial with default parameters
+        self.study.enqueue_trial(self.default_values)
+
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
     def train(self):
