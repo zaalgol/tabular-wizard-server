@@ -23,4 +23,5 @@ class Model:
     metric: str = field(default=None)
     formated_evaluations: str = field(default=None)
     is_llm: bool = field(default=False)
+    model_description_pdf_file_path: str = field(default=None)
 	

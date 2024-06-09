@@ -40,10 +40,12 @@ class Evaluate:
 
     
     def format_train_and_test_evaluation(self, evaluations):
-         return "\n".join([
-            "Train metrics: {}", 
-            "Test metrics: {}", 
-        ]).format(evaluations['train_metrics'], evaluations['test_metrics'])
+        train_metrics_formatted = "\n".join([f"{key}: {value}" for key, value in evaluations['train_metrics'].items()])
+        test_metrics_formatted = "\n".join([f"{key}: {value}" for key, value in evaluations['test_metrics'].items()])
+        return "\n".join([
+            "Train metrics: \n{}\n", 
+            "Test metrics: \n{}\n", 
+        ]).format(train_metrics_formatted, test_metrics_formatted)
 
 
 

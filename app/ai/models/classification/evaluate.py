@@ -76,12 +76,13 @@ class Evaluate:
                  'test_confution_matrix':test_confution_matrix_str, 'test_metrics': test_metrics}
     
     def format_train_and_test_evaluation(self, evaluations):
-         return "\n".join([
+        train_metrics_formatted = "\n".join([f"{key}: {value}" for key, value in evaluations['train_metrics'].items()])
+        test_metrics_formatted = "\n".join([f"{key}: {value}" for key, value in evaluations['test_metrics'].items()])
+        return "\n".join([
             "\nTrain eval:\n {}\n", 
-            "Train metrics: {}\n", 
+            "Train metrics: \n{}\n", 
             "{}", 
             "\nTest eval:\n {}\n", 
-            "Test metrics: {}", 
+            "Test metrics: \n{}", 
             "\n"
-        ]).format(str(evaluations['train_confution_matrix']), evaluations['train_metrics'], "*" * 100, str(evaluations['test_confution_matrix']), evaluations['test_metrics'])
-    
+        ]).format(str(evaluations['train_confution_matrix']), train_metrics_formatted, "*" * 50, str(evaluations['test_confution_matrix']), test_metrics_formatted)    

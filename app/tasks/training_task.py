@@ -21,9 +21,9 @@ class TrainingTask:
         transformations = None
         try:
             if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
-                trained_model, evaluations, encoding_rules, transformations = self.__train_multi_models(model, df)
+                trained_model, evaluations, encoding_rules, transformations = self.__train_multi_models(model, df.copy())
             else:
-                trained_model, evaluations, encoding_rules, transformations = self.__train_single_model(model, df)
+                trained_model, evaluations, encoding_rules, transformations = self.__train_single_model(model, df.copy())
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
@@ -31,7 +31,7 @@ class TrainingTask:
             model.formated_evaluations = evaluations['formated_evaluations']
             model.train_score = evaluations['train_score']
             model.test_score = evaluations['test_score']
-            task_callback(model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
+            task_callback(df, model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
 
     def __train_single_model(self, model, df):
         df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)

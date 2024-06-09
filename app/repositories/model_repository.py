@@ -36,6 +36,7 @@ class ModelRepository:
         is_multi_class_fieled_path = f"models.{model_name}.is_multi_class"
         train_score_column_field_path = f"models.{model_name}.train_score"
         test_score_column_field_path = f"models.{model_name}.test_score"
+        model_description_pdf_file_path_path = f"models.{model_name}.model_description_pdf_file_path"
         
         
         # Get the current UTC datetime
@@ -63,7 +64,8 @@ class ModelRepository:
                     isDeleted_fieled_path: False,
                     is_multi_class_fieled_path: model.is_multi_class,
                     train_score_column_field_path: model.train_score,
-                    test_score_column_field_path: model.test_score
+                    test_score_column_field_path: model.test_score,
+                    model_description_pdf_file_path_path: model.model_description_pdf_file_path
                 }
             }
         )
