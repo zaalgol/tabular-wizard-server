@@ -24,16 +24,23 @@ import os
 # print("Combined file created successfully.")
 
 
-file_path = f'datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data.csv'
-df = pd.read_csv(file_path)
-df_head = df.head()
-df_head.to_csv('datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data_head.csv')
-df_tail = df.tail()
-df_tail.to_csv('datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data_tail.csv')
+# file_path = f'datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data.csv'
+# df = pd.read_csv(file_path)
+# df_head = df.head()
+# df_head.to_csv('datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data_head.csv')
+# df_tail = df.tail()
+# df_tail.to_csv('datasets/timeseries/nasdaq/nasdaq/2008_Global_Markets_Data_tail.csv')
 
-file_path = f'datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data.csv'
+# file_path = f'datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data.csv'
+# df = pd.read_csv(file_path)
+# df_head = df.head()
+# df_head.to_csv('datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data_head.csv')
+# df_tail = df.tail()
+# df_tail.to_csv('datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data_tail.csv')
+
+
+file_path = f'datasets/calssification/titanic.csv'
 df = pd.read_csv(file_path)
-df_head = df.head()
-df_head.to_csv('datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data_head.csv')
-df_tail = df.tail()
-df_tail.to_csv('datasets/timeseries/nasdaq/nasdaq/2010_Global_Markets_Data_tail.csv')
+df = df[df.columns.drop('Survived')]
+df.to_csv('datasets/calssification/titanic_no_y.csv')
+

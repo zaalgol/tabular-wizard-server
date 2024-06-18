@@ -60,6 +60,8 @@ def create_app():
     
     jwt.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*", async_mode='gevent')  # Attach SocketIO to Flask app
+    # socketio.init_app(app, cors_allowed_origins="*",  engineio_logger=True, logger=True)  # Attach SocketIO to Flask app
+    # socketio.init_app(app, cors_allowed_origins="*") 
     CORS(app, supports_credentials=True, origins="*")
 
     from app.routes.api import bp as main_blueprint
