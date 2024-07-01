@@ -24,4 +24,6 @@ class Model:
     formated_evaluations: str = field(default=None)
     is_llm: bool = field(default=False)
     model_description_pdf_file_path: str = field(default=None)
+    is_time_series: bool = field(default=False)
+    time_series_code: str = field(default=None)
 	

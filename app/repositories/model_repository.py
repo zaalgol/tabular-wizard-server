@@ -37,7 +37,8 @@ class ModelRepository:
         train_score_column_field_path = f"models.{model_name}.train_score"
         test_score_column_field_path = f"models.{model_name}.test_score"
         model_description_pdf_file_path_path = f"models.{model_name}.model_description_pdf_file_path"
-        
+        is_time_series_field_path = f"models.{model_name}.is_time_series"
+        time_series_code_field_path = f"models.{model_name}.time_series_code"
         
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(UTC)
@@ -65,7 +66,9 @@ class ModelRepository:
                     is_multi_class_fieled_path: model.is_multi_class,
                     train_score_column_field_path: model.train_score,
                     test_score_column_field_path: model.test_score,
-                    model_description_pdf_file_path_path: model.model_description_pdf_file_path
+                    model_description_pdf_file_path_path: model.model_description_pdf_file_path,
+                    is_time_series_field_path: model.is_time_series,
+                    time_series_code_field_path: model.time_series_code
                 }
             }
         )

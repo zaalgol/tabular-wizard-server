@@ -3,19 +3,22 @@ import pandas as pd
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.data_preprocessing import DataPreprocessing
-
+from app.tasks.llm_task import LlmTask
 
 class InferenceTask:
     def __init__(self) -> None:
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
+        self.llm_task = LlmTask()
 
     def run_task(self, model_details, loaded_model, original_df, inference_task_callback, app_context):
         try:
             is_inference_successfully_finished = False
-            X_data = self.data_preprocessing.exclude_columns(original_df, columns_to_exclude=[model_details.target_column]).copy()
-            X_data = self.__data_preprocessing(X_data, model_details.encoding_rules, model_details.transformations)
+            if model_details.is_time_series:
+                df_copy = self.llm_task.processed_dataset(original_df.copy(), model_details.time_series_code)
+            X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])
+            X_data = self.__data_preprocessing(X_data, model_details)
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
@@ -37,16 +40,16 @@ class InferenceTask:
         finally:
             inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
 
-    def __data_preprocessing(self, df, encoding_rules, transformations):
+    def __data_preprocessing(self, df, model):
         df_copy = df.copy()
         df_copy = self.data_preprocessing.sanitize_cells(df_copy)
         df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
         df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df_copy)
         df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)
-        if encoding_rules:
-            df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, encoding_rules)
-        if transformations:
-             df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, transformations)
+        if model.encoding_rules:
+            df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, model.encoding_rules)
+        if model.transformations:
+             df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, model.transformations)
         df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)
         return df_copy
     

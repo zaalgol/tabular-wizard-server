@@ -55,8 +55,10 @@ def train_model():
     training_strategy = request.json.get('trainingStrategy', None)
     sampling_strategy = request.json.get('samplingStrategy', None)
     metric = request.json.get('metric', None)
+    is_time_series = request.json.get('isTimeSeries', False)
     model = Model(user_id=user_id, file_name=file_name, model_name=model_name, description=description,
-                   model_type=model_type, training_strategy=training_strategy, sampling_strategy=sampling_strategy, target_column=target_column, metric=metric)
+                   model_type=model_type, training_strategy=training_strategy, sampling_strategy=sampling_strategy,
+                   target_column=target_column, metric=metric, is_time_series=is_time_series)
 
     return model_service.train_model(model, dataset)
 

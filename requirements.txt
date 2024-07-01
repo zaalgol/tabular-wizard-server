@@ -29,6 +29,8 @@ pyparsing
 python-dateutil
 pytz
 PyYAML
+pytest
+pytest-mock
 scikit-learn
 optuna
 scipy

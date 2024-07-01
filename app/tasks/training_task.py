@@ -6,6 +6,7 @@ from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBM
 from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
 from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
 from app.tasks.report_file_task import ReportFileTask
+from app.tasks.llm_task import LlmTask
 
 class TrainingTask:
     def __init__(self) -> None:
@@ -13,6 +14,7 @@ class TrainingTask:
         self.regressionEvaluate = RegressionEvaluate()
         self.data_preprocessing = DataPreprocessing()
         self.reportFileTask = ReportFileTask()
+        self.llm_task = LlmTask()
 
     def run_task(self, model, headers, df, task_callback, app_context):
         is_training_successfully_finished = False
@@ -35,7 +37,7 @@ class TrainingTask:
             task_callback(df, model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
 
     def __train_single_model(self, model, df):
-        df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)
+        df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
         metric = model.metric
         if model.model_type == 'classification':
             training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric, 
@@ -64,7 +66,7 @@ class TrainingTask:
 
     def __train_multi_models(self, model, df):
         if model.model_type == 'classification':
-            df = self.__data_preprocessing(df, fill_missing_numeric_cells=True)
+            df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
             ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True,
                                               create_transformations=True, apply_transformations=True,
                                               sampling_strategy=model.sampling_strategy, scoring=model.metric)
@@ -87,7 +89,7 @@ class TrainingTask:
         
         if model.model_type == 'regression':
             try:
-                df = self.__data_preprocessing(df)
+                df = self.__data_preprocessing(df, model)
                 ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
                                             apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
                 ensemble.create_models(df)
@@ -112,8 +114,10 @@ class TrainingTask:
             return ensemble.trained_voting_regressor, evaluations, ensemble.encoding_rules, ensemble.transformations
             
         
-    def __data_preprocessing(self, df, fill_missing_numeric_cells=False):
+    def __data_preprocessing(self, df, model, fill_missing_numeric_cells=False):
         df_copy=df.copy()
+        if model.is_time_series:
+            df_copy, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df_copy, model.target_column)
         data_preprocessing = DataPreprocessing()
         df_copy = data_preprocessing.sanitize_dataframe(df_copy)
         if fill_missing_numeric_cells:

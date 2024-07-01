@@ -120,23 +120,6 @@ class ModelService:
             print(f"Error downloading file: {e}")
             
             socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
-            
-    # def __generate_model_evaluations_file(self, df, model):
-    #     # Emit an event for training success
-    #     SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
-    #     evaluations_filename = f"{model.model_name}__evaluations.txt"
-    #     evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
-        
-    #     if not os.path.exists(SAVED_MODEL_FOLDER):
-    #         os.makedirs(SAVED_MODEL_FOLDER)
-            
-    #     with open(evaluations_filepath, 'w') as file:
-    #         file.write(str(f"Model Name: {model.model_name}\nModel Type: {model.model_type} \nTraining Srategy: {model.training_strategy}\nSampling Strategy: {model.sampling_strategy}\nMetric: {model.metric}\n\nEvaluations:\n{model.formated_evaluations}"))
-            
-    #     # Generate a unique URL for the txt file
-    #     scheme = 'https' if current_app.config.get('PREFERRED_URL_SCHEME', 'http') == 'https' else 'http'
-    #     server_name = current_app.config.get('SERVER_NAME', 'localhost:8080')
-    #     return f"{scheme}://{server_name}/download/{evaluations_filename}"
     
     def save_plot_as_image(self, plot_func, filepath, width, height, dpi=300):
         try:
@@ -295,7 +278,8 @@ class ModelService:
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name,
                                                                                 additonal_properties=['created_at', 'description', 'columns',
                                                                                                       'encoding_rules', 'transformations', 'metric', 'target_column',
-                                                                                                      'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class'])
+                                                                                                      'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
+                                                                                                      'is_time_series', 'time_series_code'])
         
     def get_model_details_file(self, user_id, model_name):
         try:
