@@ -107,7 +107,7 @@ class ModelService:
                     model.encoding_rules = encoding_rules
                     model.transformations = transformations
 
-                    model.model_description_pdf_file_path = self.__generate_model_evaluations_file(model, df)
+                    model.model_description_pdf_file_path = self.__generate_model_evaluations_file(model, df.copy())
                     
                     self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                     
@@ -133,6 +133,11 @@ class ModelService:
             print(f"Error saving plot as image: {e}")
 
     def __generate_model_evaluations_file(self, model, dataset):
+        dataset = self.data_preprocessing.remove_rows_with_missing_value_in_a_column(dataset, model.target_column)
+        dataset = self.data_preprocessing.convert_columns_to_numeric(dataset)
+        dataset = self.data_preprocessing.round_floats(dataset)
+        
+        
         # Emit an event for training success
         SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
         evaluations_filename = f"{model.model_name}__evaluations.pdf"

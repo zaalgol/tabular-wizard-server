@@ -261,6 +261,18 @@ class DataPreprocessing:
                     print(f"Converted {col} to datetime")
         return df_copy
     
+    def convert_columns_to_numeric(self, df: pd.DataFrame) -> pd.DataFrame:
+        df_copy = df.copy()
+        """
+        Converts columns of a DataFrame to numeric types, if possible.
+        
+        :param df: The input DataFrame.
+        :return: A DataFrame with numeric columns converted.
+        """
+        for col in df_copy.columns:
+            df_copy[col] = pd.to_numeric(df_copy[col], errors='coerce')
+        return df_copy
+    
     def convert_datatimes_columns_to_normalized_floats(self, df):
         df_copy = df.copy()
         for col in df_copy.select_dtypes(include=['datetime']):
@@ -269,6 +281,35 @@ class DataPreprocessing:
     
     def get_class_num(self, y):
         return np.unique(y).size
+    
+    def remove_rows_with_missing_value_in_a_column(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
+        df_copy = df.copy()
+        return df_copy[df_copy[column].notna() & (df_copy[column] != '')]
+    
+    def round_floats(self, df: pd.DataFrame, decimal_places: int = 2) -> pd.DataFrame:
+        df_copy=df.copy()
+        
+        float_columns = df_copy.select_dtypes(include=['float64', 'float32']).columns
+        df_copy[float_columns] = df_copy[float_columns].round(decimal_places)
+        
+        return df_copy
+    
+    def filter_invalid_entries(self, original_series: pd.Series, predicted_series: pd.Series):
+        """
+        Filters out invalid entries (NaN or empty strings) from both the original series and predicted series.
+        
+        :param original_series: The original target values as a pandas Series.
+        :param predicted_series: The predicted values as a pandas Series.
+        :return: A tuple of filtered original and predicted Series.
+        """
+        # Create a mask for valid entries
+        valid_mask = original_series.notna() & (original_series != '')
+
+        # Apply the mask to filter both series
+        filtered_original = original_series[valid_mask]
+        filtered_predicted = predicted_series[valid_mask]
+
+        return filtered_original, filtered_predicted
         
         
 

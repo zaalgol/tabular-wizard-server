@@ -55,10 +55,13 @@ class InferenceTask:
     
     def __evaluate_inference(self, model_details, original_df, y_predict, y_predict_proba):
         if model_details.target_column in original_df.columns:
+            filtered_original, filtered_predicted = self.data_preprocessing.filter_invalid_entries(original_df[model_details.target_column], y_predict)
             if model_details.model_type == 'classification':
+                # TODO: use filtered_original, filtered_predicted and also filtered_y_predict
                 inference_evaluations = self.classificationEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict, y_predict_proba)
             elif model_details.model_type == 'regression':
-                inference_evaluations =   self.regressionEvaluate.calculate_metrics(original_df[model_details.target_column], y_predict)
+                inference_evaluations = \
+                    self.regressionEvaluate.calculate_metrics(filtered_original, filtered_predicted)
                 
             for key in inference_evaluations.keys():
                 original_df[f"{key}_inference"] = np.nan
