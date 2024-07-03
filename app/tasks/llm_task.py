@@ -5,33 +5,45 @@ import app.app as app
 
 CODE = "import pandas as pd\n\ndef feature_engineering(df):\n    # Convert 'Period' to datetime\n    df['Period'] = pd.to_datetime(df['Period'], format='%d.%m.%Y')\n    \n    # Set 'Period' as the index\n    df.set_index('Period', inplace=True)\n    \n    # Generate time-based features\n    df['Year'] = df.index.year\n    df['Month'] = df.index.month\n    df['Quarter'] = df.index.quarter\n    df['Day_of_Year'] = df.index.dayofyear\n    df['Week_of_Year'] = df.index.isocalendar().week\n    \n    # Handle missing values by filling with appropriate placeholders\n    df['Revenue'] = pd.to_numeric(df['Revenue'], errors='coerce').fillna(0)\n    df['Sales_quantity'] = pd.to_numeric(df['Sales_quantity'], errors='coerce').fillna(0)\n    df['Average_cost'] = pd.to_numeric(df['Average_cost'], errors='coerce').fillna(0)\n    df['The_average_annual_payroll_of_the_region'] = pd.to_numeric(df['The_average_annual_payroll_of_the_region'], errors='coerce').fillna(0)\n    \n    # Create lag features\n    for lag in range(1, 4):\n        df[f'Revenue_lag_{lag}'] = df['Revenue'].shift(lag)\n        df[f'Sales_quantity_lag_{lag}'] = df['Sales_quantity'].shift(lag)\n        df[f'Average_cost_lag_{lag}'] = df['Average_cost'].shift(lag)\n        df[f'Payroll_lag_{lag}'] = df['The_average_annual_payroll_of_the_region'].shift(lag)\n    \n    # Create rolling window features\n    for win in [3, 6, 12]:\n        df[f'Revenue_rolling_mean_{win}'] = df['Revenue'].rolling(window=win).mean()\n        df[f'Sales_quantity_rolling_mean_{win}'] = df['Sales_quantity'].rolling(window=win).mean()\n        df[f'Average_cost_rolling_mean_{win}'] = df['Average_cost'].rolling(window=win).mean()\n        df[f'Payroll_rolling_mean_{win}'] = df['The_average_annual_payroll_of_the_region'].rolling(window=win).mean()\n        \n        df[f'Revenue_rolling_sum_{win}'] = df['Revenue'].rolling(window=win).sum()\n        df[f'Sales_quantity_rolling_sum_{win}'] = df['Sales_quantity'].rolling(window=win).sum()\n        df[f'Average_cost_rolling_sum_{win}'] = df['Average_cost'].rolling(window=win).sum()\n        df[f'Payroll_rolling_sum_{win}'] = df['The_average_annual_payroll_of_the_region'].rolling(window=win).sum()\n    \n    # Fill any remaining NaN values\n    df.fillna(0, inplace=True)\n    \n    # Reset the index before returning\n    df.reset_index(inplace=True)\n\n    return df"
 CODE2 = "import pandas as pd\n\ndef feature_engineering(df):\n    # Convert 'Period' to datetime type\n    df['Period'] = pd.to_datetime(df['Period'], format='%d.%m.%Y')\n    \n    # Set 'Period' as the DataFrame index\n    df.set_index('Period', inplace=True)\n    \n    # Generate time-based features\n    df['Year'] = df.index.year\n    df['Month'] = df.index.month\n    df['Quarter'] = df.index.quarter\n    \n    # Create lag features for 'Revenue', 'Sales_quantity', 'Average_cost', and 'The_average_annual_payroll_of_the_region'\n    for lag in range(1, 13):  # Lag from 1 to 12 months\n        df[f'Revenue_lag_{lag}'] = df['Revenue'].shift(lag)\n        df[f'Sales_quantity_lag_{lag}'] = df['Sales_quantity'].shift(lag)\n        df[f'Average_cost_lag_{lag}'] = df['Average_cost'].shift(lag)\n        df[f'Payroll_lag_{lag}'] = df['The_average_annual_payroll_of_the_region'].shift(lag)\n    \n    # Create rolling window features for 'Revenue', 'Sales_quantity', 'Average_cost', and 'The_average_annual_payroll_of_the_region'\n    for window in [3, 6, 12]:  # Rolling windows of 3, 6, and 12 months\n        df[f'Revenue_rolling_mean_{window}'] = df['Revenue'].rolling(window=window).mean()\n        df[f'Sales_quantity_rolling_mean_{window}'] = df['Sales_quantity'].rolling(window=window).mean()\n        df[f'Average_cost_rolling_mean_{window}'] = df['Average_cost'].rolling(window=window).mean()\n        df[f'Payroll_rolling_mean_{window}'] = df['The_average_annual_payroll_of_the_region'].rolling(window=window).mean()\n    \n    # Handle missing values by filling forward, then filling any remaining NaN values with zeros\n    df.fillna(method='ffill', inplace=True)\n    df.fillna(0, inplace=True)\n    \n    return df\n\n"
+CODE3 = 'import pandas as pd\n\ndef feature_engineering(df):\n    """\n    Perform feature engineering on a DataFrame to predict the \'Revenue\' column.\n    \n    Parameters:\n    df (pd.DataFrame): Input DataFrame containing the raw data.\n    \n    Returns:\n    df (pd.DataFrame): DataFrame with engineered features.\n    """\n    # Step 1: Convert the \'Period\' column to datetime format\n    df[\'Period\'] = pd.to_datetime(df[\'Period\'], format=\'%d.%m.%Y\')\n    \n    # Step 2: Set the \'Period\' column as the DataFrame index\n    df.set_index(\'Period\', inplace=True)\n\n    # Step 3: Convert all relevant columns to numeric types\n    relevant_columns = [\'Revenue\', \'Sales_quantity\', \'Average_cost\', \'The_average_annual_payroll_of_the_region\']\n    df[relevant_columns] = df[relevant_columns].apply(pd.to_numeric, errors=\'coerce\')\n\n    # Step 4: Fill any NaN values with 0\n    df.fillna(0, inplace=True)\n\n    # Step 5: Generate time-based features\n    df[\'Year\'] = df.index.year\n    df[\'Month\'] = df.index.month\n    df[\'Quarter\'] = df.index.quarter\n    df[\'Day_of_Year\'] = df.index.dayofyear\n    df[\'Week_of_Year\'] = df.index.isocalendar().week\n\n    # Step 6: Create lag features (up to 12 lags)\n    lag_features = [\'Revenue\', \'Sales_quantity\', \'Average_cost\']\n    for lag in range(1, 13):\n        for feature in lag_features:\n            df[f\'{feature}_lag_{lag}\'] = df[feature].shift(lag)\n\n    # Step 7: Create rolling window features (mean and sum) for the specified columns\n    rolling_windows = [3, 6, 12]\n    for window in rolling_windows:\n        for feature in lag_features:\n            df[f\'{feature}_rolling_mean_{window}\'] = df[feature].rolling(window=window).mean()\n            df[f\'{feature}_rolling_sum_{window}\'] = df[feature].rolling(window=window).sum()\n\n    # Fill NaNs produced by rolling operations by 0\n    df.fillna(0, inplace=True)\n\n    # Ensure Revenue_Bucket is not NaN after all operations (It shouldn\'t be in general cases)\n    if \'Revenue_Bucket\' in df.columns:\n        df[\'Revenue_Bucket\'].fillna(\'Unknown\', inplace=True)\n\n    return df'
+CODE4 = "import pandas as pd\n\ndef feature_engineering(df):\n    # Step 1: Convert 'Period' column to datetime format\n    df['Period'] = pd.to_datetime(df['Period'], format='%d.%m.%Y')\n    \n    # Step 2: Set the 'Period' column as the DataFrame index\n    df.set_index('Period', inplace=True)\n    \n    # Step 3: Convert relevant columns to numeric types\n    columns_to_convert = ['Revenue', 'Sales_quantity', 'Average_cost', \n                          'The_average_annual_payroll_of_the_region']\n    df[columns_to_convert] = df[columns_to_convert].apply(pd.to_numeric, errors='coerce')\n    \n    # Fill NaN values in relevant columns with 0\n    df.fillna(0, inplace=True)\n    \n    # Step 5: Generate time-based features\n    df['Year'] = df.index.year\n    df['Month'] = df.index.month\n    df['Quarter'] = df.index.quarter\n    df['Day_of_Year'] = df.index.dayofyear\n    df['Week_of_Year'] = df.index.isocalendar().week\n    \n    # Step 6: Create lag features (up to 12 lags)\n    lags = 12\n    for lag in range(1, lags + 1):\n        for column in columns_to_convert:\n            df[f'{column}_lag_{lag}'] = df[column].shift(lag)\n            \n    # Step 7: Create rolling window features (mean and sum)\n    window_sizes = [3, 6, 12]\n    for window in window_sizes:\n        for column in columns_to_convert:\n            df[f'{column}_rolling_mean_{window}'] = df[column].rolling(window=window).mean()\n            df[f'{column}_rolling_sum_{window}'] = df[column].rolling(window=window).sum()\n    \n    # Return the processed dataset\n    return df\n\n"
+
 class LlmTask:
     def __init__(self) -> None:
         self.api_key = app.Config.OPENAI_API_KEY
         self.model = app.Config.MODEL
         self.max_tokens = app.Config.MAX_TOKENS
+        self.llm_max_tries = app.Config.LLM_MAX_TRIES
         
         
         
 
     def use_llm_toproccess_timeseries_dataset(self, raw_dataset, target_column):
         # tt = self.feature_engineering(raw_dataset)
-
+        try_no = 1
         try:
             head_rows = raw_dataset.head(35).to_csv(index=False)
             tail_rows = raw_dataset.tail(35).to_csv(index=False)
             
-            # Get the feature engineering code from LLM model
-            code = self._get_feature_engineering_code(head_rows, tail_rows, target_column)
-            # code = CODE
+            def use_llm_toproccess_timeseries_dataset_execution():
+                # Get the feature engineering code from LLM model
+                code = CODE4
+                code = self._get_feature_engineering_code(head_rows, tail_rows, target_column)
+                
+                
+                processed_dataset = self.processed_dataset(raw_dataset, code)
             
-            processed_dataset = self.processed_dataset(raw_dataset, code)
-            
-            # # Return the processed dataset
-            # processed_dataset = local_vars.get('processed_dataset', raw_dataset)
-            return processed_dataset, code
+                # # Return the processed dataset
+                # processed_dataset = local_vars.get('processed_dataset', raw_dataset)
+                return processed_dataset, code
+            return use_llm_toproccess_timeseries_dataset_execution()
         except Exception as e:
             print(f"{e}")
+            if try_no < self.llm_max_tries:
+                try_no += 1
+                return use_llm_toproccess_timeseries_dataset_execution()
+                
+                
         
         
     def processed_dataset(self, raw_dataset, code):

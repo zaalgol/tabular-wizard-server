@@ -29,4 +29,5 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     MODEL=os.getenv('MODEL')
     MAX_TOKENS=os.getenv('MAX_TOKENS')
+    LLM_MAX_TRIES=os.getenv('LLM_MAX_TRIES')
     

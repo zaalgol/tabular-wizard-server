@@ -294,7 +294,7 @@ class DataPreprocessing:
         
         return df_copy
     
-    def filter_invalid_entries(self, original_series: pd.Series, predicted_series: pd.Series):
+    def filter_invalid_entries(self, original_series, predicted_series, y_predict_proba=None):
         """
         Filters out invalid entries (NaN or empty strings) from both the original series and predicted series.
         
@@ -308,8 +308,10 @@ class DataPreprocessing:
         # Apply the mask to filter both series
         filtered_original = original_series[valid_mask]
         filtered_predicted = predicted_series[valid_mask]
+        if y_predict_proba.any():
+            y_predict_proba = y_predict_proba[valid_mask]
 
-        return filtered_original, filtered_predicted
+        return filtered_original, filtered_predicted, y_predict_proba
         
         
 
