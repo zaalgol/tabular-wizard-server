@@ -12,7 +12,6 @@ DEFAULT_PARAMS = {
     'activation': ['relu', 'tanh', 'logistic'],
     'solver': ['adam', 'sgd', 'lbfgs'],
     'alpha': [0.0001, 0.05, 0.1, 0.5, 1, 2, 3, 4],
-    'max_iter': [200, 300, 500],
     'learning_rate_init': [0.001, 0.01, 0.05],
     'learning_rate': ['constant', 'invscaling', 'adaptive'],
 }

@@ -6,7 +6,7 @@ class BaseRegressorModel(BaseModel):
     def __init__(self, train_df, target_column, scoring='r2', *args, **kwargs):
         super().__init__(train_df, target_column, scoring, *args, **kwargs)
 
-    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=50, timeout=45*60, *args, **kwargs):
+    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=500, timeout=45*60, *args, **kwargs):
         if params is None:
             params = self.default_params
         kfold = KFold(n_splits=kfold)
@@ -24,6 +24,8 @@ class BaseRegressorModel(BaseModel):
                     param_grid[k] = trial.suggest_int(k, v[0], v[1])
                 elif isinstance(v, tuple) and len(v) == 2:
                     param_grid[k] = trial.suggest_float(k, v[0], v[1])
+                elif isinstance(v, list):
+                    param_grid[k] = trial.suggest_categorical(k, v)
                 else:
                     raise ValueError(f"Unsupported parameter format for {k}: {v}")
 
@@ -34,7 +36,7 @@ class BaseRegressorModel(BaseModel):
         self.study = optuna.create_study(direction="maximize")# if self.scoring in ["neg_root_mean_squared_error", "roc_auc", "f1", "r2"] else "minimize")
 
         # Add a trial with default parameters
-        self.study.enqueue_trial(self.default_values)
+        # self.study.enqueue_trial(self.default_values)
 
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 

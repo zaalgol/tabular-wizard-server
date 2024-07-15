@@ -4,12 +4,11 @@ from sklearn.neural_network import MLPRegressor
 from app.ai.models.regression.implementations.base_regressor_model import BaseRegressorModel
 
 DEFAULT_PARAMS = {
-    'hidden_layer_sizes': [(100,), (50, 50), (100, 50, 25)],
+    'hidden_layer_sizes': [(50, 25),(50, 50), (10, 8, 5), (10, 8, 5, 3), (10, 8, 6, 6, 4)],
     'activation': ['relu', 'tanh', 'identity'],
     'solver': ['adam', 'sgd'],
     'alpha': [0.0001, 0.05, 0.1, 0.5, 1, 2, 3, 4],
     'learning_rate': ['constant', 'adaptive'],
-    'max_iter': [200, 300, 500],
     'learning_rate_init': [0.001, 0.01, 0.05],
 }
 
