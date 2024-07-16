@@ -5,7 +5,6 @@ from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
 from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
 from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
-from app.tasks.report_file_task import ReportFileTask
 from app.tasks.llm_task import LlmTask
 
 class TrainingTask:
@@ -13,7 +12,6 @@ class TrainingTask:
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
         self.data_preprocessing = DataPreprocessing()
-        self.reportFileTask = ReportFileTask()
         self.llm_task = LlmTask()
 
     def run_task(self, model, headers, df, task_callback, app_context):

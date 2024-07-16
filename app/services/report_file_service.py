@@ -29,7 +29,7 @@ from reportlab.lib.units import inch
 import matplotlib.pyplot as plt
 from PIL import Image as PILImage
 
-class ReportFileTask:
+class ReportFileService:
     def __init__(self) -> None:
         pass
         

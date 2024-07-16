@@ -15,6 +15,7 @@ class InferenceTask:
     def run_task(self, model_details, loaded_model, original_df, inference_task_callback, app_context):
         try:
             is_inference_successfully_finished = False
+            df_copy = original_df.copy()
             if model_details.is_time_series:
                 df_copy = self.llm_task.processed_dataset(original_df.copy(), model_details.time_series_code)
             X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])

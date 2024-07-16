@@ -308,7 +308,7 @@ class DataPreprocessing:
         # Apply the mask to filter both series
         filtered_original = original_series[valid_mask]
         filtered_predicted = predicted_series[valid_mask]
-        if y_predict_proba.any():
+        if y_predict_proba and y_predict_proba.any():
             y_predict_proba = y_predict_proba[valid_mask]
 
         return filtered_original, filtered_predicted, y_predict_proba
