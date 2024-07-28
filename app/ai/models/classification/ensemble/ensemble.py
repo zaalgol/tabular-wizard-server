@@ -95,7 +95,7 @@ class Ensemble(BaseClassfierModel):
         top_models = list(islice(self.classifiers.items(), self.number_of_n_best_models))
         for name, model_info in top_models:
             print(f"Tuning and retraining {name}...")
-            model_info['model'].tune_hyper_parameters(n_iter=150)
+            model_info['model'].tune_hyper_parameters(n_iter=200)
             model_info['trained_model'] = model_info['model'].train()
             model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], model_info['model'])
             self.temp[name]=model_info['evaluations']

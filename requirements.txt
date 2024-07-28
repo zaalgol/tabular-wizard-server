@@ -20,7 +20,7 @@ joblib
 kiwisolver
 lightgbm
 matplotlib
-numpy
+numpy==1.26.4
 packaging
 pandas
 Pillow
@@ -49,3 +49,4 @@ torch
 torchvision
 torchaudio
 openai
+reportlab
