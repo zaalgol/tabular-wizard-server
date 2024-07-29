@@ -120,7 +120,7 @@ class TrainingTask:
         if model.is_time_series:
             df_copy, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df_copy, model.target_column)
         data_preprocessing = DataPreprocessing()
-        df_copy = data_preprocessing.sanitize_dataframe(df_copy)
+        # df_copy = data_preprocessing.sanitize_dataframe(df_copy)
         if fill_missing_numeric_cells:
             df_copy = data_preprocessing.fill_missing_numeric_cells(df_copy)
         df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)

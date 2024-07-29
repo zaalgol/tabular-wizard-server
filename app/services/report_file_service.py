@@ -1,22 +1,6 @@
 import os
-from app.ai.data_preprocessing import DataPreprocessing
 import app.app as app
-from datetime import datetime, UTC
-from app.entities.model import Model
-from app.repositories.model_repository import ModelRepository
-from app.repositories.user_repository import UserRepository
-from app.config.config import Config 
-from flask import current_app, jsonify, make_response, send_from_directory, send_from_directory, url_for, send_file
-from werkzeug.utils import safe_join
-from werkzeug.utils import secure_filename
-import pandas as pd
-from app.storage.local_model_storage import LocalModelStorage
-from app.storage.model_storage import ModelStorage
-from app.tasks.inference_task import InferenceTask
-from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
-from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
-import threading
-import pickle
+from flask import current_app
 
 import seaborn as sns
 from reportlab.lib.pagesizes import letter
@@ -27,15 +11,17 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 
 import matplotlib.pyplot as plt
-from PIL import Image as PILImage
 
 class ReportFileService:
+    _instance = None
+
     def __init__(self) -> None:
         pass
-        
-        # self.data_preprocessing = DataPreprocessing()
-        # self.classificationEvaluate = ClassificationEvaluate()
-        # self.regressionEvaluate = RegressionEvaluate()
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
             
     def generate_model_evaluations_file(self, model, dataset):
         # Emit an event for training success

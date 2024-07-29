@@ -53,6 +53,7 @@ class ModelService:
             return {"error": "No dataset provided"}, 400
         model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
+
         app_context = current_app._get_current_object().app_context()
 
         thread = threading.Thread(target=self.training_task.run_task, args=(model, df.columns.tolist(), df, self.__training_task_callback, app_context))

@@ -7,6 +7,7 @@ from app.config.config import Config
 from flask_socketio import SocketIO
 import logging
 from logging.handlers import RotatingFileHandler
+from app.services.init_service import InitService
 
 jwt = JWTManager()
 migrate = Migrate()
@@ -66,4 +67,6 @@ def create_app():
 
     from app.routes.api import bp as main_blueprint
     app.register_blueprint(main_blueprint)
+
+    InitService(app)
     return app
