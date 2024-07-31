@@ -1,6 +1,6 @@
 # import app.app as app
 from app.repositories.user_repository import UserRepository
-from app.services.hassing_service import PasswordHasher
+from app.services.hashing_service import PasswordHasher
 from app.services.token_serivce import TokenService
 from flask import current_app, jsonify, make_response
 
