@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
@@ -27,12 +28,12 @@ class InferenceTask:
                 y_predict_proba = self.classificationEvaluate.predict_proba(loaded_model, X_data)
                 proba_df = pd.DataFrame(y_predict_proba.round(2), columns=[f'Prob_{cls}' for cls in loaded_model.classes_])
                 original_df = pd.concat([original_df, proba_df], axis=1)
-                self.__evaluate_inference(model_details, original_df, y_predict, y_predict_proba)
+                original_df = self.__evaluate_inference(model_details, original_df, y_predict, y_predict_proba)
 
             elif model_details.model_type == 'regression':
                 y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
                 original_df[f'{model_details.target_column}_predict'] = y_predict
-                self.__evaluate_inference(model_details, original_df, y_predict, None)
+                original_df = self.__evaluate_inference(model_details, original_df, y_predict, None)
                 
                 
             is_inference_successfully_finished = True
@@ -54,6 +55,26 @@ class InferenceTask:
         df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)
         return df_copy
     
+    def extract_original_metrics(self, metrics_string, key):
+        # Define regex pattern to capture the value for the given key
+        pattern = fr'{key}: ([\d\.\-e]+)'
+        
+        # Find all occurrences of the key in the string
+        matches = re.findall(pattern, metrics_string)
+        
+        if len(matches) < 2:
+            raise ValueError(f'Could not find both train and test values for key: {key}')
+        
+        # Return the first match as the train value and the second as the test value
+        return matches[0], matches[1]
+    
+    def format_evaluation(self, value):
+        try:
+            return f"{float(value):.3f}"
+        except ValueError:
+            return value
+    
+    
     def __evaluate_inference(self, model_details, original_df, y_predict, y_predict_proba):
         if model_details.target_column in original_df.columns:
             filtered_original, filtered_predicted, filtered_y_predict_proba = \
@@ -64,12 +85,37 @@ class InferenceTask:
             elif model_details.model_type == 'regression':
                 inference_evaluations = \
                     self.regressionEvaluate.calculate_metrics(filtered_original, filtered_predicted)
-                
-            for key in inference_evaluations.keys():
-                original_df[f"{key}_inference"] = np.nan
-            # Assign the values only to the first row
-            for key, value in inference_evaluations.items():
-                original_df.at[0, f"{key}_inference"] = value
 
+            # Prepare the evaluation data
+            # Add 'Evaluations' column to the original DataFrame
+            if 'Evaluations' not in original_df.columns:
+                # original_df.insert(0, 'Evaluations', np.nan)
+                original_df["Evaluations"] = np.nan
+
+                # Prepare the evaluation data
+                eval_types = ['Inference:', 'Train:', 'Test:']
+                eval_data = {'Evaluations': eval_types}
+
+                # Create empty columns in original_df for each evaluation metric
+                for key in inference_evaluations.keys():
+                    train_eval, test_eval = self.extract_original_metrics(model_details.formated_evaluations, key)
+                    if key not in original_df.columns:
+                        original_df[key] = np.nan
+
+                    eval_data[key] = [
+                        self.format_evaluation(inference_evaluations[key]),
+                        self.format_evaluation(train_eval),
+                        self.format_evaluation(test_eval)
+                    ]
+
+                # Create eval_df with only the evaluation metrics
+                eval_df = pd.DataFrame(eval_data)
+
+                # Iterate over eval_df rows and cells to copy the values into original_df
+                for row_index, row in eval_df.iterrows():
+                    for column_name, cell_value in row.items():
+                        original_df.at[row_index, column_name] = cell_value
+
+        return original_df
 
 
