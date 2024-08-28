@@ -29,7 +29,7 @@ class MLPNetClassifier(BaseClassfierModel):
             hidden_layer_sizes=(first_layer_size, second_layer_size)
             
             
-        self.estimator = MLPClassifier(max_iter=500, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
+        self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
 
     def train(self):
             if self.search: # with hyperparameter tuining

@@ -175,7 +175,7 @@ class ModelService:
                                                                                 additonal_properties=['created_at', 'description', 'columns',
                                                                                                       'encoding_rules', 'transformations', 'metric', 'target_column',
                                                                                                       'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
-                                                                                                      'is_time_series', 'time_series_code'])
+                                                                                                      'is_time_series', 'time_series_code', 'formated_evaluations'])
         
     def get_model_details_file(self, user_id, model_name):
         try:
