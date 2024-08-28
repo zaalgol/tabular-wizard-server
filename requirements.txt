@@ -50,3 +50,8 @@ torchvision
 torchaudio
 openai
 reportlab
+fastapi-jwt-auth
+fastapi_socketio
+fastapi
+uvicorn
+pydantic==1.10.12
