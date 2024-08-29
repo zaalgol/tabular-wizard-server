@@ -25,7 +25,7 @@ class UserService:
             is_valid_password = PasswordHasher.check_password(user['password'], password)
             if is_valid_password:
                 access_token = self.token_service.create_jwt_token(str(user['_id']))
-                response = make_response(jsonify({"message": "Login successful", "access_token": access_token}), 200)
+                response = make_response(jsonify({"message": "Login successful", "access_token": str(access_token)}), 200)
                 return response
         return jsonify({'message': 'Invalid credentials'}), 401
     
