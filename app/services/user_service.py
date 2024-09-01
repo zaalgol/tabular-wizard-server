@@ -6,12 +6,17 @@ from fastapi.responses import JSONResponse
 class UserService:
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls, db):
         if not cls._instance:
             cls._instance = super().__new__(cls)
+            cls._instance.__initialized = False
         return cls._instance
 
     def __init__(self, db):
+        # Ensure __init__ is only called once
+        if self.__initialized:
+            return
+        self.__initialized = True
         self.user_repository = UserRepository(db)
         self.token_service = TokenService()
 

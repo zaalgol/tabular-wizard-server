@@ -1,4 +1,6 @@
 .venv
+.fast_api_venv
+.fast_api_venv_up
 *__pycache__/
 .vscode
 instance/

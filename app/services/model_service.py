@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timezone
 from app.ai.data_preprocessing import DataPreprocessing
+from app.app import get_app
 from app.entities.model import Model
 from app.repositories.model_repository import ModelRepository
 from app.config.config import Config 
@@ -16,9 +17,8 @@ from app.tasks.training_task import TrainingTask
 from app.services.report_file_service import ReportFileService
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
-import threading
 import matplotlib.pyplot as plt
-from app.app import socketio
+from fastapi_socketio import SocketManager
 
 plt.switch_backend('Agg')
 
@@ -26,6 +26,7 @@ class ModelService:
     _instance = None
 
     def __init__(self, db: Database):
+        self.config = Config
         self.model_repository = ModelRepository(db)
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
@@ -33,7 +34,8 @@ class ModelService:
         self.reportFileTask = ReportFileService()
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
-        
+        self.socketio = get_app().state.socketio 
+
         if int(Config.IS_STORAGE_LOCAL):
             self.model_storage = LocalModelStorage()
         else:
@@ -53,7 +55,7 @@ class ModelService:
 
         background_tasks.add_task(self.__run_training_task, model, df)
 
-        socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
+        self.socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
         return JSONResponse(content={}, status_code=200)
 
     def __run_training_task(self, model, df):
@@ -89,7 +91,7 @@ class ModelService:
     def __training_task_callback(self, df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished):
         try:
             if not is_training_successfully_finished:
-                socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+                self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             else:
                 saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
                 model.encoding_rules = encoding_rules
@@ -99,7 +101,7 @@ class ModelService:
                 
                 self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
                 
-                socketio.emit('status', {
+                self.socketio.emit('status', {
                     'status': 'success',
                     'file_type': 'evaluations',
                     'model_name': f'{model.model_name}',
@@ -108,11 +110,11 @@ class ModelService:
                 })
         except Exception as e:
             print(f"Error during training task callback: {e}")
-            socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
     
     def __inference_task_callback(self, model_details, original_df, is_inference_successfully_finished):
         if not is_inference_successfully_finished:
-            socketio.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
+            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
         else:
             current_utc_datetime = datetime.now(timezone.utc).strftime('%Y-%m-%d_%H-%M-%S')
             saved_folder = Config.SAVED_INFERENCES_FOLDER
@@ -127,7 +129,7 @@ class ModelService:
 
             csv_url = f"/download/{csv_filename}"
             
-            socketio.emit('status', {
+            self.socketio.emit('status', {
                 'status': 'success',
                 'file_type': 'inference',
                 'model_name': f'{model_details.model_name}',
@@ -169,7 +171,7 @@ class ModelService:
         try:
             model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additonal_properties=['model_description_pdf_file_path'])
             
-            socketio.emit('status', {
+            self.socketio.emit('status', {
                 'status': 'success',
                 'file_type': 'evaluations',
                 'model_name': f'{model_name}',
@@ -178,7 +180,7 @@ class ModelService:
             })
         except Exception as e:
             print(f"Error during model details file retrieval: {e}")
-            socketio.emit('status', {'status': 'failed', 'message': f'Model {model_name} evaluations download failed.'})
+            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model_name} evaluations download failed.'})
         
     def delete_model_of_user(self, user_id, model_name):
         self.model_storage.delete_model(user_id, model_name)

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
-from fastapi_jwt_auth import AuthJWT
 from fastapi.responses import JSONResponse, FileResponse
 from app.entities.model import Model
 from app.services.model_service import ModelService
@@ -15,7 +14,7 @@ def get_db(request: Request) -> Database:
 def get_user_service(db: Database = Depends(get_db)) -> UserService:
     return UserService(db)
 
-def get_token_service(Authorize: AuthJWT = Depends()) -> TokenService:
+def get_token_service() -> TokenService:
     return TokenService()
 
 def get_model_service(db: Database = Depends(get_db)) -> ModelService:
@@ -31,15 +30,13 @@ async def login(request: Request, user_service: UserService = Depends(get_user_s
 @router.post('/api/trainModel/', status_code=status.HTTP_200_OK)
 async def train_model(
     request: Request, 
-    Authorize: AuthJWT = Depends(), 
+    background_tasks: BackgroundTasks,
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service),
-    background_tasks: BackgroundTasks = Depends()
 ):
-    Authorize.jwt_required()
     data = await request.json()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -61,13 +58,11 @@ async def train_model(
 
 @router.get('/api/userModels/', status_code=status.HTTP_200_OK)
 async def get_user_models(
-    Authorize: AuthJWT = Depends(), 
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    Authorize.jwt_required()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -77,13 +72,11 @@ async def get_user_models(
 @router.get('/api/model', status_code=status.HTTP_200_OK)
 async def get_user_model(
     model_name: str, 
-    Authorize: AuthJWT = Depends(), 
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    Authorize.jwt_required()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -93,13 +86,11 @@ async def get_user_model(
 @router.get('/api/modelMetric', status_code=status.HTTP_200_OK)
 async def get_model_evaluations(
     model_name: str, 
-    Authorize: AuthJWT = Depends(), 
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    Authorize.jwt_required()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -109,13 +100,11 @@ async def get_model_evaluations(
 @router.delete('/api/model', status_code=status.HTTP_200_OK)
 async def delete_model(
     model_name: str, 
-    Authorize: AuthJWT = Depends(), 
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    Authorize.jwt_required()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -125,15 +114,13 @@ async def delete_model(
 @router.post('/api/inference/', status_code=status.HTTP_200_OK)
 async def inference(
     request: Request, 
-    Authorize: AuthJWT = Depends(), 
+    background_tasks: BackgroundTasks,
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service),
-    background_tasks: BackgroundTasks = Depends()
 ):
-    Authorize.jwt_required()
     data = await request.json()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
@@ -151,13 +138,11 @@ async def download_file(
     filename: str, 
     model_name: str, 
     file_type: str, 
-    Authorize: AuthJWT = Depends(), 
     model_service: ModelService = Depends(get_model_service),
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service)
 ):
-    Authorize.jwt_required()
-    user_id = token_service.extract_user_id_from_token(Authorize)
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
