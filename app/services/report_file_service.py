@@ -56,7 +56,7 @@ class ReportFileService:
         describe_df = dataset.describe().transpose()
         describe_heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_describe_heatmap.png")
         self.__save_plot_as_image(lambda: sns.heatmap(describe_df, annot=True, cmap='viridis', fmt='.2f'),
-                        describe_heatmap_filepath, width=10, height=8, dpi=300)
+                        describe_heatmap_filepath, width=15, height=12, dpi=300)
 
         # Add "Heatmap" title
         flowables.append(Paragraph("Heatmap", title_style))
@@ -113,6 +113,13 @@ class ReportFileService:
         try:
             fig = plt.figure(figsize=(width, height), dpi=dpi)
             plot_func()
+            plt.gca().set_xticklabels(plt.gca().get_xticklabels(), rotation=45, ha='right')
+            plt.gca().set_yticklabels(plt.gca().get_yticklabels(), rotation=0)
+            
+            # Set format for the annotations
+            for text in plt.gca().texts:
+                text.set_text(f'{float(text.get_text()):.2f}')
+            
             plt.tight_layout()
             fig.savefig(filepath, format='png')
             plt.close(fig)

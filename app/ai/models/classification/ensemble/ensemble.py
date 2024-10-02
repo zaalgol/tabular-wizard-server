@@ -43,12 +43,12 @@ class Ensemble(BaseClassfierModel):
     def create_models(self, df):
         model_classes = {
             'dtc_classifier':DecisionTreeClassifierWrapper,
-            'svr_classifier':SvmClassifier,
+            # 'svr_classifier':SvmClassifier,
             # 'nsvc_classifier':NuSVCClassifier, # doesn't have a proba
             'lgbm_classifier' :LightgbmClassifier,
             'knn_classifier' :KnnClassifier,
             'lRegression_classifier':LRegression,
-            'mlp_classifier' :MLPNetClassifier,
+            # 'mlp_classifier' :MLPNetClassifier,
             'rf_classifier' :RandomForestClassifierCustom,
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
