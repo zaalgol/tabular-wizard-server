@@ -30,4 +30,5 @@ class Config:
     MODEL=os.getenv('MODEL')
     MAX_TOKENS=os.getenv('MAX_TOKENS')
     LLM_MAX_TRIES=os.getenv('LLM_MAX_TRIES')
+    LLM_NUMBER_OF_DATASET_LINES=os.getenv('LLM_NUMBER_OF_DATASET_LINES')
     

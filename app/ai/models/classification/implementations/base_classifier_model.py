@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import os
+from sklearn import clone
 from sklearn.model_selection import KFold, cross_val_score
 import optuna
 from app.ai.models.base_model import BaseModel
@@ -24,10 +25,10 @@ class BaseClassfierModel(BaseModel):
         self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
         self.scoring = Evaluate().get_scoring_metric(scoring, self.is_multi_class)
 
-    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=50, timeout=45*60):
+    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=300, timeout=45*60):
         if params is None:
             params = self.default_params
-        kfold = KFold(n_splits=kfold)
+        kfold = KFold(n_splits=kfold, shuffle=True, random_state=42)
 
         def objective(trial):
             param_grid = {}
@@ -46,12 +47,17 @@ class BaseClassfierModel(BaseModel):
                     param_grid[k] = trial.suggest_categorical(k, v)
                 else:
                     raise ValueError(f"Unsupported parameter format for {k}: {v}")
-                
-            cv_results = cross_val_score(self.estimator, self.X_train, self.y_train, cv=kfold, scoring=self.scoring)
+            
+            # Clone the estimator to ensure independence between trials
+            estimator = clone(self.estimator)
+            estimator.set_params(**param_grid)
+
+            # Perform cross-validation
+            cv_results = cross_val_score(estimator, self.X_train, self.y_train, cv=kfold, scoring=self.scoring)
             return cv_results.mean()
 
-        self.study = optuna.create_study(direction="maximize") #if self.scoring in ["accuracy", "roc_auc", "f1_macro"] else "minimize")
-        # self.study.enqueue_trial(self.default_values)
+        # Create and optimize the study
+        self.study = optuna.create_study(direction="maximize")
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
     def train(self, *args, **kwargs):

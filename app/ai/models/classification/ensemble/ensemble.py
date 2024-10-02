@@ -43,12 +43,12 @@ class Ensemble(BaseClassfierModel):
     def create_models(self, df):
         model_classes = {
             'dtc_classifier':DecisionTreeClassifierWrapper,
-            'svr_classifier':SvmClassifier,
+            # 'svr_classifier':SvmClassifier,
             # 'nsvc_classifier':NuSVCClassifier, # doesn't have a proba
             'lgbm_classifier' :LightgbmClassifier,
             'knn_classifier' :KnnClassifier,
             'lRegression_classifier':LRegression,
-            'mlp_classifier' :MLPNetClassifier,
+            # 'mlp_classifier' :MLPNetClassifier,
             'rf_classifier' :RandomForestClassifierCustom,
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
@@ -83,7 +83,10 @@ class Ensemble(BaseClassfierModel):
             classifier_value['trained_model'] = classifier_value['model'].train()
 
     def sort_models_by_score(self):
-        scores = {name: cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring) for name, value in self.classifiers.items()}
+        scores = {}
+        for name, value in self.classifiers.items():
+            print(f"Running cross-validation for model: {name}")
+            scores[name] = cross_val_score(value['model'].estimator, self.X_train, self.y_train, cv=5, scoring=self.scoring)
         average_scores = {name: score.mean() for name, score in scores.items()}
         sorted_names = sorted(average_scores, key=average_scores.get, reverse=True)
         self.classifiers = OrderedDict((name, self.classifiers[name]) for name in sorted_names)

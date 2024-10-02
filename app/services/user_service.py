@@ -28,7 +28,7 @@ class UserService:
                 access_token = self.token_service.create_jwt_token(str(user['_id']))
                 return JSONResponse({"message": "Login successful", "access_token": access_token}, status_code=200)
         return JSONResponse({'message': 'Invalid credentials'}, status_code=401)
-    
+
     def create_user(self, email, password):
         hashed_password = PasswordHasher.hash_password(password)
         user = self.user_repository.create_user(email, hashed_password) 
