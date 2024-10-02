@@ -1,152 +1,152 @@
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
-from flask import jsonify, make_response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse, FileResponse
 from app.entities.model import Model
 from app.services.model_service import ModelService
-from app.services.token_serivce import TokenService
+from app.services.token_service import TokenService
 from app.services.user_service import UserService
-import logging
+from pymongo.database import Database
 
-from flask_jwt_extended import verify_jwt_in_request
+router = APIRouter()
 
-# Create a Blueprint
-bp = Blueprint('main', __name__)
-# CORS(bp)
+def get_db(request: Request) -> Database:
+    return request.app.state.db
 
-# Instantiate UsersService singleton
-user_service = UserService()
-model_service = ModelService()
-tokenService = TokenService()
+def get_user_service(db: Database = Depends(get_db)) -> UserService:
+    return UserService(db)
 
-@bp.route('/', methods=['GET'])
-#@jwt_required()
-def hello_world():
-    return 'Hello, World!'
+def get_token_service() -> TokenService:
+    return TokenService()
 
-@bp.route('/api/login/', methods=['POST', 'OPTIONS'])
-def login():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    email = request.json.get('email', None)
-    password = request.json.get('password', None)
-    if not email or not password:
-        return jsonify({'message': 'Invalid credentials'}), 401
+def get_model_service(db: Database = Depends(get_db)) -> ModelService:
+    return ModelService(db)
 
+@router.post('/api/login/', status_code=status.HTTP_200_OK)
+async def login(request: Request, user_service: UserService = Depends(get_user_service)):
+    data = await request.json()
+    email = data.get('email')
+    password = data.get('password')
     return user_service.login(email, password)
 
-@bp.route('/api/trainModel/', methods=['POST'])
-@jwt_required()
-def train_model():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    user_id =  tokenService.extract_user_id_from_token()
+@router.post('/api/trainModel/', status_code=status.HTTP_200_OK)
+async def train_model(
+    request: Request, 
+    background_tasks: BackgroundTasks,
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service),
+):
+    data = await request.json()
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
-    file_name = request.json.get('fileName', None)
-    dataset = request.json.get('dataset', None)
-    model_name = request.json.get('modelName', None)
-    description = request.json.get('description', None)
-    target_column = request.json.get('targetColumn', None)
-    model_type = request.json.get('modelType', None)
-    training_strategy = request.json.get('trainingStrategy', None)
-    sampling_strategy = request.json.get('samplingStrategy', None)
-    metric = request.json.get('metric', None)
-    is_time_series = request.json.get('isTimeSeries', False)
-    model = Model(user_id=user_id, file_name=file_name, model_name=model_name, description=description,
-                   model_type=model_type, training_strategy=training_strategy, sampling_strategy=sampling_strategy,
-                   target_column=target_column, metric=metric, is_time_series=is_time_series)
+    model = Model(
+        user_id=user_id,
+        file_name=data.get('fileName'),
+        model_name=data.get('modelName'),
+        description=data.get('description'),
+        model_type=data.get('modelType'),
+        training_strategy=data.get('trainingStrategy'),
+        sampling_strategy=data.get('samplingStrategy'),
+        target_column=data.get('targetColumn'),
+        metric=data.get('metric'),
+        is_time_series=data.get('isTimeSeries', False)
+    )
 
-    return model_service.train_model(model, dataset)
+    return model_service.train_model(model, data.get('dataset'), background_tasks)
 
-    
-
-@bp.route('/api/userModels/', methods=['GET'])
-@jwt_required()
-def get_user_models():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    
-    user_id =  tokenService.extract_user_id_from_token()
+@router.get('/api/userModels/', status_code=status.HTTP_200_OK)
+async def get_user_models(
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service)
+):
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
-    models =  model_service.get_user_models_by_id(user_id)
-    return make_response(jsonify({"models": models}), 200)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    models = model_service.get_user_models_by_id(user_id)
+    return JSONResponse(content={"models": models})
 
-
-@bp.route('/api/model', methods=['GET'])
-@jwt_required()
-def get_user_model():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    model_name = request.args.get('model_name')
-    user_id =  tokenService.extract_user_id_from_token()
+@router.get('/api/model', status_code=status.HTTP_200_OK)
+async def get_user_model(
+    model_name: str, 
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service)
+):
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
-    model =  model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
-    return make_response(jsonify({"model": model}), 200)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    model = model_service.get_user_model_by_user_id_and_model_name(user_id, model_name)
+    return JSONResponse(content={"model": model})
 
-@bp.route('/api/modelMetric', methods=['GET'])
-@jwt_required()
-def get_model_evaluations():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    model_name = request.args.get('model_name')
-    user_id =  tokenService.extract_user_id_from_token()
+@router.get('/api/modelMetric', status_code=status.HTTP_200_OK)
+async def get_model_evaluations(
+    model_name: str, 
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service)
+):
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     model_service.get_model_details_file(user_id, model_name)
-    return {}, 200, {}
+    return JSONResponse(content={}, status_code=status.HTTP_200_OK)
 
-@bp.route('/api/model', methods=['OPTIONS', 'DELETE'])
-@jwt_required()
-def delete_model():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    model_name = request.args.get('model_name')
-    user_id =  tokenService.extract_user_id_from_token()
+@router.delete('/api/model', status_code=status.HTTP_200_OK)
+async def delete_model(
+    model_name: str, 
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service)
+):
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
-    result =  model_service.delete_model_of_user(user_id, model_name)
-    return {}, 200, {}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    result = model_service.delete_model_of_user(user_id, model_name)
+    return JSONResponse(content={}, status_code=status.HTTP_200_OK)
 
-
-@bp.route('/api/inference/', methods=['POST'])
-@jwt_required()
-def infrernce():
-    if request.method == 'OPTIONS':
-        # Handle the preflight request
-        return {}, 200, {}
-    user_id =  tokenService.extract_user_id_from_token()
+@router.post('/api/inference/', status_code=status.HTTP_200_OK)
+async def inference(
+    request: Request, 
+    background_tasks: BackgroundTasks,
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service),
+):
+    data = await request.json()
+    user_id = token_service.extract_user_id_from_token()
     user = user_service.get_user_by_id(user_id)
     if not user:
-        return {}, 401, {}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
-    dataset = request.json.get('dataset', None)
-    model_name = request.json.get('modelName', None)
-    file_name = request.json.get('fileName', None)
+    dataset = data.get('dataset')
+    model_name = data.get('modelName')
+    file_name = data.get('fileName')
 
-    model_service.inference(user_id=user_id, model_name=model_name, file_name=file_name, dataset=dataset)
+    model_service.inference(user_id=user_id, model_name=model_name, file_name=file_name, dataset=dataset, background_tasks=background_tasks)
 
-    return {}, 200, {}
+    return JSONResponse(content={}, status_code=status.HTTP_200_OK)
 
-@bp.route('/download/<filename>')
-def download_file(filename):
-    verify_jwt_in_request(locations='query_string')
-    # The token has been validated, proceed with sending the file
-    user_id = get_jwt_identity()
-    model_name = request.args.get('model_name')
-    file_type = request.args.get('file_type')
-    return model_service.download_file(user_id, model_name, filename, file_type)
-
+@router.get('/download/{filename}')
+async def download_file(
+    filename: str, 
+    model_name: str, 
+    file_type: str, 
+    model_service: ModelService = Depends(get_model_service),
+    token_service: TokenService = Depends(get_token_service),
+    user_service: UserService = Depends(get_user_service)
+):
+    user_id = token_service.extract_user_id_from_token()
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    
+    file_path = model_service.download_file(user_id, model_name, filename, file_type)
+    
+    return FileResponse(file_path, filename=filename)

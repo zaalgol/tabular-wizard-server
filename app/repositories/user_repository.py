@@ -1,6 +1,6 @@
 from bson import ObjectId
-from flask import current_app
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+from pymongo.database import Database
 
 class UserRepository:
     _instance = None
@@ -10,9 +10,12 @@ class UserRepository:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    def __init__(self, db: Database):
+        self._db = db
+
     @property
     def db(self):
-        return current_app.db
+        return self._db
 
     @property
     def users_collection(self):
@@ -25,7 +28,6 @@ class UserRepository:
         return self.users_collection.find_one({"username": username, "isDeleted": {"$ne": True}})
 
     def get_user_by_email(self, email):
-        t = self.users_collection.find_one({"email": email, "isDeleted": {"$ne": True}})
         return self.users_collection.find_one({"email": email, "isDeleted": {"$ne": True}})
     
     def get_user_by_email_and_password(self, email, password):
@@ -44,4 +46,3 @@ class UserRepository:
             return {"_id": result.inserted_id, **user}
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-        
