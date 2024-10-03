@@ -13,8 +13,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class TokenService:
     @staticmethod
-    def create_jwt_token(data: dict, expires_delta: timedelta = None):
-        to_encode = data.copy()
+    def create_jwt_token(user_id: str, expires_delta: timedelta = None):
+        to_encode = {"sub": user_id}
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
@@ -24,7 +24,7 @@ class TokenService:
         return encoded_jwt
     
     @staticmethod
-    def extract_user_id_from_token(token: str = Depends(oauth2_scheme)):
+    def decode_token(token: str):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id: str = payload.get("sub")
@@ -37,3 +37,7 @@ class TokenService:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
             )
+
+    @staticmethod
+    async def extract_user_id_from_token(token: str = Depends(oauth2_scheme)):
+        return TokenService.decode_token(token)

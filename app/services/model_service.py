@@ -154,14 +154,14 @@ class ModelService:
             raise HTTPException(status_code=500, detail=str(e))
     
     def get_user_models_by_id(self, user_id):
-        return self.model_repository.get_user_models_by_id(user_id, additonal_properties=[
+        return self.model_repository.get_user_models_by_id(user_id, additional_properties=[
             'created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
             'file_line_num', 'file_name', 'sampling_strategy'
         ])
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
-        return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additonal_properties=[
+        return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
             'created_at', 'description', 'columns', 'encoding_rules', 'transformations', 'metric', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
             'is_time_series', 'time_series_code', 'formated_evaluations'
@@ -169,7 +169,7 @@ class ModelService:
         
     def get_model_details_file(self, user_id, model_name):
         try:
-            model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additonal_properties=['model_description_pdf_file_path'])
+            model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=['model_description_pdf_file_path'])
             
             self.socketio.emit('status', {
                 'status': 'success',

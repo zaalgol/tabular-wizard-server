@@ -35,17 +35,18 @@ def create_app():
     # Initialize MongoDB client and set it in app state
     app.state.db = generate_mongo_client()
 
-    logger.info("Attaching SocketManager to the app.")
-    # Attach SocketManager to the app
-    app.state.socketio = create_socketio(app)
-
+    # Configure CORS middleware **before** attaching SocketManager
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["http://localhost:5173"],  # Or specify exact origins like ["http://localhost:5173"]
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    logger.info("Attaching SocketManager to the app.")
+    # Attach SocketManager to the app
+    app.state.socketio = create_socketio(app)
 
     logger.info("Including main router.")
     from app.routes.api import router as main_router
