@@ -1,4 +1,5 @@
 import os
+import asyncio
 from datetime import datetime, timezone
 from app.ai.data_preprocessing import DataPreprocessing
 from app.app import get_app
@@ -31,10 +32,11 @@ class ModelService:
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
-        self.reportFileTask = ReportFileService()
+        self.reportFileService = ReportFileService()
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
         self.socketio = get_app().state.socketio 
+        self.csv_url_prefix = f"http://localhost:8080"
 
         if int(Config.IS_STORAGE_LOCAL):
             self.model_storage = LocalModelStorage()
@@ -46,20 +48,59 @@ class ModelService:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def train_model(self, model: Model, dataset, background_tasks: BackgroundTasks):
+    # def train_model(self, model: Model, dataset, background_tasks: BackgroundTasks):
+    async def train_model(self, model: Model, dataset):
         if dataset is None:
             raise HTTPException(status_code=400, detail="No dataset provided")
         
         model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
 
-        background_tasks.add_task(self.__run_training_task, model, df)
+        await self.socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
+        result = await self.__run_training_task(model, df)
 
-        self.socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
-        return JSONResponse(content={}, status_code=200)
+        return result
 
-    def __run_training_task(self, model, df):
-        self.training_task.run_task(model, df.columns.tolist(), df, self.__training_task_callback)
+        # background_tasks.add_task(self.__run_training_task, model, df)
+
+        # self.socketio.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
+        # return JSONResponse(content={}, status_code=200)
+
+    # def __run_training_task(self, model, df):
+    #     self.training_task.run_task(model, df.columns.tolist(), df, self.__training_task_callback)
+    async def __run_training_task(self, model, df):
+        result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
+        df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished = result
+
+        # df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished = \
+        #     self.training_task.run_task(model, df.columns.tolist(), df)
+
+
+        if not is_training_successfully_finished:
+            await self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+            return {'status': 'failed', 'message': f'Model {model.model_name} training failed.'}
+        else:
+            saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
+            model.encoding_rules = encoding_rules
+            model.transformations = transformations
+
+            model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
+            
+            self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
+            
+            await self.socketio.emit('status', {
+                'status': 'success',
+                'file_type': 'evaluations',
+                'model_name': f'{model.model_name}',
+                'message': f'Model {model.model_name} training completed successfully.',
+                'file_url': model.model_description_pdf_file_path
+            })
+
+            return {
+                'status': 'success',
+                'message': f'Model {model.model_name} training completed successfully.',
+                'file_url': model.model_description_pdf_file_path
+            }
 
     def __preprocess_data(self, df, drop_other_columns=None):
         if drop_other_columns:
@@ -72,7 +113,7 @@ class ModelService:
         df = pd.DataFrame(data_rows, columns=headers)
         return df
     
-    def inference(self, user_id, model_name, file_name, dataset, background_tasks: BackgroundTasks):
+    async def inference(self, user_id, model_name, file_name, dataset):
         loaded_model = self.model_storage.load_model(user_id, model_name)
         model_details_dict = self.get_user_model_by_user_id_and_model_name(user_id, model_name)
         model_details = Model(**model_details_dict)
@@ -83,38 +124,17 @@ class ModelService:
         original_df = self.__dataset_to_df(dataset)
         original_df = self.__preprocess_data(original_df, drop_other_columns=model_details.columns)
 
-        background_tasks.add_task(self.__run_inference_task, model_details, loaded_model, original_df)
+        result = await self.__run_inference_task(model_details, loaded_model, original_df)
 
-    def __run_inference_task(self, model_details, loaded_model, original_df):
-        self.inference_task.run_task(model_details, loaded_model, original_df, self.__inference_task_callback)
+        return result
 
-    def __training_task_callback(self, df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished):
-        try:
-            if not is_training_successfully_finished:
-                self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
-            else:
-                saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
-                model.encoding_rules = encoding_rules
-                model.transformations = transformations
+    async def __run_inference_task(self, model_details, loaded_model, original_df):
+        result = await asyncio.to_thread(self.inference_task.run_task, model_details, loaded_model, original_df)
+        model_details, original_df, is_inference_successfully_finished = result
 
-                model.model_description_pdf_file_path = self.reportFileTask.generate_model_evaluations_file(model, df.copy())
-                
-                self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
-                
-                self.socketio.emit('status', {
-                    'status': 'success',
-                    'file_type': 'evaluations',
-                    'model_name': f'{model.model_name}',
-                    'message': f'Model {model.model_name} training completed successfully.',
-                    'file_url': model.model_description_pdf_file_path
-                })
-        except Exception as e:
-            print(f"Error during training task callback: {e}")
-            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
-    
-    def __inference_task_callback(self, model_details, original_df, is_inference_successfully_finished):
         if not is_inference_successfully_finished:
-            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
+            await self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
+            return {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'}
         else:
             current_utc_datetime = datetime.now(timezone.utc).strftime('%Y-%m-%d_%H-%M-%S')
             saved_folder = Config.SAVED_INFERENCES_FOLDER
@@ -129,13 +149,68 @@ class ModelService:
 
             csv_url = f"/download/{csv_filename}"
             
-            self.socketio.emit('status', {
+            await self.socketio.emit('status', {
                 'status': 'success',
                 'file_type': 'inference',
                 'model_name': f'{model_details.model_name}',
                 'message': f'Model {model_details.model_name} inference completed successfully.',
-                'file_url': csv_url
+                'file_url': self.csv_url_prefix  + csv_url
             })
+
+            return {
+                'status': 'success',
+                'message': f'Model {model_details.model_name} inference completed successfully.',
+                'file_url': csv_url
+            }
+
+    def __training_task_callback(self, df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished):
+        try:
+            if not is_training_successfully_finished:
+                self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+            else:
+                saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
+                model.encoding_rules = encoding_rules
+                model.transformations = transformations
+
+                model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
+                
+                self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
+                
+                self.socketio.emit('status', {
+                    'status': 'success',
+                    'file_type': 'evaluations',
+                    'model_name': f'{model.model_name}',
+                    'message': f'Model {model.model_name} training completed successfully.',
+                    'file_url': model.model_description_pdf_file_path
+                })
+        except Exception as e:
+            print(f"Error during training task callback: {e}")
+            self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
+    
+    # def __inference_task_callback(self, model_details, original_df, is_inference_successfully_finished):
+    #     if not is_inference_successfully_finished:
+    #         self.socketio.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
+    #     else:
+    #         current_utc_datetime = datetime.now(timezone.utc).strftime('%Y-%m-%d_%H-%M-%S')
+    #         saved_folder = Config.SAVED_INFERENCES_FOLDER
+    #         saved_inferences_folder = os.path.join(saved_folder, model_details.user_id, model_details.model_name)
+    #         upload_file_without_suffix = model_details.file_name[:model_details.file_name.index(".")]
+    #         csv_filename = f"{current_utc_datetime}__{model_details.model_name}__{upload_file_without_suffix}__inference.csv"
+    #         csv_filepath = os.path.join(saved_inferences_folder, csv_filename)
+            
+    #         if not os.path.exists(saved_inferences_folder):
+    #             os.makedirs(saved_inferences_folder)
+    #         original_df.to_csv(csv_filepath, index=False)
+
+    #         csv_url = f"/download/{csv_filename}"
+            
+    #         self.socketio.emit('status', {
+    #             'status': 'success',
+    #             'file_type': 'inference',
+    #             'model_name': f'{model_details.model_name}',
+    #             'message': f'Model {model_details.model_name} inference completed successfully.',
+    #             'file_url': csv_url
+    #         })
     
     def download_file(self, user_id, model_name, filename, file_type):
         try:
@@ -149,7 +224,7 @@ class ModelService:
             if not os.path.isfile(file_path):
                 raise HTTPException(status_code=404, detail="File not found")
 
-            return FileResponse(file_path, filename=filename, as_attachment=True)
+            return FileResponse(file_path, filename=filename)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     
@@ -167,11 +242,11 @@ class ModelService:
             'is_time_series', 'time_series_code', 'formated_evaluations'
         ])
         
-    def get_model_details_file(self, user_id, model_name):
+    async def get_model_details_file(self, user_id, model_name):
         try:
             model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=['model_description_pdf_file_path'])
             
-            self.socketio.emit('status', {
+            await self.socketio.emit('status', {
                 'status': 'success',
                 'file_type': 'evaluations',
                 'model_name': f'{model_name}',

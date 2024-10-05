@@ -14,7 +14,7 @@ class TrainingTask:
         self.data_preprocessing = DataPreprocessing()
         self.llm_task = LlmTask()
 
-    def run_task(self, model, headers, df, task_callback, app_context):
+    def run_task(self, model, headers, df):
         is_training_successfully_finished = False
         trained_model = None
         evaluations = None
@@ -33,11 +33,11 @@ class TrainingTask:
                 model.formated_evaluations = evaluations['formated_evaluations']
                 model.train_score = evaluations['train_score']
                 model.test_score = evaluations['test_score']
-                task_callback(df, model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished, app_context)
+                return (df, model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished)
             except Exception as e:
                 print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
                 is_training_successfully_finished = False
-                task_callback(None, model, None, None, None, None, is_training_successfully_finished, app_context)
+                return (None, model, None, None, None, None, is_training_successfully_finished)
 
 
     def __train_single_model(self, model, df):

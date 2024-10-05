@@ -85,9 +85,9 @@ class ReportFileService:
 
         doc.build(flowables)
 
-        scheme = 'https' if self.config.PREFERRED_URL_SCHEME == 'https' else 'http'
+        # scheme = 'https' if self.config.PREFERRED_URL_SCHEME == 'https' else 'http'
         server_name = self.config.SERVER_NAME
-        return f"{scheme}://{server_name}/download/{evaluations_filename}"
+        return f"http://{server_name}/download/{evaluations_filename}"
     
     def __save_plot_as_image(self, plot_func, filepath, width, height, dpi=300):
         try:
