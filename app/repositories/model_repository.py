@@ -1,15 +1,15 @@
 from bson import ObjectId
-from flask import current_app
-from datetime import datetime, UTC
-from flask import current_app
+from fastapi import Depends
+from datetime import datetime, timezone
+from pymongo.database import Database
 
 class ModelRepository:
-    def __init__(self):
-        self.current_app = current_app
+    def __init__(self, db: Database):
+        self._db = db
 
     @property
     def db(self):
-        return self.current_app.db
+        return self._db
     
     @property
     def users_collection(self):
@@ -19,7 +19,6 @@ class ModelRepository:
         model_name = model.model_name
         file_name_path = f"models.{model_name}.file_name"
         file_line_num_path = f"models.{model_name}.file_line_num"
-        # Define the field paths using dot notation
         model_field_path = f"models.{model_name}.filePath"
         created_at_field_path = f"models.{model_name}.created_at"
         description_field_path = f"models.{model_name}.description"
@@ -32,8 +31,8 @@ class ModelRepository:
         metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
         transformations_field_path = f"models.{model_name}.transformations"
-        isDeleted_fieled_path = f"models.{model_name}.isDeleted"
-        is_multi_class_fieled_path = f"models.{model_name}.is_multi_class"
+        isDeleted_field_path = f"models.{model_name}.isDeleted"
+        is_multi_class_field_path = f"models.{model_name}.is_multi_class"
         train_score_column_field_path = f"models.{model_name}.train_score"
         test_score_column_field_path = f"models.{model_name}.test_score"
         model_description_pdf_file_path_path = f"models.{model_name}.model_description_pdf_file_path"
@@ -41,7 +40,7 @@ class ModelRepository:
         time_series_code_field_path = f"models.{model_name}.time_series_code"
         
         # Get the current UTC datetime
-        current_utc_datetime = datetime.now(UTC)
+        current_utc_datetime = datetime.now(timezone.utc)
         
         # Update the user document with the model path and current UTC datetime
         return self.users_collection.update_one(
@@ -62,8 +61,8 @@ class ModelRepository:
                     metric_field_path: model.metric,
                     formated_evaluations_field_path: model.formated_evaluations,
                     transformations_field_path: model.transformations,
-                    isDeleted_fieled_path: False,
-                    is_multi_class_fieled_path: model.is_multi_class,
+                    isDeleted_field_path: False,
+                    is_multi_class_field_path: model.is_multi_class,
                     train_score_column_field_path: model.train_score,
                     test_score_column_field_path: model.test_score,
                     model_description_pdf_file_path_path: model.model_description_pdf_file_path,
@@ -73,7 +72,7 @@ class ModelRepository:
             }
         )
     
-    def get_user_model_by_user_id_and_model_name(self, user_id, model_name, additonal_properties):
+    def get_user_model_by_user_id_and_model_name(self, user_id, model_name, additional_properties):
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {
@@ -83,14 +82,14 @@ class ModelRepository:
             {"$match": {"specific_model.isDeleted": {"$ne": True}}}  # Ensure the model is not marked as deleted
         ]
 
-        result =  self.users_collection.aggregate(pipeline).next()
+        result = self.users_collection.aggregate(pipeline).next()
         if result:
-            return self._model_dict_to_front_list(result, additonal_properties)[0]
+            return self._model_dict_to_front_list(result, additional_properties)[0]
         else:
             return {}
 
     
-    def get_user_models_by_id(self, user_id, additonal_properties):
+    def get_user_models_by_id(self, user_id, additional_properties):
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {"models": {"$objectToArray": "$models"}}},
@@ -102,7 +101,7 @@ class ModelRepository:
         ]
         result = self.users_collection.aggregate(pipeline).next()
         if result and result["models"]:
-            return self._model_dict_to_front_list(result.get("models", {}), additonal_properties)
+            return self._model_dict_to_front_list(result.get("models", {}), additional_properties)
         else:
             return {}
         
@@ -125,15 +124,14 @@ class ModelRepository:
             )
         
 
-    def _model_dict_to_front_list(self, models_dict, additonal_properties):
+    def _model_dict_to_front_list(self, models_dict, additional_properties):
         models_list = []
         for name, details in models_dict.items():
             # Initialize model_info with the id
             model_info = {'id': name}
-            # Dynamically add properties from additonal_properties if they exist in details
-            for property in additonal_properties:
+            # Dynamically add properties from additional_properties if they exist in details
+            for property in additional_properties:
                 if property in details:
                     model_info[property] = details[property]
             models_list.append(model_info)
         return models_list
-    

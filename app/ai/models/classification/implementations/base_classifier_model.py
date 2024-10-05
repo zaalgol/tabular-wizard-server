@@ -25,7 +25,7 @@ class BaseClassfierModel(BaseModel):
         self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
         self.scoring = Evaluate().get_scoring_metric(scoring, self.is_multi_class)
 
-    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=300, timeout=45*60):
+    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=300, timeout=120*60):
         if params is None:
             params = self.default_params
         kfold = KFold(n_splits=kfold, shuffle=True, random_state=42)

@@ -13,7 +13,7 @@ class InferenceTask:
         self.regressionEvaluate = RegressionEvaluate()
         self.llm_task = LlmTask()
 
-    def run_task(self, model_details, loaded_model, original_df, inference_task_callback, app_context):
+    def run_task(self, model_details, loaded_model, original_df):
         try:
             is_inference_successfully_finished = False
             df_copy = original_df.copy()
@@ -40,7 +40,7 @@ class InferenceTask:
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            inference_task_callback(model_details, original_df, is_inference_successfully_finished, app_context)
+            return (model_details, original_df, is_inference_successfully_finished)
 
     def __data_preprocessing(self, df, model):
         df_copy = df.copy()
