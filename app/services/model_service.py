@@ -27,7 +27,7 @@ class ModelService:
     _instance = None
 
     def __init__(self, db: Database):
-        self.config = Config
+        # self.config = Config
         self.model_repository = ModelRepository(db)
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()

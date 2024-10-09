@@ -6,8 +6,11 @@ dotenv_path = '/tabular-wizard-server/.env'  # Adjust the path as needed
 load_dotenv(dotenv_path)
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    ACCESS_TOKEN_SECRET_KEY  = os.getenv('ACCESS_TOKEN_SECRET_KEY')
+    REFRESH_TOKEN_SECRET_KEY  = os.getenv('REFRESH_TOKEN_SECRET_KEY')
+    ALGORITHM = os.getenv('ALGORITHM')
+    ACCESS_TOKEN_EXPIRE_MINUTES= int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
+    REFRESH_TOKEN_EXPIRE_DAYS= int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS'))
     # SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL') # use for multi Docker container deployment
     # SQLALCHEMY_DATABASE_URI = 'sqlite:///mydatabase.db'  # Use SQLite for local development
     MONGODB_URI = os.getenv('MONGODB_URI')
