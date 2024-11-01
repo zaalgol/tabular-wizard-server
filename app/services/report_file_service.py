@@ -1,10 +1,12 @@
 import os
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, XPreformatted
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
+from werkzeug.utils import safe_join
 import seaborn as sns
 import matplotlib.pyplot as plt
 from app.config.config import Config 
@@ -106,3 +108,19 @@ class ReportFileService:
             print(f"Saved plot to {filepath}")
         except Exception as e:
             print(f"Error saving plot as image: {e}")
+
+    def download_file(self, user_id, model_name, filename, saved_folder):
+        try:
+            # if file_type == 'inference':
+            #     saved_folder = Config.SAVED_INFERENCES_FOLDER
+            # else: 
+            #     saved_folder = Config.SAVED_MODELS_FOLDER
+            file_directory = safe_join(saved_folder, user_id, model_name)
+            file_path = safe_join(os.getcwd(), file_directory, filename)
+            
+            if not os.path.isfile(file_path):
+                raise HTTPException(status_code=404, detail="File not found")
+
+            return FileResponse(file_path, filename=filename)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
