@@ -249,10 +249,10 @@ class DataPreprocessing:
         
         return df1, df2
 
-    def convert_tdatetime_columns_to_datetime_dtype(self, df):
+    def convert_tdatetime_columns_to_datetime_dtype(self, df, model):
         df_copy=df.copy()
-        for col in df_copy.columns:
-            if df_copy[col].dtype in ['object', 'category']:
+        for col, column_type in model.columns_type.items():
+            if column_type == 'datetime':
                 # Try converting the column to datetime
                 temp = pd.to_datetime(df_copy[col], errors='coerce')
                 # Check if there are any non-null datetime values

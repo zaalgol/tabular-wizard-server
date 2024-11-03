@@ -14,6 +14,7 @@ from app.ai.models.regression.evaluate import Evaluate
 from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
 from app.ai.models.regression.implementations.mlrpregressor import MLPNetRegressor
 from app.ai.models.regression.implementations.xgboost_regressor import XgboostRegressor
+from app.ai.models.regression.implementations.gradient_boosting_regressor import GBRegressor
 from sklearn.ensemble import VotingRegressor
 from itertools import islice
 
@@ -37,7 +38,8 @@ class Ensemble(BaseRegressorModel):
             'rf_regressor': RandomForestRegressorModel,
             'svr_regressor': SVRRegressorModel,
             'cat_regressor': CatboostRegressor,
-            'linear_regressor': LinearRegressorModel
+            'linear_regressor': LinearRegressorModel,
+            'gb_Regressor': GBRegressor
         }
         self.regressors = {
             key: self._regressor_factory(model_class, df)

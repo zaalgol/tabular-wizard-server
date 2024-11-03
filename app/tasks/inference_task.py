@@ -47,7 +47,7 @@ class InferenceTask:
         df_copy = self.data_preprocessing.sanitize_cells(df_copy)
         df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
         df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df_copy)
-        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)
+        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy, model)
         if model.encoding_rules:
             df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, model.encoding_rules)
         if model.transformations:

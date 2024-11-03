@@ -56,7 +56,11 @@ class ModelService:
         return result
 
     async def __run_training_task(self, model, df):
-        result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
+        if Config.DEBUG_MODE:
+            result = self.training_task.run_task( model, df.columns.tolist(), df)
+        else:
+            result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
+
         df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished = result
 
         if not is_training_successfully_finished:
@@ -85,7 +89,7 @@ class ModelService:
                 'file_url': model.model_description_pdf_file_path
             }
 
-    def __preprocess_data(self, df, drop_other_columns=None):
+    def __remove_columns_not_in_train_dataset(self, df, drop_other_columns=None):
         if drop_other_columns:
             df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
         return df
@@ -105,7 +109,7 @@ class ModelService:
         model_details.file_name = file_name
 
         original_df = self.__dataset_to_df(dataset)
-        original_df = self.__preprocess_data(original_df, drop_other_columns=model_details.columns)
+        original_df = self.__remove_columns_not_in_train_dataset(original_df, drop_other_columns=model_details.columns)
 
         result = await self.__run_inference_task(model_details, loaded_model, original_df)
 
@@ -166,7 +170,7 @@ class ModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
-            'created_at', 'description', 'columns', 'encoding_rules', 'transformations', 'metric', 'target_column',
+            'created_at', 'description', 'columns',  'columns_type', 'encoding_rules', 'transformations', 'metric', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
             'is_time_series', 'time_series_code', 'formated_evaluations'
         ])

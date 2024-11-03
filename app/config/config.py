@@ -6,6 +6,8 @@ dotenv_path = '/tabular-wizard-server/.env'  # Adjust the path as needed
 load_dotenv(dotenv_path)
 
 class Config:
+    DEBUG_MODE=0
+
     ACCESS_TOKEN_SECRET_KEY  = os.getenv('ACCESS_TOKEN_SECRET_KEY')
     REFRESH_TOKEN_SECRET_KEY  = os.getenv('REFRESH_TOKEN_SECRET_KEY')
     ALGORITHM = os.getenv('ALGORITHM')

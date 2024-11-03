@@ -23,6 +23,7 @@ class ModelRepository:
         created_at_field_path = f"models.{model_name}.created_at"
         description_field_path = f"models.{model_name}.description"
         columns_field_path = f"models.{model_name}.columns"
+        columns_type_field_path = f"models.{model_name}.columns_type"
         target_column_field_path = f"models.{model_name}.target_column"
         model_type_field_path = f"models.{model_name}.model_type"
         training_strategy_field_path = f"models.{model_name}.training_strategy"
@@ -38,7 +39,7 @@ class ModelRepository:
         model_description_pdf_file_path_path = f"models.{model_name}.model_description_pdf_file_path"
         is_time_series_field_path = f"models.{model_name}.is_time_series"
         time_series_code_field_path = f"models.{model_name}.time_series_code"
-        
+        # columns_type
         # Get the current UTC datetime
         current_utc_datetime = datetime.now(timezone.utc)
         
@@ -52,6 +53,7 @@ class ModelRepository:
                     model_field_path: saved_model_file_path,
                     description_field_path: model.description,
                     created_at_field_path: current_utc_datetime,
+                    columns_type_field_path: model.columns_type,
                     columns_field_path: columns,
                     encoding_rules_field_path: model.encoding_rules,
                     target_column_field_path: model.target_column,

@@ -114,7 +114,8 @@ async def train_model(
         sampling_strategy=data.get('samplingStrategy'),
         target_column=data.get('targetColumn'),
         metric=data.get('metric'),
-        is_time_series=data.get('isTimeSeries', False)
+        is_time_series=data.get('isTimeSeries', False),
+        columns_type = data.get('columnsType')
     )
 
     # Remove background_tasks

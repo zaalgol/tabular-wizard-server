@@ -93,7 +93,7 @@ class TrainingTask:
         
         if model.model_type == 'regression':
             try:
-                df = self.__data_preprocessing(df, model)
+                df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
                 ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
                                             apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
                 ensemble.create_models(df)
@@ -126,7 +126,7 @@ class TrainingTask:
         # df_copy = data_preprocessing.sanitize_dataframe(df_copy)
         if fill_missing_numeric_cells:
             df_copy = data_preprocessing.fill_missing_numeric_cells(df_copy)
-        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy)
+        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy, model)
         return df_copy 
 
 

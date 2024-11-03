@@ -1,4 +1,6 @@
+from ast import Dict
 from dataclasses import dataclass, field
+from typing import Optional, Dict
 from datetime import datetime
 
 @dataclass
@@ -18,6 +20,7 @@ class Model:
     target_column: str = field(default=None)
     created_at: datetime = field(default=None)
     columns: list[str] = field(default=None)
+    columns: list[str] = field(default=None)
     encoding_rules: dict[str, list[str]] = field(default_factory=dict)
     transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
@@ -26,4 +29,5 @@ class Model:
     model_description_pdf_file_path: str = field(default=None)
     is_time_series: bool = field(default=False)
     time_series_code: str = field(default=None)
+    columns_type: Optional[Dict[str, str]] = field(default=None)
 	
