@@ -15,6 +15,7 @@ class UserService:
         return cls._instance
 
     def __init__(self, db):
+        self.db = db
         # Ensure __init__ is only called once
         if self.__initialized:
             return

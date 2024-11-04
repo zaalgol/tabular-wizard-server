@@ -20,6 +20,9 @@ class TrainingTask:
         evaluations = None
         encoding_rules = None
         transformations = None
+
+        model.semantic_columns = [k for k, v in model.columns_type.items() if v=='semantic']
+
         try:
             if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
                 trained_model, evaluations, encoding_rules, transformations = self.__train_multi_models(model, df.copy())
@@ -44,12 +47,13 @@ class TrainingTask:
         df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
         metric = model.metric
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric, 
-                                                sampling_strategy=model.sampling_strategy)
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, semantic_columns = model.semantic_columns,
+                                                scoring=model.metric, sampling_strategy=model.sampling_strategy)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
-            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, scoring=model.metric)
+            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, 
+                                               semantic_columns = model.semantic_columns,scoring=model.metric)
             evaluate = self.regressionEvaluate
             metric = evaluate.get_metric_mapping(model.metric)
 
@@ -71,7 +75,8 @@ class TrainingTask:
     def __train_multi_models(self, model, df):
         if model.model_type == 'classification':
             df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
-            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True, apply_encoding_rules=True,
+            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, semantic_columns = model.semantic_columns,
+                                              create_encoding_rules=True, apply_encoding_rules=True,
                                               create_transformations=True, apply_transformations=True,
                                               sampling_strategy=model.sampling_strategy, scoring=model.metric)
             ensemble.create_models(df)
@@ -94,7 +99,7 @@ class TrainingTask:
         if model.model_type == 'regression':
             try:
                 df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
-                ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, create_encoding_rules=True,
+                ensemble = RegressionEnsemble(train_df = df, target_column = model.target_column, semantic_columns = model.semantic_columns, create_encoding_rules=True,
                                             apply_encoding_rules=True, create_transformations=True, apply_transformations=True, scoring=model.metric)
                 ensemble.create_models(df)
                 ensemble.sort_models_by_score()

@@ -5,18 +5,21 @@ import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit, train_test_split
 import optuna
 from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 
 
 class BaseModel:
-    def __init__(self, train_df, target_column, scoring, split_column=None,
-                 create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, test_size=0.25,
-                 already_splitted_data=None):
+    def __init__(self, train_df, target_column ,scoring, split_column=None,
+                 create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, 
+                 test_size=0.25, already_splitted_data=None, semantic_columns=[]):
         self.train_df = train_df
         self.study = None
         self.scoring = scoring
         self.target_column = target_column
         self.data_preprocessing = DataPreprocessing()
+        self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
         self.encoding_rules = None
+        self.semantic_columns = semantic_columns
 
         self.__split_data(split_column,
                           create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations, test_size,
@@ -48,10 +51,18 @@ class BaseModel:
         self.X_test = self.X_test.drop([self.target_column], axis=1)
 
         self._preprocess_data(create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations)
-        self.X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_train)
-        self.X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_test)
 
-    def _preprocess_data(self, create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations):
+
+    def _preprocess_data(self, create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations,
+                               create_embedding_rules=True, apply_embedding_rules=True):
+        
+        if create_embedding_rules and self.semantic_columns:
+            self.embedding_rules = self.nlp_embeddings_preprocessing.create_embedding_rules(self.X_train, self.semantic_columns)
+
+        if apply_embedding_rules and self.semantic_columns:
+            self.X_train = self.nlp_embeddings_preprocessing.apply_embedding_rules(self.X_train, self.embedding_rules)
+            self.X_test = self.nlp_embeddings_preprocessing.apply_embedding_rules(self.X_test, self.embedding_rules)
+            
         if create_encoding_rules:
             self.encoding_rules = self.data_preprocessing.create_encoding_rules(self.X_train)
 
@@ -66,6 +77,11 @@ class BaseModel:
         if apply_transformations:
             self.X_train = self.data_preprocessing.transformed_numeric_column_details(self.X_train, self.transformations)
             self.X_test = self.data_preprocessing.transformed_numeric_column_details(self.X_test, self.transformations)
+        
+
+        
+        self.X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_train)
+        self.X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(self.X_test)
 
     def remove_unnecessary_parameters_for_implementations(self, kwargs):
         for parameter in self.unnecessary_parameters:
