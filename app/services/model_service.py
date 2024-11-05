@@ -21,13 +21,13 @@ from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 class ModelService:
     _instance = None
 
-    def __init__(self, db: Database):
+    def __init__(self, app, db: Database):
         self.model_repository = ModelRepository(db)
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
         self.reportFileService = ReportFileService()
-        self.websocketService = WebsocketService()
+        self.websocketService = WebsocketService(app)
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
         # self.socketio = get_app().state.socketio 
@@ -38,7 +38,7 @@ class ModelService:
         else:
             self.model_storage = ModelStorage()
 
-    def __new__(cls, db: Database):
+    def __new__(cls, app, db: Database):
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance

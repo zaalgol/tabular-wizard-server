@@ -6,7 +6,7 @@ DEFAULT_PARAMS_QDA = {
     'reg_param': (0.0, 1.0, 'uniform'),  # Regularization parameter
     'tol': (1e-4, 1e-2, 'log-uniform'),  # Threshold used for rank estimation
     'store_covariance': [True, False],  # Whether to compute and store covariance matrices
-    'priors': [None, 'balanced'],  # Prior probabilities of the classes
+    # 'priors': [None, 'balanced'],  # Prior probabilities of the classes # getting error"The 'priors' parameter of QuadraticDiscriminantAnalysis must be an array-like or None. Got 'balanced' instead.""
 }
 
 class QuadraticDiscriminantAnalysisClassifier(BaseClassfierModel):

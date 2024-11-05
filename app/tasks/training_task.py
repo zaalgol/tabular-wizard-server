@@ -1,3 +1,4 @@
+import traceback
 from app.ai.models.classification.implementations.lightgbm_classifier import LightgbmClassifier
 from app.ai.data_preprocessing import DataPreprocessing 
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
@@ -27,7 +28,7 @@ class TrainingTask:
                 trained_model, evaluations, encoding_rules, transformations = self.__train_single_model(model, df.copy())
             is_training_successfully_finished = True
         except Exception as e:
-            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}. {traceback.format_exc()}")
         finally:
             try:
                 model.formated_evaluations = evaluations['formated_evaluations']
