@@ -1,7 +1,8 @@
 import json
 from pymongo.database import Database
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Header, status, Request, WebSocket, WebSocketDisconnect
+
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Request, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import WebSocket
@@ -9,13 +10,9 @@ from app.entities.model import Model
 from app.services.model_service import ModelService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
-from app.services.websocket_manager import WebSocketManager
-from app.services.websocket_service import WebsocketService
 
 router = APIRouter()
 
-websocket_manager = WebSocketManager()
-websocket_service = WebsocketService(websocket_manager)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
@@ -208,12 +205,9 @@ async def download_file(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
     return model_service.download_file(user_id, model_name, filename, file_type)
-
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket_manager.connect(websocket)
-    try:
-        while True:
-            await websocket.receive_text()  # Keep the connection open
-    except WebSocketDisconnect:
-        await websocket_manager.disconnect(websocket)
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message text was: {data}")
