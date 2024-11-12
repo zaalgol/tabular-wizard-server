@@ -1,8 +1,7 @@
 import json
-from jose import JWTError
 from pymongo.database import Database
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import WebSocket
@@ -10,8 +9,13 @@ from app.entities.model import Model
 from app.services.model_service import ModelService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
+from app.services.websocket_manager import WebSocketManager
+from app.services.websocket_service import WebsocketService
 
 router = APIRouter()
+
+websocket_manager = WebSocketManager()
+websocket_service = WebsocketService(websocket_manager)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
@@ -77,7 +81,7 @@ async def refresh_token(request: Request, token_service: TokenService = Depends(
         response = JSONResponse({"access_token": access_token})
         response.set_cookie(key="refresh_token", value=new_refresh_token, httponly=True, secure=True)
         return response
-    except JWTError:
+    except:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
 @router.get('/api/userModels/', status_code=status.HTTP_200_OK)
@@ -207,7 +211,9 @@ async def download_file(
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+    await websocket_manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # Keep the connection open
+    except WebSocketDisconnect:
+        await websocket_manager.disconnect(websocket)

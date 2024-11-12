@@ -1,22 +1,28 @@
+# Dockerfile for FastAPI server
+
 # Use an official Python runtime as a parent image
-FROM python:3.12
+FROM python:3.12-slim
 
 # Set the working directory in the container
-WORKDIR /tabular-wizard-server
+WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY ./app /tabular-wizard-server/app
-COPY ./run.py /tabular-wizard-server/run.py
-COPY ./requirements.txt /tabular-wizard-server/requirements.txt
+# Install required system packages for LightGBM
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# # Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+# Copy only the required files and folders
+COPY app/ /app/app/
+COPY requirements.txt /app/
+COPY .env /app/
+COPY run.py /app/
 
-# # Install uWSGI
-RUN pip install uwsgi
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 5000 to be accessible from the outside
+# Expose port 8080
 EXPOSE 8080
 
-# Run uWSGI with the ini file
-CMD ["uwsgi", "--ini", "app/config/uwsgi.ini"]
+# Run the command to start the server
+CMD ["tail", "-f", "/dev/null"]
+# CMD ["python", "run.py"]
