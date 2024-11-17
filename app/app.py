@@ -53,7 +53,7 @@ def create_app():
     # Configure CORS middleware **before** attaching SocketManager
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],  #  Or specify exact origins like ["http://localhost:5173"]
+        allow_origins=["*"],  #  Or specify exact origins like ["http://localhost:5173"]
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
