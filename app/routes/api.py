@@ -1,8 +1,8 @@
 import json
-from jose import JWTError
 from pymongo.database import Database
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
+
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Request, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import WebSocket
@@ -12,6 +12,7 @@ from app.services.token_service import TokenService
 from app.services.user_service import UserService
 
 router = APIRouter()
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
@@ -77,7 +78,7 @@ async def refresh_token(request: Request, token_service: TokenService = Depends(
         response = JSONResponse({"access_token": access_token})
         response.set_cookie(key="refresh_token", value=new_refresh_token, httponly=True, secure=True)
         return response
-    except JWTError:
+    except:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
 @router.get('/api/userModels/', status_code=status.HTTP_200_OK)
@@ -204,7 +205,6 @@ async def download_file(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
     return model_service.download_file(user_id, model_name, filename, file_type)
-
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()

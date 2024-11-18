@@ -12,4 +12,3 @@ class WebsocketService:
     async def emit(self, event, data):
          await self.app.state.socketio.emit(event, data)
 
-

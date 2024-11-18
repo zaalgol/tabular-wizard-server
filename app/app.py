@@ -8,6 +8,10 @@ from app.routes.api import router as main_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+
+
+
 logger = logging.getLogger(__name__)
 
 def init_system(app):
@@ -49,7 +53,7 @@ def create_app():
     # Configure CORS middleware **before** attaching SocketManager
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Or specify exact origins like ["http://localhost:5173"]
+        allow_origins=["*"],  #  Or specify exact origins like ["http://localhost:5173"]
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -64,9 +68,3 @@ def create_app():
 
     app_instance = app  # Store the app instance globally
     return app
-
-def get_app():
-    global app_instance
-    if app_instance is None:
-        raise RuntimeError("App has not been created yet")
-    return app_instance

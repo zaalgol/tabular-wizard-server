@@ -2,7 +2,10 @@ import os
 from dotenv import load_dotenv
 
 # Load the .env file
-dotenv_path = '/tabular-wizard-server/.env'  # Adjust the path as needed
+# dotenv_path = '/tabular-wizard-server/.env'  # Adjust the path as needed
+# dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
+
 load_dotenv(dotenv_path)
 
 class Config:

@@ -1,7 +1,7 @@
 # app/services/token_service.py
 
 import uuid
-from jose import JWTError, jwt
+from jose import jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
@@ -54,7 +54,7 @@ class TokenService:
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             return payload
-        except JWTError:
+        except:
             raise HTTPException(
                 status_code=HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
