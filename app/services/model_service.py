@@ -116,7 +116,10 @@ class ModelService:
         return result
 
     async def __run_inference_task(self, model_details, loaded_model, original_df):
-        result = await asyncio.to_thread(self.inference_task.run_task, model_details, loaded_model, original_df)
+        if Config.DEBUG_MODE:
+            result = self.inference_task.run_task(model_details, loaded_model, original_df)
+        else:
+            result = await asyncio.to_thread(self.inference_task.run_task, model_details, loaded_model, original_df)
         model_details, original_df, is_inference_successfully_finished = result
 
         if not is_inference_successfully_finished:
