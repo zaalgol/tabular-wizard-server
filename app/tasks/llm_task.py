@@ -146,17 +146,6 @@ class LlmTask:
                     return False
         return True
 
-    # def _is_import_safe(self, node):
-    #     """
-    #     Check if import statements are importing safe modules.
-    #     """
-    #     allowed_modules = {'pandas', 'pd'}
-    #     for alias in node.names:
-    #         module_name = alias.name
-    #         if module_name not in allowed_modules:
-    #             print(f"Importing unsafe module '{module_name}' is not allowed.")
-    #             return False
-    #     return True
 
     def _is_call_safe(self, node):
         """

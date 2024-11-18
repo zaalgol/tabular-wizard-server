@@ -4,8 +4,7 @@ from app.ai.models.classification.implementations.base_classifier_model import B
 # Default parameters for Gaussian Naive Bayes
 GAUSSIAN_DEFAULT_PARAMS = {
     'var_smoothing': (1e-10, 1e-8, 'log-uniform'),  # Portion of the largest variance of all features to be added to variances for stability
-    'priors': [None, 'balanced'],  # Prior probabilities of the classes
-    'epsilon': (1e-9, 1e-7, 'log-uniform'),  # Absolute additive value to variances
+    'priors': [None, 'balanced']  # Prior probabilities of the classes
 }
 
 class GaussianNaiveBayesClassifier(BaseClassfierModel):

@@ -4,10 +4,22 @@ from fastapi import FastAPI
 from app.config.config import Config
 from pymongo import MongoClient
 from app.socket import create_socketio
+from app.routes.api import router as main_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+
+
+
 logger = logging.getLogger(__name__)
+
+def init_system(app):
+    logger.info("Seeding initial data.")
+    from app.services.init_service import InitService
+    init_service = InitService(app)
+    init_service.seed_admin_user()
+    init_service.seed_quest_user()
 
 def generate_mongo_client():
     MONGODB_URI = Config.MONGODB_URI
@@ -35,10 +47,13 @@ def create_app():
     # Initialize MongoDB client and set it in app state
     app.state.db = generate_mongo_client()
 
+    # Seed initial data
+    init_system(app)
+
     # Configure CORS middleware **before** attaching SocketManager
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],  # Or specify exact origins like ["http://localhost:5173"]
+        allow_origins=["*"],  #  Or specify exact origins like ["http://localhost:5173"]
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -49,14 +64,7 @@ def create_app():
     app.state.socketio = create_socketio(app)
 
     logger.info("Including main router.")
-    from app.routes.api import router as main_router
     app.include_router(main_router)
 
     app_instance = app  # Store the app instance globally
     return app
-
-def get_app():
-    global app_instance
-    if app_instance is None:
-        raise RuntimeError("App has not been created yet")
-    return app_instance

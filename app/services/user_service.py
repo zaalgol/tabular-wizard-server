@@ -22,24 +22,6 @@ class UserService:
         self.__initialized = True
         self.user_repository = UserRepository(db)
         self.token_service = TokenService(db)
-
-    # def login(self, email, password):
-    #     user = self.user_repository.get_user_by_email(email)
-    #     if user:
-    #         is_valid_password = PasswordHasher.check_password(user['password'], password)
-    #         if is_valid_password:
-    #             access_token_expires = timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES)
-    #             refresh_token_expires = timedelta(days=Config.REFRESH_TOKEN_EXPIRE_DAYS)
-    #             access_token = self.token_service.create_access_token(
-    #                 str(user['_id']), expires_delta=access_token_expires)
-    #             refresh_token = self.token_service.create_refresh_token(
-    #                 str(user['_id']), expires_delta=refresh_token_expires)
-    #             return JSONResponse({
-    #                 "message": "Login successful",
-    #                 "access_token": access_token,
-    #                 "refresh_token": refresh_token
-    #             }, status_code=200)
-    #     return JSONResponse({'message': 'Invalid credentials'}, status_code=401)
     
     def login(self, email, password):
         user = self.user_repository.get_user_by_email(email)

@@ -52,10 +52,10 @@ class Ensemble(BaseClassfierModel):
             'rf_classifier' :RandomForestClassifierCustom,
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
-            'ldac_classifier' :LinearDiscriminantAnalysisClassifier,
+            # 'ldac_classifier' :LinearDiscriminantAnalysisClassifier, # can't work with category target
             'qdac_classifier' :QuadraticDiscriminantAnalysisClassifier,
             'catboost_classifier':CatboostClassifier
-            # 'xgb_classifier':XgboostClassifier
+            # 'xgb_classifier':XgboostClassifier # can't work with category target
         }
         self.classifiers = {
             key: self.__classifier_factory(model_class, df)

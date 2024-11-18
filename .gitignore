@@ -1,6 +1,8 @@
 .venv
 .fast_api_venv_up
 .fast_api_venv
+.new_venv
+.new_venv_2
 *__pycache__/
 .vscode
 instance/
@@ -12,3 +14,4 @@ global-bundle.pem
 datasets
 playground
 temp
+others
