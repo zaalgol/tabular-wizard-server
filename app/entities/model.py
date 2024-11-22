@@ -30,4 +30,6 @@ class Model:
     is_time_series: bool = field(default=False)
     time_series_code: str = field(default=None)
     columns_type: Optional[Dict[str, str]] = field(default=None)
+    semantic_columns: list[str] = field(default=None)
+    embedding_rules: dict = field(default_factory=dict)
 	

@@ -27,10 +27,10 @@ from app.ai.data_preprocessing import DataPreprocessing
 from sklearn.model_selection import cross_val_score
 
 class Ensemble(BaseClassfierModel):
-    def __init__(self, train_df, target_column, split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
+    def __init__(self, train_df, target_column, semantic_columns=[], split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
                   create_transformations=False, apply_transformations=False, scoring='accuracy', 
                   sampling_strategy='conditionalOversampling', number_of_n_best_models=3):
-        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring, split_column=split_column,
+        super().__init__(train_df=train_df, target_column=target_column, semantic_columns=semantic_columns, scoring=scoring, split_column=split_column,
                     create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
                     create_transformations=create_transformations, apply_transformations=apply_transformations, sampling_strategy=sampling_strategy)
         self.classifiers = {}
