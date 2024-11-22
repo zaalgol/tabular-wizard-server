@@ -48,7 +48,7 @@ class ModelService:
             raise HTTPException(status_code=400, detail="No dataset provided")
         
         model.file_line_num = len(dataset)
-        df = self.__dataset_to_df(dataset)[:50000]
+        df = self.__dataset_to_df(dataset)
 
         await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
         result = await self.__run_training_task(model, df)
