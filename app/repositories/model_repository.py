@@ -24,6 +24,7 @@ class ModelRepository:
         description_field_path = f"models.{model_name}.description"
         columns_field_path = f"models.{model_name}.columns"
         columns_type_field_path = f"models.{model_name}.columns_type"
+        embedding_rules_field_path = f"models.{model_name}.embedding_rules"
         target_column_field_path = f"models.{model_name}.target_column"
         model_type_field_path = f"models.{model_name}.model_type"
         training_strategy_field_path = f"models.{model_name}.training_strategy"
@@ -55,6 +56,7 @@ class ModelRepository:
                     created_at_field_path: current_utc_datetime,
                     columns_type_field_path: model.columns_type,
                     columns_field_path: columns,
+                    embedding_rules_field_path: model.embedding_rules,
                     encoding_rules_field_path: model.encoding_rules,
                     target_column_field_path: model.target_column,
                     model_type_field_path: model.model_type,

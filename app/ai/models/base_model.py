@@ -19,7 +19,9 @@ class BaseModel:
         self.data_preprocessing = DataPreprocessing()
         self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
         self.encoding_rules = None
+        self.embedding_rules = None
         self.semantic_columns = semantic_columns
+        
 
         self.__split_data(split_column,
                           create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations, test_size,
@@ -51,6 +53,7 @@ class BaseModel:
         self.X_test = self.X_test.drop([self.target_column], axis=1)
 
         self._preprocess_data(create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations)
+        t=0
 
 
     def _preprocess_data(self, create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations,

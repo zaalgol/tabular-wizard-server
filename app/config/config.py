@@ -9,7 +9,7 @@ dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 load_dotenv(dotenv_path)
 
 class Config:
-    DEBUG_MODE=1
+    DEBUG_MODE=0
 
     ACCESS_TOKEN_SECRET_KEY  = os.getenv('ACCESS_TOKEN_SECRET_KEY')
     REFRESH_TOKEN_SECRET_KEY  = os.getenv('REFRESH_TOKEN_SECRET_KEY')

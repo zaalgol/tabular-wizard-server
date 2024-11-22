@@ -26,9 +26,9 @@ class TrainingTask:
 
         try:
             if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
-                trained_model, evaluations, encoding_rules, transformations = self.__train_multi_models(model, df.copy())
+                trained_model, evaluations, embedding_rules, encoding_rules, transformations = self.__train_multi_models(model, df.copy())
             else:
-                trained_model, evaluations, encoding_rules, transformations = self.__train_single_model(model, df.copy())
+                trained_model, evaluations, embedding_rules, encoding_rules, transformations = self.__train_single_model(model, df.copy())
             is_training_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}. {traceback.format_exc()}")
@@ -37,11 +37,11 @@ class TrainingTask:
                 model.formated_evaluations = evaluations['formated_evaluations']
                 model.train_score = evaluations['train_score']
                 model.test_score = evaluations['test_score']
-                return (df, model, trained_model, encoding_rules, transformations,  headers, is_training_successfully_finished)
+                return (df, model, trained_model, embedding_rules, encoding_rules, transformations,  headers, is_training_successfully_finished)
             except Exception as e:
                 print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
                 is_training_successfully_finished = False
-                return (None, model, None, None, None, None, is_training_successfully_finished)
+                return (None, model, None, None, None, None, None, is_training_successfully_finished)
 
 
     def __train_single_model(self, model, df):
@@ -70,7 +70,7 @@ class TrainingTask:
         test_score = evaluations['test_metrics'][metric]
         evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
         
-        return trained_model, evaluations, None, None
+        return trained_model, evaluations, training_model.embedding_rules, None, None
         
 
     def __train_multi_models(self, model, df):
@@ -95,7 +95,7 @@ class TrainingTask:
             test_score = ensemble.voting_classifier_evaluations['test_metrics'][model.metric]
             evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
             
-            return ensemble.trained_voting_classifier, evaluations, ensemble.encoding_rules, ensemble.transformations
+            return ensemble.trained_voting_classifier, evaluations, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
         
         if model.model_type == 'regression':
             try:
@@ -121,7 +121,7 @@ class TrainingTask:
                 
             except Exception as e:
                 print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-            return ensemble.trained_voting_regressor, evaluations, ensemble.encoding_rules, ensemble.transformations
+            return ensemble.trained_voting_regressor, evaluations, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
             
         
     def __data_preprocessing(self, df, model, fill_missing_numeric_cells=False):

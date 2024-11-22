@@ -4,6 +4,7 @@ import pandas as pd
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.data_preprocessing import DataPreprocessing
+from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 from app.tasks.llm_task import LlmTask
 
 class InferenceTask:
@@ -11,6 +12,7 @@ class InferenceTask:
         self.data_preprocessing = DataPreprocessing()
         self.classificationEvaluate = ClassificationEvaluate()
         self.regressionEvaluate = RegressionEvaluate()
+        self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
         self.llm_task = LlmTask()
 
     def run_task(self, model_details, loaded_model, original_df):
@@ -50,6 +52,8 @@ class InferenceTask:
         df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy, model)
         if model.encoding_rules:
             df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, model.encoding_rules)
+        if model.embedding_rules:
+            df_copy = self.nlp_embeddings_preprocessing.apply_embedding_rules(df_copy, model.embedding_rules)
         if model.transformations:
              df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, model.transformations)
         df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)

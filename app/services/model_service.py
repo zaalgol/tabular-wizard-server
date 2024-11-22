@@ -48,7 +48,7 @@ class ModelService:
             raise HTTPException(status_code=400, detail="No dataset provided")
         
         model.file_line_num = len(dataset)
-        df = self.__dataset_to_df(dataset)
+        df = self.__dataset_to_df(dataset)[:50000]
 
         await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
         result = await self.__run_training_task(model, df)
@@ -61,7 +61,7 @@ class ModelService:
         else:
             result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
 
-        df, model, trained_model, encoding_rules, transformations, headers, is_training_successfully_finished = result
+        df, model, trained_model, embedding_rules, encoding_rules, transformations, headers, is_training_successfully_finished = result
 
         if not is_training_successfully_finished:
             await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
@@ -70,6 +70,7 @@ class ModelService:
             saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
             model.encoding_rules = encoding_rules
             model.transformations = transformations
+            model.embedding_rules = embedding_rules
 
             model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
             
@@ -107,7 +108,7 @@ class ModelService:
         model_details.user_id = user_id
         model_details.model_name = model_name
         model_details.file_name = file_name
-
+        await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model_details.model_name} inference in process.'})
         original_df = self.__dataset_to_df(dataset)
         original_df = self.__remove_columns_not_in_train_dataset(original_df, drop_other_columns=model_details.columns)
 
@@ -173,9 +174,9 @@ class ModelService:
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
-            'created_at', 'description', 'columns',  'columns_type', 'encoding_rules', 'transformations', 'metric', 'target_column',
-            'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
-            'is_time_series', 'time_series_code', 'formated_evaluations'
+            'created_at', 'description', 'columns',  'columns_type', 'embedding_rules','encoding_rules',
+            'transformations', 'metric', 'target_column','model_type', 'training_strategy',
+            'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations'
         ])
         
     async def get_model_details_file(self, user_id, model_name):
