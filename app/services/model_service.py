@@ -153,7 +153,7 @@ class ModelService:
                 'message': f'Model {model_details.model_name} inference completed successfully.',
                 'file_url': csv_url
             }
-    
+
     def download_file(self, user_id, model_name, filename, file_type):
         try:
             if file_type == 'inference':

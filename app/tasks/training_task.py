@@ -16,32 +16,21 @@ class TrainingTask:
         self.llm_task = LlmTask()
 
     def run_task(self, model, headers, df):
-        is_training_successfully_finished = False
-        trained_model = None
-        evaluations = None
-        encoding_rules = None
-        transformations = None
-
         model.semantic_columns = [k for k, v in model.columns_type.items() if v=='semantic']
 
-        try:
-            if model.training_strategy == 'ensembleModelsFast' or model.training_strategy == 'ensembleModelsTuned':
-                trained_model, evaluations, embedding_rules, encoding_rules, transformations = self.__train_multi_models(model, df.copy())
-            else:
-                trained_model, evaluations, embedding_rules, encoding_rules, transformations = self.__train_single_model(model, df.copy())
-            is_training_successfully_finished = True
+        try:    
+            train_func = self.__train_multi_models if model.training_strategy in ['ensembleModelsFast', 'ensembleModelsTuned'] else self.__train_single_model
+            results = train_func(model, df.copy())
+            
+            # model.formated_evaluations = results[1]['formated_evaluations']
+            # model.train_score = results[1]['train_score']
+            # model.test_score = results[1]['test_score']
+            
+            return (df, model, *results, headers, True)
+            
         except Exception as e:
-            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}. {traceback.format_exc()}")
-        finally:
-            try:
-                model.formated_evaluations = evaluations['formated_evaluations']
-                model.train_score = evaluations['train_score']
-                model.test_score = evaluations['test_score']
-                return (df, model, trained_model, embedding_rules, encoding_rules, transformations,  headers, is_training_successfully_finished)
-            except Exception as e:
-                print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-                is_training_successfully_finished = False
-                return (None, model, None, None, None, None, None, is_training_successfully_finished)
+            print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+            return (None,) * 8
 
 
     def __train_single_model(self, model, df):
@@ -66,11 +55,11 @@ class TrainingTask:
         formated_evaluations = evaluate.format_train_and_test_evaluation(evaluations)
         print(formated_evaluations)
 
-        train_score = evaluations['train_metrics'][metric]
-        test_score = evaluations['test_metrics'][metric]
-        evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+        model.train_score = evaluations['train_metrics'][metric]
+        model.test_score = evaluations['test_metrics'][metric]
+        model.formated_evaluations = {'formated_evaluations': formated_evaluations, 'train_score': model.train_score, 'test_score': model.test_score}
         
-        return trained_model, evaluations, training_model.embedding_rules, None, None
+        return trained_model, training_model.embedding_rules, None, None
         
 
     def __train_multi_models(self, model, df):
@@ -91,11 +80,11 @@ class TrainingTask:
             evaluate = self.classificationEvaluate
             formated_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_classifier_evaluations)
             print(formated_evaluations)
-            train_score = ensemble.voting_classifier_evaluations['train_metrics'][model.metric]
-            test_score = ensemble.voting_classifier_evaluations['test_metrics'][model.metric]
-            evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+            model.train_score = ensemble.voting_classifier_evaluations['train_metrics'][model.metric]
+            model.test_score = ensemble.voting_classifier_evaluations['test_metrics'][model.metric]
+            model.formated_evaluations = {'formated_evaluations': formated_evaluations, 'train_score': model.train_score, 'test_score': model.test_score}
             
-            return ensemble.trained_voting_classifier, evaluations, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
+            return ensemble.trained_voting_classifier, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
         
         if model.model_type == 'regression':
             try:
@@ -115,13 +104,13 @@ class TrainingTask:
                 formated_evaluations = evaluate.format_train_and_test_evaluation(ensemble.voting_regressor_evaluations)
                 print(formated_evaluations)
                 metric = self.regressionEvaluate.get_metric_mapping(model.metric)
-                train_score = ensemble.voting_regressor_evaluations['train_metrics'][metric]
-                test_score = ensemble.voting_regressor_evaluations['test_metrics'][metric]
-                evaluations = {'formated_evaluations': formated_evaluations, 'train_score': train_score, 'test_score': test_score}
+                model.train_score = ensemble.voting_regressor_evaluations['train_metrics'][metric]
+                model.test_score = ensemble.voting_regressor_evaluations['test_metrics'][metric]
+                model.evaluations = {'formated_evaluations': formated_evaluations, 'train_score': model.train_score, 'test_score': model.test_score}
                 
             except Exception as e:
                 print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-            return ensemble.trained_voting_regressor, evaluations, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
+            return ensemble.trained_voting_regressor, ensemble.embedding_rules, ensemble.encoding_rules, ensemble.transformations
             
         
     def __data_preprocessing(self, df, model, fill_missing_numeric_cells=False):
@@ -132,7 +121,7 @@ class TrainingTask:
         # df_copy = data_preprocessing.sanitize_dataframe(df_copy)
         if fill_missing_numeric_cells:
             df_copy = data_preprocessing.fill_missing_numeric_cells(df_copy)
-        df_copy = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(df_copy, model)
+        df_copy = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(df_copy, model)
         return df_copy 
 
 

@@ -33,40 +33,7 @@ class NlpEmbeddingsPreprocessing:
 
         return embedding_rules
 
-    # def apply_embedding_rules(self, df: pd.DataFrame, embedding_rules: dict) -> pd.DataFrame:
-    #     """
-    #     Apply BERT embeddings based on the previously created embedding rules.
-        
-    #     :param df: Input pandas DataFrame containing the text columns.
-    #     :param embedding_rules: Dictionary containing the embedding rules.
-    #     :return: DataFrame with BERT embeddings added.
-    #     """
-    #     df_copy = df.copy()
-    #     embedding_columns = embedding_rules['columns']
-    #     model_name = embedding_rules['model_name']
-    #     max_length = embedding_rules['max_length']
-
-    #     try:
-    #         # Re-initialize the model and tokenizer if necessary
-    #         if self.model_name != model_name or self.max_length != max_length:
-    #             self.model_name = model_name
-    #             self.max_length = max_length
-    #             self.tokenizer = BertTokenizer.from_pretrained(self.model_name)
-    #             self.model = BertModel.from_pretrained(self.model_name)
-    #             self.model.eval()
-    #         for col in embedding_columns:
-    #             # Apply BERT embeddings and append new columns for each embedding feature
-    #             embeddings = df_copy[col].apply(lambda x: self._get_bert_embedding(str(x)))
-    #             embeddings_df = pd.DataFrame(embeddings.tolist(), index=df_copy.index)
-    #             embeddings_df.columns = [f'{col}_bert_{i}' for i in range(embeddings_df.shape[1])]
-    #             df_copy = pd.concat([df_copy, embeddings_df], axis=1)
-    #             df_copy.drop(columns=[col], inplace=True)  # Optionally drop the original text column
-
-    #     except Exception as e:
-    #         print(e)
-    #         print(traceback.format_exc())
-
-    #     return df_copy
+   
     def apply_embedding_rules(self, df: pd.DataFrame, embedding_rules: dict) -> pd.DataFrame:
         """
         Apply BERT embeddings based on the previously created embedding rules.

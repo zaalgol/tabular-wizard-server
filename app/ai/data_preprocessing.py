@@ -249,7 +249,7 @@ class DataPreprocessing:
         
         return df1, df2
 
-    def convert_tdatetime_columns_to_datetime_dtype(self, df, model):
+    def convert_datetime_columns_to_datetime_dtype(self, df, model):
         df_copy=df.copy()
         for col, column_type in model.columns_type.items():
             if column_type == 'datetime':
@@ -312,6 +312,34 @@ class DataPreprocessing:
             y_predict_proba = y_predict_proba[valid_mask]
 
         return filtered_original, filtered_predicted, y_predict_proba
+    
+
+    def delete_empty_rows(dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        """
+        Deletes all rows in the dataset where the specified column has empty (NaN or None) values.
+
+        Parameters:
+        - dataset (pd.DataFrame): The input dataset.
+        - column_name (str): The name of the column to check for empty values.
+
+        Returns:
+        - pd.DataFrame: A new DataFrame with the rows removed.
+        """
+        return dataset.dropna(subset=[column_name])
+
+
+    def delete_non_numeric_rows(dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        """
+        Deletes all rows in the dataset where the specified column contains non-numeric values.
+
+        Parameters:
+        - dataset (pd.DataFrame): The input dataset.
+        - column_name (str): The name of the column to check for numeric values.
+
+        Returns:
+        - pd.DataFrame: A new DataFrame with the rows removed.
+        """
+        return dataset[pd.to_numeric(dataset[column_name], errors='coerce').notnull()]
         
         
 

@@ -1,5 +1,3 @@
-# app/services/init_service.py
-
 from app.services.user_service import UserService
 from app.config.config import Config
 
