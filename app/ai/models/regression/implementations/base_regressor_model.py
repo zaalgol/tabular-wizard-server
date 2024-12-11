@@ -75,7 +75,5 @@ class BaseRegressorModel(BaseModel):
     @property
     def unnecessary_parameters(self):
         return [
-            'scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules',
-            'create_transformations', 'apply_transformations', 'test_size',
-            'already_splitted_data'
+            'scoring', 'split_column', 'test_size'
         ]

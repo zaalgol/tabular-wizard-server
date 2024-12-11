@@ -9,37 +9,36 @@ from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 
 
 class BaseModel:
-    def __init__(self, train_df, target_column ,scoring, split_column=None, test_size=0.25):
+    def __init__(self, train_df, target_column):
         self.train_df = train_df
         self.study = None
-        self.scoring = scoring
         self.target_column = target_column
         self.data_preprocessing = DataPreprocessing()
         
-        self.__split_data(split_column, test_size)
+        # self.__split_data(split_column, test_size)
 
-    def __split_data(self, split_column, test_size):
-        # if already_splitted_data:
-        #     self.X_train, self.X_test, self.y_train, self.y_test = \
-        #         already_splitted_data['X_train'], already_splitted_data['X_test'], already_splitted_data['y_train'], already_splitted_data['y_test']
-        #     return
+    # def __split_data(self, split_column, test_size):
+    #     # if already_splitted_data:
+    #     #     self.X_train, self.X_test, self.y_train, self.y_test = \
+    #     #         already_splitted_data['X_train'], already_splitted_data['X_test'], already_splitted_data['y_train'], already_splitted_data['y_test']
+    #     #     return
 
-        if split_column is None:
-            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.train_df,
-                                                                                    self.train_df[self.target_column],
-                                                                                    test_size=test_size, random_state=42)
-        else:
-            splitter = GroupShuffleSplit(test_size=test_size, n_splits=2, random_state=7)
-            split = splitter.split(self.train_df, groups=self.train_df[split_column])
-            train_inds, test_inds = next(split)
+    #     if split_column is None:
+    #         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.train_df,
+    #                                                                                 self.train_df[self.target_column],
+    #                                                                                 test_size=test_size, random_state=42)
+    #     else:
+    #         splitter = GroupShuffleSplit(test_size=test_size, n_splits=2, random_state=7)
+    #         split = splitter.split(self.train_df, groups=self.train_df[split_column])
+    #         train_inds, test_inds = next(split)
 
-            train = self.train_df.iloc[train_inds]
-            self.y_train = train[[self.target_column]].astype(float)
-            test = self.train_df.iloc[test_inds]
-            self.y_test = test[[self.target_column]].astype(float)
+    #         train = self.train_df.iloc[train_inds]
+    #         self.y_train = train[[self.target_column]].astype(float)
+    #         test = self.train_df.iloc[test_inds]
+    #         self.y_test = test[[self.target_column]].astype(float)
 
-        self.X_train = self.X_train.drop([self.target_column], axis=1)
-        self.X_test = self.X_test.drop([self.target_column], axis=1)
+    #     self.X_train = self.X_train.drop([self.target_column], axis=1)
+    #     self.X_test = self.X_test.drop([self.target_column], axis=1)
 
         # self._preprocess_data(create_encoding_rules, apply_encoding_rules, create_transformations, apply_transformations)
 

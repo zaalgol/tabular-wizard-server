@@ -19,14 +19,11 @@ from sklearn.ensemble import VotingRegressor
 from itertools import islice
 
 class Ensemble(BaseRegressorModel):
-    def __init__(self, train_df, target_column, semantic_columns=[], split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
-                  create_transformations=False, apply_transformations=False, test_size=0.3, scoring='neg_root_mean_squared_error', top_n_best_models=3):
+    def __init__(self, train_df, target_column, split_column=None, test_size=0.3, scoring='neg_root_mean_squared_error', top_n_best_models=3):
         self.regressors = {}
-        super().__init__(train_df=train_df, target_column=target_column, semantic_columns=semantic_columns,
-                         scoring=scoring, split_column=split_column, test_size=test_size,
-                         create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules, 
-                         create_transformations=create_transformations, apply_transformations=apply_transformations)
-        self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}
+        super().__init__(train_df=train_df, target_column=target_column,
+                         scoring=scoring, split_column=split_column, test_size=test_size)
+        # self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}
         self.evaluate = Evaluate()
         self.scoring = scoring
         self.top_n_best_models = top_n_best_models
@@ -52,7 +49,7 @@ class Ensemble(BaseRegressorModel):
         'model': model_class(
                 train_df=train_df.copy(), 
                 target_column=self.target_column, 
-                already_splitted_data=self.already_splitted_data,
+                # already_splitted_data=self.already_splitted_data,
                 scoring=self.scoring
             )
         }

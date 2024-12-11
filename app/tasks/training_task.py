@@ -37,13 +37,12 @@ class TrainingTask:
         # df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
         metric = model.metric
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, semantic_columns = model.semantic_columns,
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column
                                                 scoring=model.metric, sampling_strategy=model.sampling_strategy)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
-            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, 
-                                               semantic_columns = model.semantic_columns, scoring=model.metric)
+            training_model = LightGBMRegressor(train_df = df, target_column = model.target_column, scoring=model.metric)
             evaluate = self.regressionEvaluate
             metric = evaluate.get_metric_mapping(model.metric)
 

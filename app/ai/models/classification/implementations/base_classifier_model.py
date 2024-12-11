@@ -13,14 +13,14 @@ from sklearn.metrics import classification_report, confusion_matrix, make_scorer
 
 
 class BaseClassfierModel(BaseModel):
-    def __init__(self, train_df, target_column, split_column=None, scoring='accuracy', sampling_strategy='conditionalOversampling', *args, **kwargs):
-        super().__init__(train_df, target_column, scoring, split_column, *args, **kwargs)
-        if sampling_strategy == 'conditionalOversampling':
-            self.apply_conditional_oversampling()
-        elif sampling_strategy == 'oversampling':
-            self.apply_oversampling()
-        self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
-        self.scoring = Evaluate().get_scoring_metric(scoring, self.is_multi_class)
+    def __init__(self, train_df, target_column, *args, **kwargs):
+        super().__init__(train_df, target_column, *args, **kwargs)
+        # if sampling_strategy == 'conditionalOversampling':
+        #     self.apply_conditional_oversampling()
+        # elif sampling_strategy == 'oversampling':
+        #     self.apply_oversampling()
+        # self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
+        # self.scoring = Evaluate().get_scoring_metric(scoring, self.is_multi_class)
 
     def tune_hyper_parameters(self, params=None, kfold=5, n_iter=300, timeout=120*60):
         if params is None:

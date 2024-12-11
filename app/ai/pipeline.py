@@ -27,6 +27,8 @@ class Pipeline:
         df = self.__dataset_to_df(dataset)
         df = self.__data_processing_before_spliting(df, model)
         X_train, X_test, y_train, y_test = self.__split_data(self, df, split_column, model)
+        if model.model_type == 'classification':
+            self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
         X_train, X_test, y_train, embedding_rules, encoding_rules, transformations = self.__data_processing_after_spliting(X_train, X_test, model)
 
         return X_train, X_test, y_train, y_test, embedding_rules, encoding_rules, transformations
