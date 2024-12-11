@@ -37,12 +37,7 @@ class NlpEmbeddingsPreprocessing:
 
         return embedding_rules
 
-<<<<<<< HEAD
-   
-    def apply_embedding_rules(self, df: pd.DataFrame, embedding_rules: dict) -> pd.DataFrame:
-=======
     def apply_embedding_rules(self, df: pd.DataFrame, embedding_rules: dict, batch_size: int = 32) -> pd.DataFrame:
->>>>>>> main
         """
         Apply BERT embeddings based on the previously created embedding rules.
         
