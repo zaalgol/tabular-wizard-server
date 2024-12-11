@@ -10,7 +10,7 @@ DEFAULT_PARAMS = {
 class BernoulliNaiveBayesClassifier(BaseClassfierModel):
     def __init__(self, train_df, target_column, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = BernoulliNB(*args, **kwargs)
 
     @property

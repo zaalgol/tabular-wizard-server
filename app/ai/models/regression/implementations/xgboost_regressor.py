@@ -22,7 +22,7 @@ class XgboostRegressor(BaseRegressorModel):
         super().__init__(train_df, target_column, *args, **kwargs)
 
         self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = XGBRegressor(enable_categorical=True, *args, **kwargs)
 
     @property

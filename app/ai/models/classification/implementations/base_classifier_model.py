@@ -6,18 +6,15 @@ import optuna
 from app.ai.models.base_model import BaseModel
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.utils import resample
+# from sklearn.utils import resample
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.models.classification.evaluate import Evaluate
 from sklearn.metrics import classification_report, confusion_matrix, make_scorer, accuracy_score, log_loss, precision_score, recall_score, roc_auc_score, f1_score
 
 
 class BaseClassfierModel(BaseModel):
-    def __init__(self, train_df, target_column, split_column=None, scoring='accuracy', sampling_strategy='conditionalOversampling',
-                 create_encoding_rules=False, apply_encoding_rules=False, create_transformations=False, apply_transformations=False, *args, **kwargs):
-        super().__init__(train_df, target_column, scoring, split_column,
-                         create_encoding_rules=create_encoding_rules, apply_encoding_rules=apply_encoding_rules,
-                         create_transformations=create_transformations, apply_transformations=apply_transformations, *args, **kwargs)
+    def __init__(self, train_df, target_column, split_column=None, scoring='accuracy', sampling_strategy='conditionalOversampling', *args, **kwargs):
+        super().__init__(train_df, target_column, scoring, split_column, *args, **kwargs)
         if sampling_strategy == 'conditionalOversampling':
             self.apply_conditional_oversampling()
         elif sampling_strategy == 'oversampling':
@@ -71,55 +68,54 @@ class BaseClassfierModel(BaseModel):
             result = self.estimator.fit(self.X_train, self.y_train, *args, **kwargs)
         return result
 
-    def apply_conditional_oversampling(self):
-        class_counts = self.y_train.value_counts()
+    # def apply_conditional_oversampling(self):
+    #     class_counts = self.y_train.value_counts()
 
-        smallest_class = class_counts.min()
-        largest_class = class_counts.max()
-        ratio = smallest_class / largest_class
+    #     smallest_class = class_counts.min()
+    #     largest_class = class_counts.max()
+    #     ratio = smallest_class / largest_class
 
-        # Define a threshold below which we consider the dataset imbalanced
-        # This threshold can be adjusted based on specific needs
-        imbalance_threshold = 0.5  # Example threshold
+    #     # Define a threshold below which we consider the dataset imbalanced
+    #     # This threshold can be adjusted based on specific needs
+    #     imbalance_threshold = 0.5  # Example threshold
 
-        # If the ratio is below the threshold, apply oversampling
-        if ratio < imbalance_threshold:
-            self.apply_oversampling()
-        else:
-            print("The dataset is considered balanced. Skipping oversampling.")
+    #     # If the ratio is below the threshold, apply oversampling
+    #     if ratio < imbalance_threshold:
+    #         self.apply_oversampling()
+    #     else:
+    #         print("The dataset is considered balanced. Skipping oversampling.")
                 
-    def apply_oversampling(self):
-        class_counts = self.y_train.value_counts()
-        max_size = class_counts.max()
+    # def apply_oversampling(self):
+    #     class_counts = self.y_train.value_counts()
+    #     max_size = class_counts.max()
 
-        X_train_resampled = []
-        y_train_resampled = []
+    #     X_train_resampled = []
+    #     y_train_resampled = []
 
-        for class_index, count in class_counts.items():
-            df_class_indices = self.y_train[self.y_train == class_index].index
-            df_class = self.X_train.loc[df_class_indices]
-            if count < max_size:
-                df_class_over = resample(df_class, 
-                                         replace=True,  # sample with replacement
-                                         n_samples=max_size,  # match number in majority class
-                                         random_state=42)  # reproducible results
-                y_class_over = resample(self.y_train.loc[df_class_indices], 
-                                        replace=True, 
-                                        n_samples=max_size, 
-                                        random_state=42)
-                X_train_resampled.append(df_class_over)
-                y_train_resampled.append(y_class_over)
-            else:
-                X_train_resampled.append(df_class)
-                y_train_resampled.append(self.y_train.loc[df_class_indices])
+    #     for class_index, count in class_counts.items():
+    #         df_class_indices = self.y_train[self.y_train == class_index].index
+    #         df_class = self.X_train.loc[df_class_indices]
+    #         if count < max_size:
+    #             df_class_over = resample(df_class, 
+    #                                      replace=True,  # sample with replacement
+    #                                      n_samples=max_size,  # match number in majority class
+    #                                      random_state=42)  # reproducible results
+    #             y_class_over = resample(self.y_train.loc[df_class_indices], 
+    #                                     replace=True, 
+    #                                     n_samples=max_size, 
+    #                                     random_state=42)
+    #             X_train_resampled.append(df_class_over)
+    #             y_train_resampled.append(y_class_over)
+    #         else:
+    #             X_train_resampled.append(df_class)
+    #             y_train_resampled.append(self.y_train.loc[df_class_indices])
         
-        self.X_train = pd.concat(X_train_resampled)
-        self.y_train = pd.concat(y_train_resampled)
+    #     self.X_train = pd.concat(X_train_resampled)
+    #     self.y_train = pd.concat(y_train_resampled)
 
     @property
     def unnecessary_parameters(self):
-        return ['scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules', 'create_transformations', 'apply_transformations', 'test_size',
-                'already_splitted_data', 'sampling_strategy']
+        return ['scoring', 'split_column', 'test_size', 'sampling_strategy']
     
     def save_feature_importances(self, model_folder='', filename='feature_importances.png'):
         # Default implementation, to be overridden in derived classes

@@ -22,9 +22,9 @@ class LightgbmClassifier(BaseClassfierModel):
     def __init__(self, train_df, target_column, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
         objective = 'multiclass' if train_df[target_column].nunique() > 2 else 'binary'
-        self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
-        self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
+        # self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = LGBMClassifier(objective=objective, verbosity=-1, **kwargs)
 
     @property

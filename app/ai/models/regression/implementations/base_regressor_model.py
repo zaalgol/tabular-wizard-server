@@ -1,5 +1,3 @@
-# app\ai\models\regression\implementations\base_regressor_model.py
-
 from sklearn.model_selection import KFold, cross_val_score
 import optuna
 from sklearn.base import clone

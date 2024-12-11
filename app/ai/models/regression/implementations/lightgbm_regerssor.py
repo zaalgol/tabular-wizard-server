@@ -22,7 +22,7 @@ class LightGBMRegressor(BaseRegressorModel):
         
         self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
         self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = LGBMRegressor(verbosity=-1, *args, **kwargs)
 
     @property

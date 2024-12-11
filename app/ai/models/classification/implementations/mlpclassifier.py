@@ -19,7 +19,7 @@ DEFAULT_PARAMS = {
 class MLPNetClassifier(BaseClassfierModel):
     def __init__(self, train_df, target_column, hidden_layer_sizes=None, *args, **kwargs):
         super().__init__(train_df, target_column, *args, **kwargs)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
          # Choose the solver based on the number of rows in the dataset
         # if len(train_df) <= 1000 and 'solver' not in kwargs:
         #      kwargs['solver'] = 'lbfgs'

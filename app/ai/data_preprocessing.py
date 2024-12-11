@@ -328,7 +328,7 @@ class DataPreprocessing:
         return dataset.dropna(subset=[column_name])
 
 
-    def delete_non_numeric_rows(dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    def delete_rows_with_non_numeric_cells(dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
         """
         Deletes all rows in the dataset where the specified column contains non-numeric values.
 
