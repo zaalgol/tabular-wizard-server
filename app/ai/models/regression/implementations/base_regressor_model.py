@@ -71,9 +71,3 @@ class BaseRegressorModel(BaseModel):
         else:
             result = self.estimator.fit(self.X_train, self.y_train)
         return result
-
-    @property
-    def unnecessary_parameters(self):
-        return [
-            'scoring', 'split_column', 'test_size'
-        ]

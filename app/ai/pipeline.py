@@ -11,7 +11,6 @@ from app.config.config import Config
 from app.tasks.llm_task import LlmTask
 
 
-
 class Pipeline:
     def __init__(self) -> None:
         self.llm_task = LlmTask()
@@ -22,11 +21,11 @@ class Pipeline:
             cls._instance = super().__new__(cls)
         return cls._instance
             
-    def run_pre_training_data_pipeline(self, model, dataset, split_column=None):
+    def run_pre_training_data_pipeline(self, model, dataset):
         model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
         df = self.__data_processing_before_spliting(df, model)
-        X_train, X_test, y_train, y_test = self.__split_data(self, df, split_column, model)
+        X_train, X_test, y_train, y_test = self.__split_data(self, df, model)
         if model.model_type == 'classification':
             self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
         X_train, X_test, y_train, embedding_rules, encoding_rules, transformations = self.__data_processing_after_spliting(X_train, X_test, model)
@@ -95,9 +94,7 @@ class Pipeline:
         largest_class = class_counts.max()
         ratio = smallest_class / largest_class
 
-        # Define a threshold below which we consider the dataset imbalanced
-        # This threshold can be adjusted based on specific needs
-        imbalance_threshold = 0.5  # Example threshold
+        imbalance_threshold = Config.IMBALACE_THRESHOLD
 
         # If the ratio is below the threshold, apply oversampling
         if ratio < imbalance_threshold:

@@ -113,9 +113,6 @@ class BaseClassfierModel(BaseModel):
     #     self.X_train = pd.concat(X_train_resampled)
     #     self.y_train = pd.concat(y_train_resampled)
 
-    @property
-    def unnecessary_parameters(self):
-        return ['scoring', 'split_column', 'test_size', 'sampling_strategy']
     
     def save_feature_importances(self, model_folder='', filename='feature_importances.png'):
         # Default implementation, to be overridden in derived classes

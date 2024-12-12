@@ -27,8 +27,8 @@ from app.ai.data_preprocessing import DataPreprocessing
 from sklearn.model_selection import cross_val_score
 
 class Ensemble(BaseClassfierModel):
-    def __init__(self, train_df, target_column,  split_column=None, scoring='accuracy', number_of_n_best_models=3):
-        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring, split_column=split_column)
+    def __init__(self, train_df, target_column, scoring='accuracy', number_of_n_best_models=3):
+        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring)
         self.classifiers = {}
         self.temp = {}
         # self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}

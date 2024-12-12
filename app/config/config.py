@@ -37,7 +37,9 @@ class Config:
     BUCKET_NAME = os.getenv('BUCKET_NAME')
     
     DATASET_SPLIT_SIZE = os.getenv('DATASET_SPLIT_SIZE', 0.3)
+    IMBALACE_THRESHOLD = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 0,5))
 
+    # LLM
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     MODEL=os.getenv('MODEL')
     MAX_TOKENS=os.getenv('MAX_TOKENS')
@@ -45,4 +47,3 @@ class Config:
     LLM_NUMBER_OF_DATASET_LINES=os.getenv('LLM_NUMBER_OF_DATASET_LINES')
 
     CSV_URL_PREFIX=os.getenv('CSV_URL_PREFIX')
-    

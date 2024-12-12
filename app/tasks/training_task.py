@@ -37,8 +37,7 @@ class TrainingTask:
         # df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
         metric = model.metric
         if model.model_type == 'classification':
-            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column
-                                                scoring=model.metric, sampling_strategy=model.sampling_strategy)
+            training_model = LightgbmClassifier(train_df = df, target_column = model.target_column, scoring=model.metric)
             evaluate = self.classificationEvaluate
 
         elif model.model_type == 'regression':
@@ -64,10 +63,7 @@ class TrainingTask:
     def __train_multi_models(self, model, df):
         if model.model_type == 'classification':
             # df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
-            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, semantic_columns = model.semantic_columns,
-                                              create_encoding_rules=True, apply_encoding_rules=True,
-                                              create_transformations=True, apply_transformations=True,
-                                              sampling_strategy=model.sampling_strategy, scoring=model.metric)
+            ensemble = ClassificationEnsemble(train_df = df, target_column = model.target_column, scoring=model.metric)
             ensemble.create_models(df)
             ensemble.sort_models_by_score()
             ensemble.create_voting_classifier()

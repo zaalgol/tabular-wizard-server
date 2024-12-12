@@ -19,10 +19,9 @@ from sklearn.ensemble import VotingRegressor
 from itertools import islice
 
 class Ensemble(BaseRegressorModel):
-    def __init__(self, train_df, target_column, split_column=None, test_size=0.3, scoring='neg_root_mean_squared_error', top_n_best_models=3):
+    def __init__(self, train_df, target_column, scoring='neg_root_mean_squared_error', top_n_best_models=3):
         self.regressors = {}
-        super().__init__(train_df=train_df, target_column=target_column,
-                         scoring=scoring, split_column=split_column, test_size=test_size)
+        super().__init__(train_df=train_df, target_column=target_column, scoring=scoring)
         # self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}
         self.evaluate = Evaluate()
         self.scoring = scoring

@@ -156,7 +156,3 @@ class PyTorchRegressorModel(BaseRegressorModel):
     @property
     def default_params(self):
         return DEFAULT_PARAMS_PT
-    
-    @property
-    def unnecessary_parameters(self):
-        return ['scoring', 'split_column', 'test_size']
