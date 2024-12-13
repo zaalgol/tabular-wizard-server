@@ -9,10 +9,10 @@ from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 
 
 class BaseModel:
-    def __init__(self, train_df, target_column):
-        self.train_df = train_df
+    def __init__(self, target_column, scoring):
         self.study = None
         self.target_column = target_column
+        self.scoring = scoring
         self.data_preprocessing = DataPreprocessing()
             
     @property

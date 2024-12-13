@@ -29,6 +29,7 @@ class ModelRepository:
         model_type_field_path = f"models.{model_name}.model_type"
         training_strategy_field_path = f"models.{model_name}.training_strategy"
         sampling_strategy_field_path = f"models.{model_name}.sampling_strategy"
+        formated_field_path = f"models.{model_name}.evaluations"
         formated_evaluations_field_path = f"models.{model_name}.formated_evaluations"
         metric_field_path = f"models.{model_name}.metric"
         encoding_rules_field_path = f"models.{model_name}.encoding_rules"
@@ -63,6 +64,7 @@ class ModelRepository:
                     training_strategy_field_path: model.training_strategy,
                     sampling_strategy_field_path: model.sampling_strategy,
                     metric_field_path: model.metric,
+                    formated_field_path: model.evaluations,
                     formated_evaluations_field_path: model.formated_evaluations,
                     transformations_field_path: model.transformations,
                     isDeleted_field_path: False,

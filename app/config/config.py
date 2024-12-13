@@ -36,8 +36,8 @@ class Config:
     AWS_SECRET_KEY = os.getenv('AWS_SECRET_KEY')
     BUCKET_NAME = os.getenv('BUCKET_NAME')
     
-    DATASET_SPLIT_SIZE = os.getenv('DATASET_SPLIT_SIZE', 0.3)
-    IMBALACE_THRESHOLD = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 0,5))
+    DATASET_SPLIT_SIZE = float(os.getenv('DATASET_SPLIT_SIZE', 0.3))
+    IMBALACE_THRESHOLD = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 60))
 
     # LLM
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')

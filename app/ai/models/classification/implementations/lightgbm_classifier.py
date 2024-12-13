@@ -19,13 +19,12 @@ DEFAULT_PARAMS = {
 }
 
 class LightgbmClassifier(BaseClassfierModel):
-    def __init__(self, train_df, target_column, *args, **kwargs):
-        super().__init__(train_df, target_column, *args, **kwargs)
-        objective = 'multiclass' if train_df[target_column].nunique() > 2 else 'binary'
+    def __init__(self, target_column, scoring, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
         # self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
         # self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
         # self.remove_unnecessary_parameters_for_implementations(kwargs)
-        self.estimator = LGBMClassifier(objective=objective, verbosity=-1, **kwargs)
+        self.estimator = LGBMClassifier(verbosity=-1, **kwargs)
 
     @property
     def default_params(self):
@@ -48,13 +47,7 @@ class LightgbmClassifier(BaseClassfierModel):
             'reg_lambda': 1e-9,
             'n_estimators': 100,
         }
-
     
-    def train(self):
-        # return super().train(eval_metric=self.scoring)
-        return super().train()
-    
-
     def save_tree_diagram(self, tree_index=0, model_folder='', filename='tree_diagram.png'):
         plot_tree(self.search.best_estimator_, tree_index=tree_index, figsize=(20, 10), show_info=['split_gain', 'internal_value', 'internal_count', 'leaf_count'])
         plt.savefig(os.path.join(model_folder, filename))

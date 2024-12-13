@@ -17,8 +17,8 @@ DEFAULT_PARAMS = {
 }
 
 class MLPNetClassifier(BaseClassfierModel):
-    def __init__(self, train_df, target_column, hidden_layer_sizes=None, *args, **kwargs):
-        super().__init__(train_df, target_column, *args, **kwargs)
+    def __init__(self, target_column, scoring, hidden_layer_sizes=None, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
         # self.remove_unnecessary_parameters_for_implementations(kwargs)
          # Choose the solver based on the number of rows in the dataset
         # if len(train_df) <= 1000 and 'solver' not in kwargs:
@@ -29,7 +29,7 @@ class MLPNetClassifier(BaseClassfierModel):
             hidden_layer_sizes=(first_layer_size, second_layer_size)
             
             
-        self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
+        self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes)
 
     def train(self):
             if self.search: # with hyperparameter tuining

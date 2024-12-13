@@ -56,21 +56,22 @@ class ModelService:
         return result
 
     async def __run_training_task(self, model, df):
+        headers = df.columns.tolist()
         if Config.DEBUG_MODE:
-            result = self.training_task.run_task( model, df.columns.tolist(), df)
+            result = self.training_task.run_task( model, df)
         else:
-            result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
+            result = await asyncio.to_thread(self.training_task.run_task, model, df)
 
-        df, model, trained_model, embedding_rules, encoding_rules, transformations, headers, is_training_successfully_finished = result
+        trained_model, is_training_successfully_finished = result
 
         if not is_training_successfully_finished:
             await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             return {'status': 'failed', 'message': f'Model {model.model_name} training failed.'}
         else:
             saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
-            model.encoding_rules = encoding_rules
-            model.transformations = transformations
-            model.embedding_rules = embedding_rules
+            model.encoding_rules = model.encoding_rules
+            model.transformations = model.transformations
+            model.embedding_rules = model.embedding_rules
 
             model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
             

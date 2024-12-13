@@ -12,6 +12,8 @@ from app.tasks.llm_task import LlmTask
 
 
 class Pipeline:
+    _instance = None
+
     def __init__(self) -> None:
         self.llm_task = LlmTask()
         self.data_preprocessing = DataPreprocessing()
@@ -21,23 +23,23 @@ class Pipeline:
             cls._instance = super().__new__(cls)
         return cls._instance
             
-    def run_pre_training_data_pipeline(self, model, dataset):
-        model.file_line_num = len(dataset)
-        df = self.__dataset_to_df(dataset)
+    def run_pre_training_data_pipeline(self, model, df):
+        model.file_line_num = len(df)
+        # df = self.__dataset_to_df(dataset)
         df = self.__data_processing_before_spliting(df, model)
-        X_train, X_test, y_train, y_test = self.__split_data(self, df, model)
+        X_train, X_test, y_train, y_test = self.__split_data(df, model)
         if model.model_type == 'classification':
-            self.is_multi_class = DataPreprocessing().get_class_num(self.y_train) > 2
-        X_train, X_test, y_train, embedding_rules, encoding_rules, transformations = self.__data_processing_after_spliting(X_train, X_test, model)
+            self.is_multi_class = DataPreprocessing().get_class_num(y_train) > 2
+        X_train, X_test, y_train, embedding_rules, encoding_rules, transformations = self.__data_processing_after_spliting(X_train, X_test, y_train, model)
 
         return X_train, X_test, y_train, y_test, embedding_rules, encoding_rules, transformations
         
 
-    def __dataset_to_df(self, dataset):
-        headers = dataset[0]
-        data_rows = dataset[1:]
-        df = pd.DataFrame(data_rows, columns=headers)
-        return df
+    # def __dataset_to_df(self, dataset):
+    #     headers = dataset[0]
+    #     data_rows = dataset[1:]
+    #     df = pd.DataFrame(data_rows, columns=headers)
+    #     return df
     
     def __data_processing_before_spliting(self, df, model):
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
@@ -51,13 +53,16 @@ class Pipeline:
         
         return df 
     
-    def __split_data(self, df,  model):
+    def __split_data(self, df, model):
             X_train, X_test, y_train, y_test = train_test_split(df,
                                                                 df[model.target_column], shuffle= not model.time_series_code,
                                                                 test_size=Config.DATASET_SPLIT_SIZE, random_state=42)
             return X_train, X_test, y_train, y_test
     
     def __data_processing_after_spliting(self, X_train, X_test, y_train, model):
+        embedding_rules = None
+        encoding_rules = None 
+        transformations = None 
         X_train = DataPreprocessing().set_not_numeric_as_categorial(X_train)
         X_test = DataPreprocessing().set_not_numeric_as_categorial(X_test)
         semantic_columns = [k for k, v in model.columns_type.items() if v=='semantic']
@@ -83,11 +88,14 @@ class Pipeline:
         X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_train)
         X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_test)
         if model.model_type == 'classification':
-            X_train, y_train = self.apply_conditional_oversampling(X_train, y_train)
+            if model.sampling_strategy == 'conditionalOversampling':
+                self.apply_conditional_oversampling()
+            elif model.sampling_strategy == 'oversampling':
+                self.apply_oversampling(X_train, y_train)
 
         return X_train, X_test, y_train, embedding_rules, encoding_rules, transformations
     
-    def apply_conditional_oversampling(self, X_train, y_train):
+    def apply_conditional_oversampling(self,X_train, y_train):
         class_counts = y_train.value_counts()
 
         smallest_class = class_counts.min()
@@ -98,7 +106,7 @@ class Pipeline:
 
         # If the ratio is below the threshold, apply oversampling
         if ratio < imbalance_threshold:
-            return self.apply_oversampling()
+            return self.apply_oversampling(X_train, y_train)
         else:
             print("The dataset is considered balanced. Skipping oversampling.")
             return X_train, y_train

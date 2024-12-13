@@ -11,8 +11,8 @@ DEFAULT_PARAMS_RF = {
 }
 
 class RandomForestRegressorModel(BaseRegressorModel):
-    def __init__(self, train_df, target_column, *args, **kwargs):
-        super().__init__(train_df, target_column, *args, **kwargs)
+    def __init__(self, target_column, scoring, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
         # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = RandomForestRegressor(*args, **kwargs)
 

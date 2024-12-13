@@ -57,19 +57,19 @@ class Evaluate:
         return {'accuracy': accuracy, 'log_loss': loss, 'precision': precision, 'recall': recall, 'f1': f1, 'roc_auc': auc}
 
 
-    def evaluate_train_and_test(self, model, classifier):
-        y_predict = model.predict(classifier.X_train)
-        y_probability = model.predict_proba(classifier.X_train)
+    def evaluate_train_and_test(self, trained_model, X_train, y_train, X_test, y_test):
+        y_predict = trained_model.predict(X_train)
+        y_probability = trained_model.predict_proba(X_train)
         # train_score = self.get_accurecy_score(classifier.y_train, y_predict)
-        train_metrics = self.calculate_metrics(classifier.y_train, y_predict, y_probability)
-        train_confution_matrix = self.get_confution_matrix(classifier.y_train, y_predict)
-        train_confution_matrix_str = "\n".join([classification_report(classifier.y_train, y_predict), f"confusion_matrix: \n {train_confution_matrix}"])
+        train_metrics = self.calculate_metrics(y_train, y_predict, y_probability)
+        train_confution_matrix = self.get_confution_matrix(y_train, y_predict)
+        train_confution_matrix_str = "\n".join([classification_report(y_train, y_predict), f"confusion_matrix: \n {train_confution_matrix}"])
 
-        y_predict = model.predict(classifier.X_test)
-        y_probability = model.predict_proba(classifier.X_test)
-        test_metrics = self.calculate_metrics(classifier.y_test, y_predict, y_probability)
-        test_confution_matrix = self.get_confution_matrix (classifier.y_test, y_predict)
-        test_confution_matrix_str = "\n".join([classification_report(classifier.y_test, y_predict), f"confusion_matrix: \n {test_confution_matrix}"])
+        y_predict = trained_model.predict(X_test)
+        y_probability = trained_model.predict_proba(X_test)
+        test_metrics = self.calculate_metrics(y_test, y_predict, y_probability)
+        test_confution_matrix = self.get_confution_matrix (y_test, y_predict)
+        test_confution_matrix_str = "\n".join([classification_report(y_test, y_predict), f"confusion_matrix: \n {test_confution_matrix}"])
 
         # return "\n".join(["\nTrain eval:",  str(train_confution_matrix ), f'score: {train_score}',  "\nTest eval:", str(test_confution_matrix ), f'score: {test_score}', "*" * 100, "\n"])
         return {'train_confution_matrix': train_confution_matrix_str, 'train_metrics':train_metrics,
