@@ -58,7 +58,7 @@ class TrainingTask:
             metric = evaluator.get_metric_mapping(model.metric)
 
         if model.training_strategy == 'singleModelTuned':
-            training_model.tune_hyper_parameters()
+            training_model.tune_hyper_parameters(model.X_train, model.y_train)
 
         trained_model = training_model.train(model.X_train, model.y_train)
         self.__evaluate(trained_model, model, evaluator, metric)
