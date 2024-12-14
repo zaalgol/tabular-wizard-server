@@ -27,12 +27,12 @@ class Evaluate:
 
         return {'MSE': mse, 'MAE': mae, 'R2': r2, 'RMSE':rmse, 'MAPE': mape}# , 'RMSLE':rmsle }
     
-    def evaluate_train_and_test(self, model, X_train, y_train, X_test, y_test):
-        y_train_predict = self.predict(model, X_train)
+    def evaluate_train_and_test(self, trained_model, X_train, y_train, X_test, y_test):
+        y_train_predict = self.predict(trained_model, X_train)
         train_metrics = self.calculate_metrics(y_train, y_train_predict)
         # model["train_evaluation"] = train_evaluation
 
-        y_test_predict = self.predict(model, X_test)
+        y_test_predict = self.predict(trained_model, X_test)
         test_metrics = self.calculate_metrics(y_test, y_test_predict)
 
         return {'train_metrics': train_metrics, 'test_metrics': test_metrics}
