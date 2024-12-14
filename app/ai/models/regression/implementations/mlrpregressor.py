@@ -19,9 +19,12 @@ class MLPNetRegressor(BaseRegressorModel):
         # self.remove_unnecessary_parameters_for_implementations(kwargs)
         
         if not hidden_layer_sizes:
-            first_layer_size=max(len(self.X_train.columns), 2)
-            second_layer_size=max(int(first_layer_size /2), 2)
+            first_layer_size=10
+            second_layer_size=10
             hidden_layer_sizes=(first_layer_size, second_layer_size)
+            # first_layer_size=max(len(self.X_train.columns), 2)
+            # second_layer_size=max(int(first_layer_size /2), 2)
+            # hidden_layer_sizes=(first_layer_size, second_layer_size)
         self.estimator = MLPRegressor(max_iter=300, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
 
     def train(self):

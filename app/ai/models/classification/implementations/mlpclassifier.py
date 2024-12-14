@@ -24,20 +24,23 @@ class MLPNetClassifier(BaseClassfierModel):
         # if len(train_df) <= 1000 and 'solver' not in kwargs:
         #      kwargs['solver'] = 'lbfgs'
         if not hidden_layer_sizes:
-            first_layer_size=max(len(self.X_train.columns), 2)
-            second_layer_size=max(int(first_layer_size /2), 2)
+            # first_layer_size=max(len(self.X_train.columns), 2)
+            # second_layer_size=max(int(first_layer_size /2), 2)
+            # hidden_layer_sizes=(first_layer_size, second_layer_size)
+            first_layer_size=10
+            second_layer_size=10
             hidden_layer_sizes=(first_layer_size, second_layer_size)
             
             
         self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes)
 
-    def train(self):
+    def train(self, X_train, y_train, *args, **kwargs):
             if self.search: # with hyperparameter tuining
-                result = self.search.fit(self.X_train, self.y_train)
+                result = self.search.fit(X_train, y_train)
                 print("Best Cross-Validation parameters:", self.search.best_params_)
                 print("Best Cross-Validation score:", self.search.best_score_)
             else:
-                result = self.estimator.fit(self.X_train, self.y_train)
+                result = self.estimator.fit(X_train, y_train)
                 # print("Best accuracy:", self.estimator.best_score_)
             return result
         
