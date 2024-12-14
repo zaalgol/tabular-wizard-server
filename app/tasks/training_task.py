@@ -67,7 +67,7 @@ class TrainingTask:
             ensemble.sort_models_by_score(model.X_train, model.y_train)
             ensemble.create_voting_classifier()
             if model.training_strategy == 'ensembleModelsTuned':
-                ensemble.tuning_top_models()
+                ensemble.tuning_top_models(model.X_train, model.y_train)
             ensemble.train_voting_classifier(model.X_train, model.y_train)
 
             evaluator = self.classificationEvaluate
@@ -84,7 +84,7 @@ class TrainingTask:
 
                 ensemble.create_voting_regressor()
                 if model.training_strategy == 'ensembleModelsTuned':
-                    ensemble.tuning_top_models()
+                    ensemble.tuning_top_models(model.X_train, model.y_train)
                 ensemble.train_voting_regressor(model.X_train, model.y_train)
 
                 evaluator = self.regressionEvaluate

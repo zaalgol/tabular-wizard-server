@@ -55,11 +55,11 @@ class Ensemble(BaseRegressorModel):
         for regressor_value in self.regressors.values():
             regressor_value['model'].tune_hyper_parameters()
             
-    def tuning_top_models(self):
+    def tuning_top_models(self, X_train, y_train):
         top_models = list(islice(self.regressors.items(), self.top_n_best_models))
         for name, model_info in top_models:
             print(f"Tuning and retraining {name}...")
-            # model_info['model'].tune_hyper_parameters(scoring=self.scoring)
+            model_info['model'].tune_hyper_parameters(scoring=self.scoring)
             # model_info['trained_model'] = model_info['model'].train()
             # model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], model_info['model'])
 
