@@ -37,7 +37,7 @@ class LRegression(BaseClassfierModel):
     def default_params(self):
         return DEFAULT_PARAMS
 
-    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=300, timeout=60*60):
+    def tune_hyper_parameters(self, X_train, y_train, params=None, kfold=5, n_iter=300, timeout=60*60):
         if params is None:
             params = self.default_params
 
@@ -71,14 +71,14 @@ class LRegression(BaseClassfierModel):
                 param_grid['penalty'] = None
 
             estimator = LogisticRegression(**param_grid)
-            cv_results = cross_val_score(estimator, self.X_train, self.y_train, cv=kf, scoring=self.scoring)
+            cv_results = cross_val_score(estimator, X_train, y_train, cv=kf, scoring=self.scoring)
             return cv_results.mean()
 
         # Create and optimize the study
         self.study = optuna.create_study(direction="maximize")
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
-    def train(self, *args, **kwargs):
+    def train(self, X_train, y_train,*args, **kwargs):
         if self.study:
             best_params = self.study.best_params
             solver, penalty = best_params.pop('solver_penalty')
@@ -90,4 +90,4 @@ class LRegression(BaseClassfierModel):
             
             self.estimator = LogisticRegression(**best_params)
         
-        return self.estimator.fit(self.X_train, self.y_train, *args, **kwargs)
+        return self.estimator.fit(X_train, y_train, *args, **kwargs)

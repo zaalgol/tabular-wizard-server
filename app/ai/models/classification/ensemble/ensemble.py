@@ -88,13 +88,15 @@ class Ensemble(BaseClassfierModel):
         for name, avg_score in average_scores.items():
             print(f"{name}: Average CV Score = {avg_score}")
     
-    def tuning_top_models(self):
+    def tuning_top_models(self, X_train, y_train, X_test, y_test):
         top_models = list(islice(self.classifiers.items(), self.number_of_n_best_models))
         for name, model_info in top_models:
             print(f"Tuning and retraining {name}...")
-            model_info['model'].tune_hyper_parameters(n_iter=200)
-            # model_info['trained_model'] = model_info['model'].train()
+            model_info['model'].tune_hyper_parameters(X_train, y_train)
+            model_info['trained_model'] = model_info['model'].train(X_train, y_train)
             # model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], model_info['model'])
+            model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], X_train, y_train, X_test, y_test )
+
             # self.temp[name]=model_info['evaluations']
 
     def create_voting_classifier(self):

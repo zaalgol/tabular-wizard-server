@@ -67,7 +67,7 @@ class TrainingTask:
             ensemble.sort_models_by_score(model.X_train, model.y_train)
             ensemble.create_voting_classifier()
             if model.training_strategy == 'ensembleModelsTuned':
-                ensemble.tuning_top_models(model.X_train, model.y_train)
+                ensemble.tuning_top_models(model.X_train, model.y_train, model.X_test, model.y_test)
             ensemble.train_voting_classifier(model.X_train, model.y_train)
 
             evaluator = self.classificationEvaluate
