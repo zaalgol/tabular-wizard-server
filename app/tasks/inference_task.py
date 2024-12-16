@@ -15,34 +15,34 @@ class InferenceTask:
         self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
         self.llm_task = LlmTask()
 
-    def run_task(self, model_details, loaded_model, original_df):
+    def run_task(self, model_details, loaded_model, inference_df):
         try:
             is_inference_successfully_finished = False
-            df_copy = original_df.copy()
+            df_copy = inference_df.copy()
             if model_details.is_time_series:
-                df_copy = self.llm_task.processed_dataset(original_df.copy(), model_details.time_series_code)
+                df_copy = self.llm_task.processed_dataset(inference_df.copy(), model_details.time_series_code)
             X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])
             X_data = self.__data_preprocessing(X_data, model_details)
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
-                original_df[f'{model_details.target_column}_predict'] = y_predict
+                inference_df[f'{model_details.target_column}_predict'] = y_predict
                 y_predict_proba = self.classificationEvaluate.predict_proba(loaded_model, X_data)
                 proba_df = pd.DataFrame(y_predict_proba.round(2), columns=[f'Prob_{cls}' for cls in loaded_model.classes_])
-                original_df = pd.concat([original_df, proba_df], axis=1)
-                original_df = self.__evaluate_inference(model_details, original_df, y_predict, y_predict_proba)
+                inference_df = pd.concat([inference_df, proba_df], axis=1)
+                inference_df = self.__evaluate_inference(model_details, inference_df, y_predict, y_predict_proba)
 
             elif model_details.model_type == 'regression':
                 y_predict = self.regressionEvaluate.predict(loaded_model, X_data)
-                original_df[f'{model_details.target_column}_predict'] = y_predict
-                original_df = self.__evaluate_inference(model_details, original_df, y_predict, None)
+                inference_df[f'{model_details.target_column}_predict'] = y_predict
+                inference_df = self.__evaluate_inference(model_details, inference_df, y_predict, None)
                 
                 
             is_inference_successfully_finished = True
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
         finally:
-            return (model_details, original_df, is_inference_successfully_finished)
+            return (model_details, inference_df, is_inference_successfully_finished)
 
     def __data_preprocessing(self, df, model):
         df_copy = df.copy()
@@ -79,10 +79,10 @@ class InferenceTask:
             return value
     
     
-    def __evaluate_inference(self, model_details, original_df, y_predict, y_predict_proba):
-        if model_details.target_column in original_df.columns:
+    def __evaluate_inference(self, model_details, inference_df, y_predict, y_predict_proba):
+        if model_details.target_column in inference_df.columns:
             filtered_original, filtered_predicted, filtered_y_predict_proba = \
-                self.data_preprocessing.filter_invalid_entries(original_df[model_details.target_column], y_predict, y_predict_proba)
+                self.data_preprocessing.filter_invalid_entries(inference_df[model_details.target_column], y_predict, y_predict_proba)
             if model_details.model_type == 'classification':
                 # TODO: use filtered_original, filtered_predicted and also filtered_y_predict
                 inference_evaluations = self.classificationEvaluate.calculate_metrics(filtered_original, filtered_predicted, filtered_y_predict_proba)
@@ -92,19 +92,19 @@ class InferenceTask:
 
             # Prepare the evaluation data
             # Add 'Evaluations' column to the original DataFrame
-            if 'Evaluations' not in original_df.columns:
-                # original_df.insert(0, 'Evaluations', np.nan)
-                original_df["Evaluations"] = np.nan
+            if 'Evaluations' not in inference_df.columns:
+                # inference_df.insert(0, 'Evaluations', np.nan)
+                inference_df["Evaluations"] = np.nan
 
                 # Prepare the evaluation data
                 eval_types = ['Inference:', 'Train:', 'Test:']
                 eval_data = {'Evaluations': eval_types}
 
-                # Create empty columns in original_df for each evaluation metric
+                # Create empty columns in inference_df for each evaluation metric
                 for key in inference_evaluations.keys():
                     train_eval, test_eval = self.extract_original_metrics(model_details.formated_evaluations, key)
-                    if key not in original_df.columns:
-                        original_df[key] = np.nan
+                    if key not in inference_df.columns:
+                        inference_df[key] = np.nan
 
                     eval_data[key] = [
                         self.format_evaluation(inference_evaluations[key]),
@@ -115,11 +115,11 @@ class InferenceTask:
                 # Create eval_df with only the evaluation metrics
                 eval_df = pd.DataFrame(eval_data)
 
-                # Iterate over eval_df rows and cells to copy the values into original_df
+                # Iterate over eval_df rows and cells to copy the values into inference_df
                 for row_index, row in eval_df.iterrows():
                     for column_name, cell_value in row.items():
-                        original_df.at[row_index, column_name] = cell_value
+                        inference_df.at[row_index, column_name] = cell_value
 
-        return original_df
+        return inference_df
 
 

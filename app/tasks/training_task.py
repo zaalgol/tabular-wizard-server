@@ -6,7 +6,7 @@ from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBMRegressor
 from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
 from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
-from app.ai.pipeline import Pipeline
+from app.ai.pipelines.training_pipeline import TrainingPipeline
 from app.tasks.llm_task import LlmTask
 
 class TrainingTask:
@@ -20,7 +20,7 @@ class TrainingTask:
         # model.semantic_columns = [k for k, v in model.columns_type.items() if v=='semantic']
 
         try:    
-            pipeline = Pipeline()
+            pipeline = TrainingPipeline()
             model.X_train, model.X_test, model.y_train, model.y_test, model.embedding_rules, model.encoding_rules, model.transformations = \
                 pipeline.run_pre_training_data_pipeline(model, df)
             train_func = self.__train_multi_models if model.training_strategy in ['ensembleModelsFast', 'ensembleModelsTuned'] else self.__train_single_model

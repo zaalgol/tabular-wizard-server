@@ -4,7 +4,7 @@ from app.ai.models.classification.implementations.base_classifier_model import B
 # Default parameters for Gaussian Naive Bayes
 GAUSSIAN_DEFAULT_PARAMS = {
     'var_smoothing': (1e-10, 1e-8, 'log-uniform'),  # Portion of the largest variance of all features to be added to variances for stability
-    'priors': [None, 'balanced']  # Prior probabilities of the classes
+    # 'priors': [None, 'balanced']  # Prior probabilities of the classes # sklearn.utils._param_validation.InvalidParameterError: The 'priors' parameter of GaussianNB must be an array-like or None. Got 'balanced' instead.
 }
 
 class GaussianNaiveBayesClassifier(BaseClassfierModel):

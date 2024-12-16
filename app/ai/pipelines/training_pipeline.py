@@ -11,12 +11,13 @@ from app.config.config import Config
 from app.tasks.llm_task import LlmTask
 
 
-class Pipeline:
+class TrainingPipeline:
     _instance = None
 
     def __init__(self) -> None:
         self.llm_task = LlmTask()
         self.data_preprocessing = DataPreprocessing()
+        self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
 
     def __new__(cls):
         if not cls._instance:
