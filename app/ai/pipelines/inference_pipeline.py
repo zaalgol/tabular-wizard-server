@@ -45,7 +45,7 @@ class InferencePipeline:
     def __data_processing_before_spliting(self, df, model):
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
         if model.model_type == 'regression':
-            self.data_preprocessing.delete_rows_with_non_numeric_cells(df, model.target_column)
+            self.data_preprocessing.delete_rows_with_categorical_target_column(df, model.target_column)
         if model.is_time_series:
             df, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df)
         if model.training_strategy in ['ensembleModelsFast', 'ensembleModelsTuned']:

@@ -1,7 +1,7 @@
 import copy
 import pandas as pd
 import pandas as pd
-from sklearn.model_selection import GroupShuffleSplit, train_test_split
+from sklearn.model_selection import train_test_split
 import optuna
 from sklearn.utils import resample
 from app.ai.data_preprocessing import DataPreprocessing
@@ -45,9 +45,9 @@ class TrainingPipeline:
     def __data_processing_before_spliting(self, df, model):
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
         if model.model_type == 'regression':
-            self.data_preprocessing.delete_rows_with_non_numeric_cells(df, model.target_column)
+            self.data_preprocessing.delete_rows_with_categorical_target_column(df, model.target_column)
         if model.is_time_series:
-            df, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df)
+            df, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df, model.target_column)
         if model.training_strategy in ['ensembleModelsFast', 'ensembleModelsTuned']:
             df = self.data_preprocessing.fill_missing_numeric_cells(df)
         df = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(df, model)
@@ -58,6 +58,8 @@ class TrainingPipeline:
             X_train, X_test, y_train, y_test = train_test_split(df,
                                                                 df[model.target_column], shuffle= not model.time_series_code,
                                                                 test_size=Config.DATASET_SPLIT_SIZE, random_state=42)
+            X_train = X_train.drop([model.target_column], axis=1)
+            X_test = X_test.drop([model.target_column], axis=1)
             return X_train, X_test, y_train, y_test
     
     def __data_processing_after_spliting(self, X_train, X_test, y_train, model):
@@ -79,11 +81,8 @@ class TrainingPipeline:
 
             numeric_columns = self.data_preprocessing.get_numeric_columns(X_train)
             transformations = self.data_preprocessing.create_transformed_numeric_column_details(X_train, numeric_columns)
-            X_train = self.data_preprocessing.transformed_numeric_column_details(X_train, transformations)
-            X_test = self.data_preprocessing.transformed_numeric_column_details(X_test, transformations)
-
-            X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_train)
-            X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_test)
+            # X_train = self.data_preprocessing.transformed_numeric_column_details(X_train, transformations)
+            # X_test = self.data_preprocessing.transformed_numeric_column_details(X_test, transformations)
 
 
         X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_train)

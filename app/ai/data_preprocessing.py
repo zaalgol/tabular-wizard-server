@@ -278,7 +278,7 @@ class DataPreprocessing:
     
     def convert_datatimes_columns_to_normalized_floats(self, df):
         df_copy = df.copy()
-        for col in df_copy.select_dtypes(include=['datetime']):
+        for col in df_copy.select_dtypes(include=['datetime', 'datetime64[ns]']):
             df_copy[col] = df_copy[col].astype('int64')  / 10**19 # to normalize all values between 0 and 1
         return df_copy
     
@@ -331,7 +331,7 @@ class DataPreprocessing:
         return dataset.dropna(subset=[column_name])
 
 
-    def delete_rows_with_non_numeric_cells(self, dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    def delete_rows_with_categorical_target_column(self, dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
         """
         Deletes all rows in the dataset where the specified column contains non-numeric values.
 

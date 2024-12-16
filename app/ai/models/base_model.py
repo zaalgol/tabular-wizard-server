@@ -1,9 +1,5 @@
 from abc import abstractmethod
-import pprint
-import time
 import pandas as pd
-from sklearn.model_selection import GroupShuffleSplit, train_test_split
-import optuna
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 
