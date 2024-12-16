@@ -138,10 +138,3 @@ class TrainingPipeline:
         
         X_train = pd.concat(X_train_resampled)
         y_train = pd.concat(y_train_resampled)
-
-        
-
-        
-
-
-    
