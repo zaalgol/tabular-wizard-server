@@ -24,6 +24,7 @@ class Model:
     encoding_rules: dict[str, list[str]] = field(default_factory=dict)
     transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
+    evaluations : dict = field(default_factory=dict)
     formated_evaluations: str = field(default=None)
     is_llm: bool = field(default=False)
     model_description_pdf_file_path: str = field(default=None)

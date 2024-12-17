@@ -9,7 +9,7 @@ dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 load_dotenv(dotenv_path)
 
 class Config:
-    DEBUG_MODE=0
+    DEBUG_MODE = int(os.getenv('DEBUG_MODE'))
 
     ACCESS_TOKEN_SECRET_KEY  = os.getenv('ACCESS_TOKEN_SECRET_KEY')
     REFRESH_TOKEN_SECRET_KEY  = os.getenv('REFRESH_TOKEN_SECRET_KEY')
@@ -36,6 +36,10 @@ class Config:
     AWS_SECRET_KEY = os.getenv('AWS_SECRET_KEY')
     BUCKET_NAME = os.getenv('BUCKET_NAME')
     
+    DATASET_SPLIT_SIZE = float(os.getenv('DATASET_SPLIT_SIZE', 0.3))
+    IMBALACE_THRESHOLD = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 60))
+
+    # LLM
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     MODEL=os.getenv('MODEL')
     MAX_TOKENS=os.getenv('MAX_TOKENS')
@@ -43,4 +47,3 @@ class Config:
     LLM_NUMBER_OF_DATASET_LINES=os.getenv('LLM_NUMBER_OF_DATASET_LINES')
 
     CSV_URL_PREFIX=os.getenv('CSV_URL_PREFIX')
-    

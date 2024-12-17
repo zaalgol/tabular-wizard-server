@@ -17,12 +17,12 @@ DEFAULT_PARAMS = {
 }
 
 class LightGBMRegressor(BaseRegressorModel):
-    def __init__(self, train_df, target_column, *args, **kwargs):
-        super().__init__(train_df=train_df, target_column=target_column, *args, **kwargs)
+    def __init__(self, target_column, scoring, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
         
-        self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
-        self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+        # self.X_train = DataPreprocessing().set_not_numeric_as_categorial(self.X_train)
+        # self.X_test = DataPreprocessing().set_not_numeric_as_categorial(self.X_test)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
         self.estimator = LGBMRegressor(verbosity=-1, *args, **kwargs)
 
     @property

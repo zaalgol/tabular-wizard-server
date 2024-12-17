@@ -1,4 +1,6 @@
 import os
+import numpy as np
+import pandas as pd
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, XPreformatted
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -22,7 +24,7 @@ class ReportFileService:
             cls._instance = super().__new__(cls)
         return cls._instance
             
-    def generate_model_evaluations_file(self, model, dataset):
+    def generate_model_evaluations_file(self, model, df):
         SAVED_MODEL_FOLDER = os.path.join(self.config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
         evaluations_filename = f"{model.model_name}__evaluations.pdf"
         evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
@@ -37,14 +39,15 @@ class ReportFileService:
         preformatted_style = ParagraphStyle(name='Preformatted', fontName='Courier', wordWrap='LTR', fontSize=12, leading=14)
         
         flowables = []
-
-        numeric_cols = dataset.select_dtypes(include=['number'])
+        
+        numeric_cols = df.select_dtypes(include=['number'])
         
         heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_heatmap.png")
         self.__save_plot_as_image(lambda: sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f'),
                         heatmap_filepath, width=10, height=8, dpi=300)
-
-        describe_df = dataset.describe().transpose()
+    
+        describe_df = numeric_cols.describe().transpose()
+        describe_df = describe_df.apply(pd.to_numeric, errors='coerce')
         describe_heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_describe_heatmap.png")
         self.__save_plot_as_image(lambda: sns.heatmap(describe_df, annot=True, cmap='viridis', fmt='.2f'),
                         describe_heatmap_filepath, width=15, height=12, dpi=300)

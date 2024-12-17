@@ -54,8 +54,8 @@ class PyTorchEstimator(BaseEstimator, RegressorMixin):
         return predictions.numpy().flatten()  # Ensure the output is a 1D array
 
 class PyTorchRegressorModel(BaseRegressorModel):
-    def __init__(self, train_df, target_column, *args, **kwargs):
-        super().__init__(train_df, target_column, *args, **kwargs)
+    def __init__(self, target_column, scoring, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
         self.remove_unnecessary_parameters_for_implementations(kwargs)
         
         self.hidden_layers = kwargs.get('hidden_layers', 2)
@@ -156,8 +156,3 @@ class PyTorchRegressorModel(BaseRegressorModel):
     @property
     def default_params(self):
         return DEFAULT_PARAMS_PT
-    
-    @property
-    def unnecessary_parameters(self):
-        return ['scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules', 'create_transformations', 'apply_transformations', 'test_size',
-                'already_splitted_data']

@@ -66,16 +66,19 @@ class DataPreprocessing:
         return transformed_column_details
     
     def transformed_numeric_column_details(self, df, transformed_column_details):
-        df_copy = df.copy()
-        for column, details in transformed_column_details.items():
-            # Retrieve the scaler document for the column
+        try:
+            df_copy = df.copy()
+            for column, details in transformed_column_details.items():
+                # Retrieve the scaler document for the column
 
-            # Recreate the scaling transformation manually
-            mean = details['mean']
-            scale = details['scale']
-            df_copy[column] = (df_copy[column] - mean) / scale
-        
-        return df_copy
+                # Recreate the scaling transformation manually
+                mean = details['mean']
+                scale = details['scale']
+                df_copy[column] = (df_copy[column] - mean) / scale
+            
+            return df_copy
+        except Exception as e:
+            print(e)
 
     # example of mapping_dict: {'high': 3, 'medium': 2, 'low': 1}
     def map_order_column(self, df, column_name, mapping_dict):
@@ -249,7 +252,7 @@ class DataPreprocessing:
         
         return df1, df2
 
-    def convert_tdatetime_columns_to_datetime_dtype(self, df, model):
+    def convert_datetime_columns_to_datetime_dtype(self, df, model):
         df_copy=df.copy()
         for col, column_type in model.columns_type.items():
             if column_type == 'datetime':
@@ -275,7 +278,7 @@ class DataPreprocessing:
     
     def convert_datatimes_columns_to_normalized_floats(self, df):
         df_copy = df.copy()
-        for col in df_copy.select_dtypes(include=['datetime']):
+        for col in df_copy.select_dtypes(include=['datetime', 'datetime64[ns]']):
             df_copy[col] = df_copy[col].astype('int64')  / 10**19 # to normalize all values between 0 and 1
         return df_copy
     
@@ -312,6 +315,34 @@ class DataPreprocessing:
             y_predict_proba = y_predict_proba[valid_mask]
 
         return filtered_original, filtered_predicted, y_predict_proba
+    
+
+    def delete_empty_rows(self, dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        """
+        Deletes all rows in the dataset where the specified column has empty (NaN or None) values.
+
+        Parameters:
+        - dataset (pd.DataFrame): The input dataset.
+        - column_name (str): The name of the column to check for empty values.
+
+        Returns:
+        - pd.DataFrame: A new DataFrame with the rows removed.
+        """
+        return dataset.dropna(subset=[column_name])
+
+
+    def delete_rows_with_categorical_target_column(self, dataset: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        """
+        Deletes all rows in the dataset where the specified column contains non-numeric values.
+
+        Parameters:
+        - dataset (pd.DataFrame): The input dataset.
+        - column_name (str): The name of the column to check for numeric values.
+
+        Returns:
+        - pd.DataFrame: A new DataFrame with the rows removed.
+        """
+        return dataset[pd.to_numeric(dataset[column_name], errors='coerce').notnull()]
         
         
 

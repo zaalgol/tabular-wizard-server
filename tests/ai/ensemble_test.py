@@ -20,8 +20,7 @@ class TestEnsemble:
         df = pd.DataFrame(data)
 
         # Initialize the Ensemble class
-        ensemble = Ensemble(train_df=df, target_column='target', 
-                            split_column=None, create_encoding_rules=False, apply_encoding_rules=False,
+        ensemble = Ensemble(train_df=df, target_column='target', create_encoding_rules=False, apply_encoding_rules=False,
                             create_transformations=False, apply_transformations=False, scoring='accuracy', 
                             sampling_strategy='conditionalOversampling', number_of_n_best_models=3)
 
