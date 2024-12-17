@@ -19,7 +19,7 @@ class InferencePipeline:
         self.data_preprocessing = DataPreprocessing()
         self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
 
-    def _pre_process(self, model_details, inference_df):
+    def pre_process(self, loaded_model, model_details, inference_df):
         is_inference_successfully_finished = False
         df_copy = inference_df.copy()
         if model_details.is_time_series:
@@ -27,7 +27,7 @@ class InferencePipeline:
         X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])
         X_data = self.data_preprocessing.fill_missing_numeric_cells(X_data)
         X_data = self.data_preprocessing.set_not_numeric_as_categorial(X_data)
-        X_data = self.data_preprocessing.convert_tdatetime_columns_to_datetime_dtype(X_data, model)
+        X_data = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(X_data, model_details)
         if model_details.encoding_rules:
             X_data = self.data_preprocessing.apply_encoding_rules(X_data, model_details.encoding_rules)
         if model_details.embedding_rules:
@@ -35,6 +35,8 @@ class InferencePipeline:
         if model_details.transformations:
              X_data = self.data_preprocessing.transformed_numeric_column_details(X_data, model_details.transformations)
         X_data = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_data)
+
+        X_data = X_data[loaded_model.feature_names_in_]
 
         # if model_details.model_type == 'classification':
         #     df_copy = self._process_classification_model(loaded_model, model_details, X_data)

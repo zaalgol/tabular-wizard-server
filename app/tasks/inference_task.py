@@ -15,12 +15,14 @@ class InferenceTask:
         self.regressionEvaluate = RegressionEvaluate()
         self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
         self.llm_task = LlmTask()
+        self.inferencePipeline = InferencePipeline()
 
     def run_task(self, model_details, loaded_model, inference_df):
         try:
             is_inference_successfully_finished = False
-            inferencePipeline = InferencePipeline()
-            X_data, is_inference_successfully_finished = inferencePipeline.data_preprocessing(model_details, inference_df)
+            
+            X_data, is_inference_successfully_finished = self.inferencePipeline.pre_process(loaded_model, model_details, inference_df)
+
             # df_copy = inference_df.copy()
             # if model_details.is_time_series:
             #     df_copy = self.llm_task.processed_dataset(inference_df.copy(), model_details.time_series_code)
