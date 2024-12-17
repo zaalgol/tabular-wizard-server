@@ -5,6 +5,7 @@ from app.ai.models.classification.evaluate import Evaluate as ClassificationEval
 from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
+from app.ai.pipelines.inference_pipeline import InferencePipeline
 from app.tasks.llm_task import LlmTask
 
 class InferenceTask:
@@ -18,11 +19,13 @@ class InferenceTask:
     def run_task(self, model_details, loaded_model, inference_df):
         try:
             is_inference_successfully_finished = False
-            df_copy = inference_df.copy()
-            if model_details.is_time_series:
-                df_copy = self.llm_task.processed_dataset(inference_df.copy(), model_details.time_series_code)
-            X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])
-            X_data = self.__data_preprocessing(X_data, model_details)
+            inferencePipeline = InferencePipeline()
+            X_data, is_inference_successfully_finished = inferencePipeline.data_preprocessing(model_details, inference_df)
+            # df_copy = inference_df.copy()
+            # if model_details.is_time_series:
+            #     df_copy = self.llm_task.processed_dataset(inference_df.copy(), model_details.time_series_code)
+            # X_data = self.data_preprocessing.exclude_columns(df_copy, columns_to_exclude=[model_details.target_column])
+            # X_data = self.__data_preprocessing(X_data, model_details)
             
             if model_details.model_type == 'classification':
                 y_predict = self.classificationEvaluate.predict(loaded_model, X_data)
@@ -44,20 +47,20 @@ class InferenceTask:
         finally:
             return (model_details, inference_df, is_inference_successfully_finished)
 
-    def __data_preprocessing(self, df, model):
-        df_copy = df.copy()
-        df_copy = self.data_preprocessing.sanitize_cells(df_copy)
-        df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
-        df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df_copy)
-        df_copy = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(df_copy, model)
-        if model.encoding_rules:
-            df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, model.encoding_rules)
-        if model.embedding_rules:
-            df_copy = self.nlp_embeddings_preprocessing.apply_embedding_rules(df_copy, model.embedding_rules)
-        if model.transformations:
-             df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, model.transformations)
-        df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)
-        return df_copy
+    # def __data_preprocessing(self, df, model):
+    #     df_copy = df.copy()
+    #     df_copy = self.data_preprocessing.sanitize_cells(df_copy)
+    #     df_copy = self.data_preprocessing.fill_missing_numeric_cells(df_copy)
+    #     df_copy = self.data_preprocessing.set_not_numeric_as_categorial(df_copy)
+    #     df_copy = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(df_copy, model)
+    #     if model.encoding_rules:
+    #         df_copy = self.data_preprocessing.apply_encoding_rules(df_copy, model.encoding_rules)
+    #     if model.embedding_rules:
+    #         df_copy = self.nlp_embeddings_preprocessing.apply_embedding_rules(df_copy, model.embedding_rules)
+    #     if model.transformations:
+    #          df_copy = self.data_preprocessing.transformed_numeric_column_details(df_copy, model.transformations)
+    #     df_copy = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(df_copy)
+    #     return df_copy
     
     def extract_original_metrics(self, metrics_string, key):
         # Define regex pattern to capture the value for the given key

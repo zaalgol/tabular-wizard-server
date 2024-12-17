@@ -18,11 +18,6 @@ class TrainingPipeline:
         self.llm_task = LlmTask()
         self.data_preprocessing = DataPreprocessing()
         self.nlp_embeddings_preprocessing = NlpEmbeddingsPreprocessing()
-
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
             
     def run_pre_training_data_pipeline(self, model, df):
         model.file_line_num = len(df)
@@ -35,19 +30,13 @@ class TrainingPipeline:
 
         return X_train, X_test, y_train, y_test, embedding_rules, encoding_rules, transformations
         
-
-    # def __dataset_to_df(self, dataset):
-    #     headers = dataset[0]
-    #     data_rows = dataset[1:]
-    #     df = pd.DataFrame(data_rows, columns=headers)
-    #     return df
     
     def __data_processing_before_spliting(self, df, model):
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
         if model.model_type == 'regression':
             self.data_preprocessing.delete_rows_with_categorical_target_column(df, model.target_column)
         if model.is_time_series:
-            df, model.time_series_code = self.llm_task.use_llm_toproccess_timeseries_dataset(df, model.target_column)
+            df, model.time_series_code = self.llm_task.use_llm_to_proccess_timeseries_dataset(df, model.target_column)
         if model.training_strategy in ['ensembleModelsFast', 'ensembleModelsTuned']:
             df = self.data_preprocessing.fill_missing_numeric_cells(df)
         df = self.data_preprocessing.convert_datetime_columns_to_datetime_dtype(df, model)

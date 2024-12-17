@@ -15,7 +15,7 @@ class LlmTask:
         self.llm_max_tries = app.Config.LLM_MAX_TRIES
         self.llm_number_of_dataset_lines = app.Config.LLM_NUMBER_OF_DATASET_LINES
 
-    def use_llm_toproccess_timeseries_dataset(self, raw_dataset, target_column):
+    def use_llm_to_proccess_timeseries_dataset(self, raw_dataset, target_column):
         # return raw_dataset, CODE
         try_no = 1
         try:
