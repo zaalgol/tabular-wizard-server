@@ -62,7 +62,7 @@ class LlmTask:
             print(e)
 
     def _get_feature_engineering_code(self, head_rows, tail_rows, target_column):
-        return CODE
+        # return CODE
         # Sanitize the data to remove any code or malicious content
         head_rows = self.sanitize_data(head_rows)
         tail_rows = self.sanitize_data(tail_rows)

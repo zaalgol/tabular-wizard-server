@@ -37,7 +37,7 @@ class MLPNetRegressor(BaseRegressorModel):
             return result
         
 
-    def tune_hyper_parameters(self, params=None, kfold=10, *args, **kwargs):
+    def tune_hyper_parameters(self, X_train, y_train, params=None, kfold=10, *args, **kwargs):
             if params is None:
                 params = self.default_params
             Kfold = KFold(n_splits=kfold)  

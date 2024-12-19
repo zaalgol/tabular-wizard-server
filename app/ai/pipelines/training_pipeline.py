@@ -70,8 +70,8 @@ class TrainingPipeline:
 
             numeric_columns = self.data_preprocessing.get_numeric_columns(X_train)
             transformations = self.data_preprocessing.create_transformed_numeric_column_details(X_train, numeric_columns)
-            # X_train = self.data_preprocessing.transformed_numeric_column_details(X_train, transformations)
-            # X_test = self.data_preprocessing.transformed_numeric_column_details(X_test, transformations)
+            X_train = self.data_preprocessing.transformed_numeric_column_details(X_train, transformations)
+            X_test = self.data_preprocessing.transformed_numeric_column_details(X_test, transformations)
 
 
         X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_train)

@@ -45,7 +45,7 @@ class MLPNetClassifier(BaseClassfierModel):
             return result
         
 
-    def tune_hyper_parameters(self, params=None, scoring='accuracy', kfold=10, n_iter=150):
+    def tune_hyper_parameters(self, X_train, y_train, params=None, scoring='accuracy', kfold=10, n_iter=150):
             if params is None:
                 params = self.default_params
             Kfold = KFold(n_splits=kfold)  

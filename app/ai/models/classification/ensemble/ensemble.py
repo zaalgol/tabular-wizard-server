@@ -67,9 +67,9 @@ class Ensemble(BaseClassfierModel):
             )
         }
         
-    def tune_hyper_parameters(self):
-        for classifier_value in self.classifiers.values():
-            classifier_value['model'].tune_hyper_parameters(scoring=self.scoring)
+    # def tune_hyper_parameters(self):
+    #     for classifier_value in self.classifiers.values():
+    #         classifier_value['model'].tune_hyper_parameters(scoring=self.scoring)
 
     # def train_all_models(self):
     #     for name, classifier_value in self.classifiers.items():
