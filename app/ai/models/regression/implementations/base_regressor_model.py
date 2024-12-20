@@ -1,5 +1,3 @@
-# app\ai\models\regression\implementations\base_regressor_model.py
-
 from sklearn.model_selection import KFold, cross_val_score
 import optuna
 from sklearn.base import clone
@@ -7,10 +5,10 @@ from app.ai.models.base_model import BaseModel
 
 
 class BaseRegressorModel(BaseModel):
-    def __init__(self, train_df, target_column, scoring='r2', *args, **kwargs):
-        super().__init__(train_df, target_column, scoring, *args, **kwargs)
+    def __init__(self, target_column, scoring='r2'):
+        super().__init__( target_column, scoring)
 
-    def tune_hyper_parameters(self, params=None, kfold=5, n_iter=500, timeout=45*60, *args, **kwargs):
+    def tune_hyper_parameters(self, X_train, y_train, params=None, kfold=5, n_iter=500, timeout=45*60):
         if params is None:
             params = self.default_params
         # Configure KFold with shuffling for better generalization
@@ -45,7 +43,7 @@ class BaseRegressorModel(BaseModel):
 
             # Perform cross-validation
             try:
-                cv_results = cross_val_score(estimator, self.X_train, self.y_train, cv=kf, scoring=self.scoring, n_jobs=-1)
+                cv_results = cross_val_score(estimator, X_train, y_train, cv=kf, scoring=self.scoring, n_jobs=-1)
                 mean_score = cv_results.mean()
                 trial.report(mean_score, step=0)
 
@@ -63,21 +61,13 @@ class BaseRegressorModel(BaseModel):
         self.study = optuna.create_study(direction="maximize")
         self.study.optimize(objective, n_trials=n_iter, timeout=timeout)
 
-    def train(self):
+    def train(self, X_train, y_train):
         if self.study:
             best_params = self.study.best_params
             self.estimator.set_params(**best_params)
-            result = self.estimator.fit(self.X_train, self.y_train)
+            result = self.estimator.fit(X_train, y_train)
             print("Best parameters:", best_params)
             print("Best cross-validation score:", self.study.best_value)
         else:
-            result = self.estimator.fit(self.X_train, self.y_train)
+            result = self.estimator.fit(X_train, y_train)
         return result
-
-    @property
-    def unnecessary_parameters(self):
-        return [
-            'scoring', 'split_column', 'create_encoding_rules', 'apply_encoding_rules',
-            'create_transformations', 'apply_transformations', 'test_size',
-            'already_splitted_data'
-        ]

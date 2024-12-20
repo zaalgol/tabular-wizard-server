@@ -17,32 +17,35 @@ DEFAULT_PARAMS = {
 }
 
 class MLPNetClassifier(BaseClassfierModel):
-    def __init__(self, train_df, target_column, hidden_layer_sizes=None, *args, **kwargs):
-        super().__init__(train_df, target_column, *args, **kwargs)
-        self.remove_unnecessary_parameters_for_implementations(kwargs)
+    def __init__(self, target_column, scoring, hidden_layer_sizes=None, *args, **kwargs):
+        super().__init__(target_column, scoring, *args, **kwargs)
+        # self.remove_unnecessary_parameters_for_implementations(kwargs)
          # Choose the solver based on the number of rows in the dataset
         # if len(train_df) <= 1000 and 'solver' not in kwargs:
         #      kwargs['solver'] = 'lbfgs'
         if not hidden_layer_sizes:
-            first_layer_size=max(len(self.X_train.columns), 2)
-            second_layer_size=max(int(first_layer_size /2), 2)
+            # first_layer_size=max(len(self.X_train.columns), 2)
+            # second_layer_size=max(int(first_layer_size /2), 2)
+            # hidden_layer_sizes=(first_layer_size, second_layer_size)
+            first_layer_size=10
+            second_layer_size=10
             hidden_layer_sizes=(first_layer_size, second_layer_size)
             
             
-        self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes, *args, **kwargs)
+        self.estimator = MLPClassifier(max_iter=300, hidden_layer_sizes=hidden_layer_sizes)
 
-    def train(self):
+    def train(self, X_train, y_train, *args, **kwargs):
             if self.search: # with hyperparameter tuining
-                result = self.search.fit(self.X_train, self.y_train)
+                result = self.search.fit(X_train, y_train)
                 print("Best Cross-Validation parameters:", self.search.best_params_)
                 print("Best Cross-Validation score:", self.search.best_score_)
             else:
-                result = self.estimator.fit(self.X_train, self.y_train)
+                result = self.estimator.fit(X_train, y_train)
                 # print("Best accuracy:", self.estimator.best_score_)
             return result
         
 
-    def tune_hyper_parameters(self, params=None, scoring='accuracy', kfold=10, n_iter=150):
+    def tune_hyper_parameters(self, X_train, y_train, params=None, scoring='accuracy', kfold=10, n_iter=150):
             if params is None:
                 params = self.default_params
             Kfold = KFold(n_splits=kfold)  

@@ -56,21 +56,19 @@ class ModelService:
         return result
 
     async def __run_training_task(self, model, df):
+        headers = df.columns.tolist()
         if Config.DEBUG_MODE:
-            result = self.training_task.run_task( model, df.columns.tolist(), df)
+            result = self.training_task.run_task( model, df)
         else:
-            result = await asyncio.to_thread(self.training_task.run_task, model, df.columns.tolist(), df)
+            result = await asyncio.to_thread(self.training_task.run_task, model, df)
 
-        df, model, trained_model, embedding_rules, encoding_rules, transformations, headers, is_training_successfully_finished = result
+        trained_model, is_training_successfully_finished = result
 
         if not is_training_successfully_finished:
             await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
             return {'status': 'failed', 'message': f'Model {model.model_name} training failed.'}
         else:
             saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
-            model.encoding_rules = encoding_rules
-            model.transformations = transformations
-            model.embedding_rules = embedding_rules
 
             model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
             
@@ -109,19 +107,19 @@ class ModelService:
         model_details.model_name = model_name
         model_details.file_name = file_name
         await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model_details.model_name} inference in process.'})
-        original_df = self.__dataset_to_df(dataset)
-        original_df = self.__remove_columns_not_in_train_dataset(original_df, drop_other_columns=model_details.columns)
+        inference_df = self.__dataset_to_df(dataset)
+        inference_df = self.__remove_columns_not_in_train_dataset(inference_df, drop_other_columns=model_details.columns)
 
-        result = await self.__run_inference_task(model_details, loaded_model, original_df)
+        result = await self.__run_inference_task(model_details, loaded_model, inference_df)
 
         return result
 
-    async def __run_inference_task(self, model_details, loaded_model, original_df):
+    async def __run_inference_task(self, model_details, loaded_model, inference_df):
         if Config.DEBUG_MODE:
-            result = self.inference_task.run_task(model_details, loaded_model, original_df)
+            result = self.inference_task.run_task(model_details, loaded_model, inference_df)
         else:
-            result = await asyncio.to_thread(self.inference_task.run_task, model_details, loaded_model, original_df)
-        model_details, original_df, is_inference_successfully_finished = result
+            result = await asyncio.to_thread(self.inference_task.run_task, model_details, loaded_model, inference_df)
+        model_details, inference_df, is_inference_successfully_finished = result
 
         if not is_inference_successfully_finished:
             await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
@@ -136,7 +134,7 @@ class ModelService:
             
             if not os.path.exists(saved_inferences_folder):
                 os.makedirs(saved_inferences_folder)
-            original_df.to_csv(csv_filepath, index=False)
+            inference_df.to_csv(csv_filepath, index=False)
 
             csv_url = f"/download/{csv_filename}"
             
@@ -153,7 +151,7 @@ class ModelService:
                 'message': f'Model {model_details.model_name} inference completed successfully.',
                 'file_url': csv_url
             }
-    
+
     def download_file(self, user_id, model_name, filename, file_type):
         try:
             if file_type == 'inference':
