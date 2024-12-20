@@ -32,6 +32,7 @@ class TrainingPipeline:
         
     
     def __data_processing_before_spliting(self, df, model):
+        df.columns = df.columns.str.replace(' ', '_')
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
         if model.model_type == 'regression':
             self.data_preprocessing.delete_rows_with_categorical_target_column(df, model.target_column)
@@ -45,7 +46,7 @@ class TrainingPipeline:
     
     def __split_data(self, df, model):
             X_train, X_test, y_train, y_test = train_test_split(df,
-                                                                df[model.target_column], shuffle= not model.time_series_code,
+                                                                df[model.target_column], shuffle= True,
                                                                 test_size=Config.DATASET_SPLIT_SIZE, random_state=42)
             X_train = X_train.drop([model.target_column], axis=1)
             X_test = X_test.drop([model.target_column], axis=1)
