@@ -7,7 +7,7 @@ from app.ai.models.regression.implementations.lightgbm_regerssor import LightGBM
 from app.ai.models.regression.ensemble.ensemble import Ensemble as RegressionEnsemble
 from app.ai.models.classification.ensemble.ensemble import Ensemble as ClassificationEnsemble
 from app.ai.pipelines.training_pipeline import TrainingPipeline
-from app.tasks.llm_task import LlmTask
+from app.ai.tasks.llm_task import LlmTask
 
 class TrainingTask:
     def __init__(self) -> None:

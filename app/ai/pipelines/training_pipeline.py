@@ -8,7 +8,7 @@ from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 from app.ai.data_preprocessing import DataPreprocessing
 from app.config.config import Config
-from app.tasks.llm_task import LlmTask
+from app.ai.tasks.llm_task import LlmTask
 
 
 class TrainingPipeline:

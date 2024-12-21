@@ -10,8 +10,8 @@ from pymongo.database import Database
 import pandas as pd
 from app.storage.local_model_storage import LocalModelStorage
 from app.storage.model_storage import ModelStorage
-from app.tasks.inference_task import InferenceTask
-from app.tasks.training_task import TrainingTask
+from app.ai.tasks.inference_task import InferenceTask
+from app.ai.tasks.training_task import TrainingTask
 from app.services.report_file_service import ReportFileService
 from app.services.websocket_service import WebsocketService
 from app.ai.models.classification.evaluate import Evaluate as ClassificationEvaluate

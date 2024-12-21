@@ -6,7 +6,7 @@ from app.ai.models.regression.evaluate import Evaluate as RegressionEvaluate
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
 from app.ai.pipelines.inference_pipeline import InferencePipeline
-from app.tasks.llm_task import LlmTask
+from app.ai.tasks.llm_task import LlmTask
 
 class InferenceTask:
     def __init__(self) -> None:
