@@ -8,7 +8,15 @@ WORKDIR /app
 
 # Install required system packages for LightGBM
 RUN apt-get update && apt-get install -y \
-    libgomp1 \
+    procps \         
+    htop \           
+    vim \             
+    curl \            
+    wget \            
+    iputils-ping \    
+    net-tools \       
+    lsof \            
+    libgomp1 \    
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the required files and folders
@@ -18,11 +26,11 @@ COPY .env /app/
 COPY run.py /app/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Expose port 8080
 EXPOSE 8080
 
 # Run the command to start the server
-CMD ["tail", "-f", "/dev/null"]
-# CMD ["python", "run.py"]
+# CMD ["tail", "-f", "/dev/null"]
+CMD ["python", "run.py"]
