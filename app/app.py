@@ -2,14 +2,13 @@ import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from app.config.config import Config
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from app.socket import create_socketio
 from app.routes.api import router as main_router
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-
 
 
 logger = logging.getLogger(__name__)
@@ -25,9 +24,9 @@ def generate_mongo_client():
     MONGODB_URI = Config.MONGODB_URI
 
     if int(Config.IS_MONGO_LOCAL):
-        mongo_client = MongoClient(MONGODB_URI)
+        mongo_client = AsyncIOMotorClient(MONGODB_URI)
     else:
-        mongo_client = MongoClient(
+        mongo_client = AsyncIOMotorClient(
             MONGODB_URI,
             tls=True,
             retryWrites=False,

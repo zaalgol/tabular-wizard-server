@@ -16,14 +16,14 @@ class TokenService:
         self.db = db
         self.token_repository = TokenRepository(db)
 
-    def create_access_token(self, user_id: str, expires_delta: timedelta = None):
+    async def create_access_token(self, user_id: str, expires_delta: timedelta = None):
         to_encode = {"sub": user_id, "type": "access"}
         expire = datetime.utcnow() + (expires_delta or timedelta(minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES))
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, Config.ACCESS_TOKEN_SECRET_KEY, algorithm=Config.ALGORITHM)
         return encoded_jwt
 
-    def create_refresh_token(self, user_id: str, expires_delta: timedelta = None):
+    async def create_refresh_token(self, user_id: str, expires_delta: timedelta = None):
         token_id = str(uuid.uuid4())
         to_encode = {"sub": user_id, "type": "refresh", "jti": token_id}
         expire = datetime.utcnow() + (expires_delta or timedelta(days=Config.REFRESH_TOKEN_EXPIRE_DAYS))
@@ -31,7 +31,7 @@ class TokenService:
         encoded_jwt = jwt.encode(to_encode, Config.REFRESH_TOKEN_SECRET_KEY, algorithm=Config.ALGORITHM)
 
         # Save the token ID and expiration in the database
-        self.token_repository.save_refresh_token(token_id, user_id, expire)
+        await self.token_repository.save_refresh_token(token_id, user_id, expire)
 
         return encoded_jwt
 
@@ -61,7 +61,7 @@ class TokenService:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-    def refresh_access_token(self, refresh_token: str):
+    async def refresh_access_token(self, refresh_token: str):
         try:
             payload = self.decode_token(refresh_token, expected_type="refresh")
             token_id = payload.get("jti")
@@ -78,7 +78,7 @@ class TokenService:
             self.token_repository.delete_refresh_token(token_id)
 
             # Create new refresh token
-            new_refresh_token = self.create_refresh_token(user_id)
+            new_refresh_token = await self.create_refresh_token(user_id)
 
             # Create new access token
             access_token = self.create_access_token(user_id)
