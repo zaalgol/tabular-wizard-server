@@ -22,7 +22,7 @@ def generate_mongo_client():
             socketTimeoutMS=60000,
             connectTimeoutMS=60000
         )
-    return mongo_client['tabular2-wizard-db']
+    return mongo_client['tabular-wizard-db']
 
 async def lifespan(app: FastAPI):
     logger.info("Initializing MongoDB client.")

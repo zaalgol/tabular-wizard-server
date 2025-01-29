@@ -16,7 +16,7 @@ class InitService:
             return existing_user
         else:
             print(f"Creating admin user {email}.")
-            return self.user_service.create_user(email, password)
+            return await self.user_service.create_user(email, password)
     
     async def seed_quest_user(self):
         email = Config.QUEST_EMAIL
@@ -27,4 +27,4 @@ class InitService:
             return existing_user
         else:
             print(f"Creating quest user {email}.")
-            return self.user_service.create_user(email, password)
+            return await self.user_service.create_user(email, password)
