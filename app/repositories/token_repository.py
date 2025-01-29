@@ -34,3 +34,19 @@ class TokenRepository:
         except Exception as e:
             logger.error(f"Error retrieving refresh token {token_id}: {e}")
             return None
+        
+    async def save_reset_token(self, token_id, user_id, expires_at):
+        await self.collection.insert_one({
+            "_id": token_id,
+            "user_id": user_id,
+            "expires_at": expires_at,
+            "type": "reset"
+        })
+
+    def get_reset_token(self, token_id):
+        return self.collection.find_one({"_id": token_id, "type": "reset"})
+
+    def delete_reset_token(self, token_id):
+        self.collection.delete_one({"_id": token_id, "type": "reset"})
+
+    

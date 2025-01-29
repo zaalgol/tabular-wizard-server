@@ -98,3 +98,34 @@ class UserService:
     async def update_user_password(self, user_id, new_password):
         hashed_password = PasswordHasher.hash_password(new_password)
         return await self.user_repository.update_password(user_id, hashed_password)
+    
+    async def request_password_reset(self, email: str):
+        """
+        Generate a password-reset token for the user, 
+        and return it (or send email).
+        """
+        user = await self.user_repository.get_user_by_email(email)
+        if not user:
+            # In real world, you might not want to reveal 
+            # that the email doesn't exist
+            return None
+
+        # Generate a "reset" token
+        reset_token = await self.token_service.create_reset_password_token(str(user['_id']))
+
+        # In real code, you would integrate with an email sending service here:
+        #   send_password_reset_email(to=email, token=reset_token)
+        #
+        # For now, just return the token so the client can show or handle it
+        return reset_token
+
+    async def reset_password_with_token(self, reset_token: str, new_password: str):
+        """
+        Validate the reset token, find the user, update password.
+        """
+        # Validate (decode) token and ensure it is not used/expired
+        user_id = await self.token_service.validate_and_delete_reset_token(reset_token)
+
+        hashed_password = PasswordHasher.hash_password(new_password)
+        updated_user = await self.user_repository.update_password(user_id, hashed_password)
+        return updated_user

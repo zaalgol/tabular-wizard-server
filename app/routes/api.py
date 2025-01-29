@@ -92,6 +92,95 @@ async def refresh_token(request: Request, token_service: TokenService = Depends(
     except Exception as e:
         logger.error(f"Unexpected error during token refresh: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error")
+    
+@router.post("/api/register", status_code=status.HTTP_201_CREATED)
+async def register(request: Request, user_service: UserService = Depends(get_user_service)):
+    """
+    Create a new user. If email already exists, return 400.
+    """
+    data = await request.json()
+    email = data.get("email")
+    password = data.get("password")
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    # Check if user already exists
+    existing_user = await user_service.user_repository.get_user_by_email(email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="User with this email already exists."
+        )
+
+    # Create the user
+    created_user = await user_service.create_user(email, password)
+    if not created_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user."
+        )
+
+    return JSONResponse(content={"message": "User created successfully"}, status_code=201)
+
+@router.post("/api/update_password", status_code=status.HTTP_200_OK)
+async def update_password(
+    request: Request,
+    current_user_id: str = Depends(get_current_user_id),
+    user_service: UserService = Depends(get_user_service)
+):
+    """
+    Allow an authenticated user to update their password.
+    """
+    data = await request.json()
+    new_password = data.get("new_password")
+    if not new_password:
+        raise HTTPException(status_code=400, detail="New password is required")
+
+    # Update user password
+    await user_service.update_user_password(current_user_id, new_password)
+
+    return JSONResponse(content={"message": "Password updated successfully"}, status_code=200)
+
+@router.post("/api/forgot_password", status_code=status.HTTP_200_OK)
+async def forgot_password(request: Request, user_service: UserService = Depends(get_user_service)):
+    """
+    Generate a reset token for the user, 
+    and presumably send it via email. 
+    For demonstration, we'll just return it in JSON.
+    """
+    data = await request.json()
+    email = data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    reset_token = await user_service.request_password_reset(email)
+    if not reset_token:
+        # For security, you might still return 200 
+        # to avoid revealing whether the email exists
+        return JSONResponse({"message": "If that email exists, a reset was sent."})
+
+    # In real usage, an email would be sent. We'll just return the token:
+    return JSONResponse({"reset_token": reset_token})
+
+@router.post("/api/reset_password", status_code=status.HTTP_200_OK)
+async def confirm_reset_password(request: Request, user_service: UserService = Depends(get_user_service)):
+    """
+    Use the token from the forgot_password flow to set a new password.
+    """
+    data = await request.json()
+    token = data.get("reset_token")
+    new_password = data.get("new_password")
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="reset_token and new_password are required.")
+
+    try:
+        await user_service.reset_password_with_token(token, new_password)
+        return JSONResponse({"message": "Password has been reset successfully"})
+    except HTTPException as e:
+        # Pass along any token validation issues
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to reset password.")
 
 @router.get('/api/userModels/', status_code=status.HTTP_200_OK)
 async def get_user_models(

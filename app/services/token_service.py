@@ -1,7 +1,7 @@
 # app/services/token_service.py
 
 import uuid
-from jose import jwt
+from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
@@ -97,3 +97,75 @@ class TokenService:
             )
         payload = self.decode_token(token, expected_type=expected_type)
         return payload.get("sub")
+
+    async def create_reset_password_token(self, user_id: str, expires_delta: timedelta = None):
+        """
+        Creates a short-lived JWT for resetting password, 
+        then persists the token ID in the DB.
+        """
+        token_id = str(uuid.uuid4())
+        to_encode = {"sub": user_id, "type": "reset", "jti": token_id}
+
+        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=30))  # Example: 30 mins
+        to_encode.update({"exp": expire})
+
+        # Encode using a special key or reuse one (prefer a dedicated key if you want).
+        encoded_jwt = jwt.encode(
+            to_encode, 
+            Config.ACCESS_TOKEN_SECRET_KEY,  # or a separate key e.g. Config.RESET_TOKEN_SECRET_KEY
+            algorithm=Config.ALGORITHM
+        )
+
+        # Save the reset token in DB
+        await self.token_repository.save_reset_token(token_id, user_id, expire)
+
+        return encoded_jwt
+
+    def decode_reset_token(self, token: str):
+        """
+        Decodes a 'reset' token and returns the payload.
+        """
+        try:
+            payload = jwt.decode(
+                token, 
+                Config.ACCESS_TOKEN_SECRET_KEY,  # or dedicated reset key
+                algorithms=[Config.ALGORITHM]
+            )
+            user_id: str = payload.get("sub")
+            token_type: str = payload.get("type")
+            token_id: str = payload.get("jti")
+
+            if token_type != "reset" or user_id is None or token_id is None:
+                raise HTTPException(
+                    status_code=HTTP_401_UNAUTHORIZED,
+                    detail="Could not validate reset token",
+                )
+            return payload
+        except JWTError:
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Could not validate reset token",
+            )
+
+    async def validate_and_delete_reset_token(self, token: str):
+        """
+        Validates the token by decoding it and checking 
+        if the token ID is stored in DB. Then removes it (single-use).
+        Returns the user_id if valid.
+        """
+        payload = self.decode_reset_token(token)
+        token_id = payload.get("jti")
+        user_id = payload.get("sub")
+
+        # Check in DB
+        token_record = self.token_repository.get_reset_token(token_id)
+        if not token_record or token_record["user_id"] != user_id:
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired reset token",
+            )
+        
+        # If everything is good, we delete the token to prevent reuse
+        self.token_repository.delete_reset_token(token_id)
+
+        return user_id
