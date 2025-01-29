@@ -101,7 +101,7 @@ class ModelService:
     
     async def inference(self, user_id, model_name, file_name, dataset):
         loaded_model = self.model_storage.load_model(user_id, model_name)
-        model_details_dict = self.get_user_model_by_user_id_and_model_name(user_id, model_name)
+        model_details_dict = await self.get_user_model_by_user_id_and_model_name(user_id, model_name)
         model_details = Model(**model_details_dict)
         model_details.user_id = user_id
         model_details.model_name = model_name
@@ -163,15 +163,15 @@ class ModelService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     
-    def get_user_models_by_id(self, user_id):
-        return self.model_repository.get_user_models_by_id(user_id, additional_properties=[
+    async def get_user_models_by_id(self, user_id):
+        return await self.model_repository.get_user_models_by_id(user_id, additional_properties=[
             'created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
             'file_line_num', 'file_name', 'sampling_strategy'
         ])
     
-    def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
-        return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
+    async def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
+        return await self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
             'created_at', 'description', 'columns',  'columns_type', 'embedding_rules','encoding_rules',
             'transformations', 'metric', 'target_column','model_type', 'training_strategy',
             'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations'
@@ -179,7 +179,7 @@ class ModelService:
         
     async def get_model_details_file(self, user_id, model_name):
         try:
-            model = self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=['model_description_pdf_file_path'])
+            model = await self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=['model_description_pdf_file_path'])
             
             await self.websocketService.emit('status', {
                 'status': 'success',
@@ -192,6 +192,6 @@ class ModelService:
             print(f"Error during model details file retrieval: {e}")
             self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model_name} evaluations download failed.'})
         
-    def delete_model_of_user(self, user_id, model_name):
+    async def delete_model_of_user(self, user_id, model_name):
         self.model_storage.delete_model(user_id, model_name)
-        return self.model_repository.delete_model_of_user(user_id, model_name, hard_delete=True)
+        return await self.model_repository.delete_model_of_user(user_id, model_name, hard_delete=True)

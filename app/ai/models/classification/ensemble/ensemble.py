@@ -43,7 +43,7 @@ class Ensemble(BaseClassfierModel):
             'lgbm_classifier' :LightgbmClassifier,
             'knn_classifier' :KnnClassifier,
             'lRegression_classifier':LRegression,
-            'mlp_classifier' :MLPNetClassifier,
+            # 'mlp_classifier' :MLPNetClassifier,
             'rf_classifier' :RandomForestClassifierCustom,
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
