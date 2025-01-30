@@ -70,18 +70,18 @@ class TokenService:
                 raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
             # Verify the token ID exists in the database
-            token_record = self.token_repository.get_refresh_token(token_id)
+            token_record = await self.token_repository.get_refresh_token(token_id)
             if not token_record or token_record['user_id'] != user_id:
                 raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
             # Implement token rotation: delete old refresh token
-            self.token_repository.delete_refresh_token(token_id)
+            await self.token_repository.delete_refresh_token(token_id)
 
             # Create new refresh token
             new_refresh_token = await self.create_refresh_token(user_id)
 
             # Create new access token
-            access_token = self.create_access_token(user_id)
+            access_token = await self.create_access_token(user_id)
 
             return access_token, new_refresh_token
 
