@@ -157,7 +157,7 @@ async def forgot_password(request: Request, user_service: UserService = Depends(
     if not reset_token:
         # For security, you might still return 200 
         # to avoid revealing whether the email exists
-        return JSONResponse({"message": "If that email exists, a reset was sent."})
+        return JSONResponse({"message": "Email not exists"})
 
     # In real usage, an email would be sent. We'll just return the token:
     return JSONResponse({"reset_token": reset_token})

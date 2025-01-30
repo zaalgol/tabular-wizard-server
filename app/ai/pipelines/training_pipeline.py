@@ -1,8 +1,6 @@
-import copy
 import pandas as pd
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import optuna
 from sklearn.utils import resample
 from app.ai.data_preprocessing import DataPreprocessing
 from app.ai.nlp_embeddings_preprocessing import NlpEmbeddingsPreprocessing
@@ -10,6 +8,8 @@ from app.ai.data_preprocessing import DataPreprocessing
 from app.config.config import Config
 from app.ai.tasks.llm_task import LlmTask
 
+from app.logger_setup import setup_logger
+logger = setup_logger(__name__)
 
 class TrainingPipeline:
     _instance = None
@@ -74,7 +74,6 @@ class TrainingPipeline:
             X_train = self.data_preprocessing.transformed_numeric_column_details(X_train, transformations)
             X_test = self.data_preprocessing.transformed_numeric_column_details(X_test, transformations)
 
-
         X_train = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_train)
         X_test = self.data_preprocessing.convert_datatimes_columns_to_normalized_floats(X_test)
         if model.model_type == 'classification':
@@ -82,7 +81,6 @@ class TrainingPipeline:
                 self.apply_conditional_oversampling()
             elif model.sampling_strategy == 'oversampling':
                 self.apply_oversampling(X_train, y_train)
-
         return X_train, X_test, y_train, embedding_rules, encoding_rules, transformations
     
     def apply_conditional_oversampling(self,X_train, y_train):
