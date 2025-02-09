@@ -10,6 +10,7 @@ from app.entities.model import Model
 from app.services.model_service import ModelService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
+from app.services.websocket_service import WebsocketService
 
 router = APIRouter()
 
@@ -105,6 +106,7 @@ async def train_model(
 ):
     data = await request.json()
     user = user_service.get_user_by_id(user_id)
+
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
@@ -205,9 +207,10 @@ async def download_file(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
     return model_service.download_file(user_id, model_name, filename, file_type)
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+
+# @router.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     await websocket.accept()
+#     while True:
+#         data = await websocket.receive_text()
+#         await websocket.send_text(f"Message text was: {data}")
