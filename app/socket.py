@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 def create_socketio(app):
     socket_manager = SocketManager(
         app,
-        cors_allowed_origins=["http://localhost:5173", '*'],
+        cors_allowed_origins=["http://localhost:5173", 'http://localhost:5174'],
         async_mode='asgi',
         mount_location='/socket.io',
         transports=['websocket'],

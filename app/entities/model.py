@@ -25,6 +25,9 @@ class Model:
     transformations: dict[str, dict] = field(default_factory=dict)
     metric: str = field(default=None)
     evaluations : dict = field(default_factory=dict)
+    train_score : float = field(default=None)
+    test_score :  float = field(default=None)
+
     formated_evaluations: str = field(default=None)
     is_llm: bool = field(default=False)
     model_description_pdf_file_path: str = field(default=None)
@@ -33,4 +36,5 @@ class Model:
     columns_type: Optional[Dict[str, str]] = field(default=None)
     semantic_columns: list[str] = field(default=None)
     embedding_rules: dict = field(default_factory=dict)
+    status: str = field(default=None)
 	

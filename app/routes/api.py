@@ -169,8 +169,8 @@ async def delete_model(
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
-    result = model_service.delete_model_of_user(user_id, model_name)
-    return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    result = await model_service.delete_model_of_user(user_id, model_name)
+    return JSONResponse(content={"deleted_model": model_name}, status_code=status.HTTP_200_OK)
 
 @router.post('/api/inference/', status_code=status.HTTP_200_OK)
 async def inference(

@@ -40,6 +40,7 @@ class ModelRepository:
         test_score_column_field_path = f"models.{model_name}.test_score"
         model_description_pdf_file_path_path = f"models.{model_name}.model_description_pdf_file_path"
         is_time_series_field_path = f"models.{model_name}.is_time_series"
+        status_field_path = f"models.{model_name}.status" 
         time_series_code_field_path = f"models.{model_name}.time_series_code"
         # columns_type
         # Get the current UTC datetime
@@ -72,6 +73,7 @@ class ModelRepository:
                     train_score_column_field_path: model.train_score,
                     test_score_column_field_path: model.test_score,
                     model_description_pdf_file_path_path: model.model_description_pdf_file_path,
+                    status_field_path: model.status,
                     is_time_series_field_path: model.is_time_series,
                     time_series_code_field_path: model.time_series_code
                 }
