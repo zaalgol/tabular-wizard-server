@@ -206,7 +206,7 @@ async def download_file(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
-    return model_service.download_file(user_id, model_name, filename, file_type)
+    return await model_service.download_file(user_id, model_name, filename, file_type)
 
 # @router.websocket("/ws")
 # async def websocket_endpoint(websocket: WebSocket):

@@ -30,7 +30,6 @@ class ModelService:
         self.websocketService = WebsocketService(app)
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
-        # self.socketio = get_app().state.socketio 
         self.csv_url_prefix = Config.CSV_URL_PREFIX
 
         if int(Config.IS_STORAGE_LOCAL):
@@ -52,6 +51,11 @@ class ModelService:
         model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
 
+        model.status = "training"
+        headers = df.columns.tolist()
+        # We pass None for saved_model_file_path if there's no model file yet:
+        self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path=None)
+
         await self.websocketService.emit(
             "status",
             {
@@ -71,23 +75,30 @@ class ModelService:
         else:
             result = await asyncio.to_thread(self.training_task.run_task, model, df)
 
-        trained_model, is_training_successfully_finished = result
+        trained_model, error_msg = result
 
-        if not is_training_successfully_finished:
+        if error_msg:
+            model.status = "fail"
+            error_msg = f'Model {model.model_name} training failed with error: "{error_msg}"'
+            self.model_repository.add_or_update_model_for_user(model, headers, None)
             await self.websocketService.emit(
                 'status',
                 {
                     'status': 'failed',
-                    'message': f'Model {model.model_name} training failed.'
+                    'message': error_msg
                 },
                 user_id=model.user_id
             )
-            return {'status': 'failed', 'message': f'Model {model.model_name} training failed.'}
-        else:
-            saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
+            return {'status': 'failed', 'message': error_msg}
 
-            model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
-            
+        else:
+            saved_model_file_path = self.model_storage.save_model(
+                trained_model, model.user_id, model.model_name
+            )
+            model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(
+                model, df.copy()
+            )
+            model.status = "success"
             self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
             
             await self.websocketService.emit(
@@ -190,13 +201,13 @@ class ModelService:
                 'file_url': csv_url
             }
 
-    def download_file(self, user_id, model_name, filename, file_type):
+    async def download_file(self, user_id, model_name, filename, file_type):
         try:
             if file_type == 'inference':
                 saved_folder = Config.SAVED_INFERENCES_FOLDER
             else: 
                 saved_folder = Config.SAVED_MODELS_FOLDER
-            return self.reportFileService.download_file(user_id, model_name, filename, saved_folder)
+            return await self.reportFileService.download_file(user_id, model_name, filename, saved_folder)
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -205,14 +216,14 @@ class ModelService:
         return self.model_repository.get_user_models_by_id(user_id, additional_properties=[
             'created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
-            'file_line_num', 'file_name', 'sampling_strategy'
+            'file_line_num', 'file_name', 'sampling_strategy', 'status'
         ])
     
     def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
             'created_at', 'description', 'columns',  'columns_type', 'embedding_rules','encoding_rules',
             'transformations', 'metric', 'target_column','model_type', 'training_strategy',
-            'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations'
+            'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations', 'status'
         ])
         
     async def get_model_details_file(self, user_id, model_name):

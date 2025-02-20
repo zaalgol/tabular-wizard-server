@@ -43,6 +43,7 @@ class ReportFileService:
         numeric_cols = df.select_dtypes(include=['number'])
         
         heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_heatmap.png")
+        print("*" * 500 + f" SAVED_MODEL_FOLDER:{SAVED_MODEL_FOLDER},  evaluations_filepath:{evaluations_filepath}, heatmap_filepath:{heatmap_filepath}")
         self.__save_plot_as_image(lambda: sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f'),
                         heatmap_filepath, width=10, height=8, dpi=300)
     
@@ -112,7 +113,7 @@ class ReportFileService:
         except Exception as e:
             print(f"Error saving plot as image: {e}")
 
-    def download_file(self, user_id, model_name, filename, saved_folder):
+    async def download_file(self, user_id, model_name, filename, saved_folder):
         try:
             # if file_type == 'inference':
             #     saved_folder = Config.SAVED_INFERENCES_FOLDER

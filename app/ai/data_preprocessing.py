@@ -26,7 +26,7 @@ class DataPreprocessing:
 
     def sanitize_column_names(self, df):
         new_df = df.copy()
-        new_df.columns = [col.replace(',', '').replace(':', '').replace('"', '').replace('[', '').replace(']', '').replace('{', '').replace('}', '') for col in df.columns]
+        new_df.columns = [col.replace(' ', '_').replace(',', '').replace(':', '').replace('"', '').replace('[', '').replace(']', '').replace('{', '').replace('}', '') for col in df.columns]
         return new_df
     
     def sanitize_cells(self, df):

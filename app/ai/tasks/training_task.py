@@ -17,8 +17,6 @@ class TrainingTask:
         self.llm_task = LlmTask()
 
     def run_task(self, model, df):
-        # model.semantic_columns = [k for k, v in model.columns_type.items() if v=='semantic']
-
         try:    
             pipeline = TrainingPipeline()
             model.X_train, model.X_test, model.y_train, model.y_test, model.embedding_rules, model.encoding_rules, model.transformations = \
@@ -27,11 +25,11 @@ class TrainingTask:
             trained_model = train_func(model)
             
                 
-            return trained_model, True
+            return trained_model, None
             
         except Exception as e:
             print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-            return (None,) * 8
+            return None, e
 
     def __train_single_model(self, model):
         # df = self.__data_preprocessing(df, model, fill_missing_numeric_cells=True)
@@ -76,22 +74,16 @@ class TrainingTask:
             return ensemble.trained_voting_classifier
         
         if model.model_type == 'regression':
-            try:
+            ensemble = RegressionEnsemble(target_column = model.target_column, scoring=model.metric)
+            ensemble.create_models()
+            ensemble.sort_models_by_score(model.X_train, model.y_train)
 
-                ensemble = RegressionEnsemble(target_column = model.target_column, scoring=model.metric)
-                ensemble.create_models()
-                ensemble.sort_models_by_score(model.X_train, model.y_train)
+            ensemble.create_voting_regressor()
+            if model.training_strategy == 'ensembleModelsTuned':
+                ensemble.tuning_top_models(model.X_train, model.y_train, model.X_test, model.y_test)
+            ensemble.train_voting_regressor(model.X_train, model.y_train)
 
-                ensemble.create_voting_regressor()
-                if model.training_strategy == 'ensembleModelsTuned':
-                    ensemble.tuning_top_models(model.X_train, model.y_train, model.X_test, model.y_test)
-                ensemble.train_voting_regressor(model.X_train, model.y_train)
-
-                evaluator = self.regressionEvaluate
-                self.__evaluate(ensemble.trained_voting_regressor, model, evaluator, evaluator.get_metric_mapping(model.metric))
-                
-                return ensemble.trained_voting_regressor
-                    
-            except Exception as e:
-                print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-                return ensemble.trained_voting_regressor
+            evaluator = self.regressionEvaluate
+            self.__evaluate(ensemble.trained_voting_regressor, model, evaluator, evaluator.get_metric_mapping(model.metric))
+            
+            return ensemble.trained_voting_regressor
