@@ -206,7 +206,7 @@ async def train_model(
     user_service: UserService = Depends(get_user_service),
 ):
     data = await request.json()
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     

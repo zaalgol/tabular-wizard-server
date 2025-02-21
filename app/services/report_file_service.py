@@ -116,10 +116,6 @@ class ReportFileService:
 
     async def download_file(self, user_id, model_name, filename, saved_folder):
         try:
-            # if file_type == 'inference':
-            #     saved_folder = Config.SAVED_INFERENCES_FOLDER
-            # else: 
-            #     saved_folder = Config.SAVED_MODELS_FOLDER
             file_directory = safe_join(saved_folder, user_id, model_name)
             file_path = safe_join(os.getcwd(), file_directory, filename)
             
