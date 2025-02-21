@@ -80,7 +80,7 @@ class ModelRepository:
             }
         )
     
-    def get_user_model_by_user_id_and_model_name(self, user_id, model_name, additional_properties):
+    async def get_user_model_by_user_id_and_model_name(self, user_id, model_name, additional_properties):
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {
@@ -90,14 +90,14 @@ class ModelRepository:
             {"$match": {"specific_model.isDeleted": {"$ne": True}}}  # Ensure the model is not marked as deleted
         ]
 
-        result = self.users_collection.aggregate(pipeline).next()
+        result = await self.users_collection.aggregate(pipeline).next()
         if result:
             return self._model_dict_to_front_list(result, additional_properties)[0]
         else:
             return {}
 
     
-    def get_user_models_by_id(self, user_id, additional_properties):
+    async def get_user_models_by_id(self, user_id, additional_properties):
         pipeline = [
             {"$match": {"_id": ObjectId(user_id), "isDeleted": {"$ne": True}}},
             {"$project": {"models": {"$objectToArray": "$models"}}},
@@ -107,7 +107,7 @@ class ModelRepository:
             }}}},
             {"$project": {"models": {"$arrayToObject": "$models"}}}
         ]
-        result = self.users_collection.aggregate(pipeline).next()
+        result = await self.users_collection.aggregate(pipeline).next()
         if result and result["models"]:
             return self._model_dict_to_front_list(result.get("models", {}), additional_properties)
         else:
@@ -121,15 +121,16 @@ class ModelRepository:
         """
         model_field_path = f"models.{model_name}"
         if hard_delete:
-            return self.users_collection.update_one(
+            result = await self.users_collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$unset": {model_field_path: ""}}
             )
         else:
-            return self.users_collection.update_one(
+            result = await self.users_collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$set": {f"{model_field_path}.isDeleted": True}}
             )
+        return result
         
 
     def _model_dict_to_front_list(self, models_dict, additional_properties):

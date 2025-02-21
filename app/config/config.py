@@ -1,4 +1,5 @@
 import os
+import logging
 from dotenv import load_dotenv
 
 # Load the .env file
@@ -16,8 +17,6 @@ class Config:
     ALGORITHM = os.getenv('ALGORITHM')
     ACCESS_TOKEN_EXPIRE_MINUTES= int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
     REFRESH_TOKEN_EXPIRE_DAYS= int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS'))
-    # SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL') # use for multi Docker container deployment
-    # SQLALCHEMY_DATABASE_URI = 'sqlite:///mydatabase.db'  # Use SQLite for local development
     MONGODB_URI = os.getenv('MONGODB_URI')
     IS_MONGO_LOCAL = os.getenv('IS_MONGO_LOCAL', 1)
     IS_STORAGE_LOCAL = os.getenv('IS_STORAGE_LOCAL', 1)
@@ -49,3 +48,18 @@ class Config:
     LLM_NUMBER_OF_DATASET_LINES=os.getenv('LLM_NUMBER_OF_DATASET_LINES')
 
     CSV_URL_PREFIX=os.getenv('CSV_URL_PREFIX')
+
+    
+    # Logs
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+
+    @classmethod
+    def get_log_level(cls):
+        levels = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL
+        }
+        return levels.get(cls.LOG_LEVEL.upper(), logging.INFO)
