@@ -30,7 +30,6 @@ class ModelService:
         self.websocketService = WebsocketService(app)
         self.training_task = TrainingTask()
         self.inference_task = InferenceTask()
-        # self.socketio = get_app().state.socketio 
         self.csv_url_prefix = Config.CSV_URL_PREFIX
 
         if int(Config.IS_STORAGE_LOCAL):
@@ -44,43 +43,75 @@ class ModelService:
         return cls._instance
     
     async def train_model(self, model: Model, dataset):
+        await self.websocketService.emit("status", {"status": "in-process"}, user_id=model.user_id)
+
         if dataset is None:
             raise HTTPException(status_code=400, detail="No dataset provided")
         
         model.file_line_num = len(dataset)
         df = self.__dataset_to_df(dataset)
 
-        await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model.model_name} training in process.'})
+        model.status = "training"
+        headers = df.columns.tolist()
+        # We pass None for saved_model_file_path if there's no model file yet:
+        self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path=None)
+
+        await self.websocketService.emit(
+            "status",
+            {
+                "status": "success",
+                "message": f"Model {model.model_name} training in process."
+            },
+            user_id=model.user_id  # <-- pass user_id
+        )
         result = await self.__run_training_task(model, df)
 
         return result
 
     async def __run_training_task(self, model, df):
         headers = df.columns.tolist()
-        if Config.DEBUG_MODE:
+        if Config.DEBUG_MODE: 
             result = self.training_task.run_task( model, df)
         else:
             result = await asyncio.to_thread(self.training_task.run_task, model, df)
 
-        trained_model, is_training_successfully_finished = result
+        trained_model, error_msg = result
 
-        if not is_training_successfully_finished:
-            await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model.model_name} training failed.'})
-            return {'status': 'failed', 'message': f'Model {model.model_name} training failed.'}
+        if error_msg:
+            model.status = "fail"
+            error_msg = f'Model {model.model_name} training failed with error: "{error_msg}"'
+            self.model_repository.add_or_update_model_for_user(model, headers, None)
+            await self.websocketService.emit(
+                'status',
+                {
+                    'status': 'failed',
+                    'message': error_msg
+                },
+                user_id=model.user_id
+            )
+            return {'status': 'failed', 'message': error_msg}
+
         else:
-            saved_model_file_path = self.model_storage.save_model(trained_model, model.user_id, model.model_name)
-
-            model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(model, df.copy())
-            
+            saved_model_file_path = self.model_storage.save_model(
+                trained_model, model.user_id, model.model_name
+            )
+            model.model_description_pdf_file_path = await self.reportFileService.generate_model_evaluations_file(
+                model, df.copy()
+            )
+            model.status = "success"
             self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
             
-            await self.websocketService.emit('status', {
-                'status': 'success',
-                'file_type': 'evaluations',
-                'model_name': f'{model.model_name}',
-                'message': f'Model {model.model_name} training completed successfully.',
-                'file_url': model.model_description_pdf_file_path
-            })
+            await self.websocketService.emit(
+                'status',
+                {
+                    'status': 'success',
+                    'file_type': 'evaluations',
+                    'model_name': f'{model.model_name}',
+                    'message': f'Model {model.model_name} training completed successfully.',
+                    'file_url': model.model_description_pdf_file_path
+                },
+                user_id=model.user_id
+            )
 
             return {
                 'status': 'success',
@@ -106,7 +137,14 @@ class ModelService:
         model_details.user_id = user_id
         model_details.model_name = model_name
         model_details.file_name = file_name
-        await self.websocketService.emit('status', {'status': 'success', 'message': f'Model {model_details.model_name} inference in process.'})
+        await self.websocketService.emit(
+            'status',
+            {
+                'status': 'success',
+                'message': f'Model {model_details.model_name} inference in process.'
+            },
+            user_id=user_id
+        )
         inference_df = self.__dataset_to_df(dataset)
         inference_df = self.__remove_columns_not_in_train_dataset(inference_df, drop_other_columns=model_details.columns)
 
@@ -122,7 +160,14 @@ class ModelService:
         model_details, inference_df, is_inference_successfully_finished = result
 
         if not is_inference_successfully_finished:
-            await self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'})
+            await self.websocketService.emit(
+                'status',
+                {
+                    'status': 'failed',
+                    'message': f'Model {model_details.model_name} inference failed.'
+                },
+                user_id=model_details.user_id
+            )
             return {'status': 'failed', 'message': f'Model {model_details.model_name} inference failed.'}
         else:
             current_utc_datetime = datetime.now(timezone.utc).strftime('%Y-%m-%d_%H-%M-%S')
@@ -138,13 +183,17 @@ class ModelService:
 
             csv_url = f"/download/{csv_filename}"
             
-            await self.websocketService.emit('status', {
-                'status': 'success',
-                'file_type': 'inference',
-                'model_name': f'{model_details.model_name}',
-                'message': f'Model {model_details.model_name} inference completed successfully.',
-                'file_url': self.csv_url_prefix  + csv_url
-            })
+            await self.websocketService.emit(
+                'status',
+                {
+                    'status': 'success',
+                    'file_type': 'inference',
+                    'model_name': f'{model_details.model_name}',
+                    'message': f'Model {model_details.model_name} inference completed successfully.',
+                    'file_url': self.csv_url_prefix  + csv_url
+                },
+                user_id=model_details.user_id
+            )
 
             return {
                 'status': 'success',
@@ -152,13 +201,13 @@ class ModelService:
                 'file_url': csv_url
             }
 
-    def download_file(self, user_id, model_name, filename, file_type):
+    async def download_file(self, user_id, model_name, filename, file_type):
         try:
             if file_type == 'inference':
                 saved_folder = Config.SAVED_INFERENCES_FOLDER
             else: 
                 saved_folder = Config.SAVED_MODELS_FOLDER
-            return self.reportFileService.download_file(user_id, model_name, filename, saved_folder)
+            return await self.reportFileService.download_file(user_id, model_name, filename, saved_folder)
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -167,14 +216,14 @@ class ModelService:
         return await self.model_repository.get_user_models_by_id(user_id, additional_properties=[
             'created_at', 'description', 'metric', 'train_score', 'test_score', 'target_column',
             'model_type', 'training_strategy', 'sampling_strategy', 'is_multi_class',
-            'file_line_num', 'file_name', 'sampling_strategy'
+            'file_line_num', 'file_name', 'sampling_strategy', 'status'
         ])
     
     async def get_user_model_by_user_id_and_model_name(self, user_id, model_name):
         return await self.model_repository.get_user_model_by_user_id_and_model_name(user_id, model_name, additional_properties=[
             'created_at', 'description', 'columns',  'columns_type', 'embedding_rules','encoding_rules',
             'transformations', 'metric', 'target_column','model_type', 'training_strategy',
-            'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations'
+            'sampling_strategy', 'is_multi_class','is_time_series', 'time_series_code', 'formated_evaluations', 'status'
         ])
         
     async def get_model_details_file(self, user_id, model_name):

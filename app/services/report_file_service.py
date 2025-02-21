@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, XPreformatted
@@ -10,6 +9,8 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from werkzeug.utils import safe_join
 import seaborn as sns
+import matplotlib
+matplotlib.use('Agg')  # Use a non-interactive backend
 import matplotlib.pyplot as plt
 from app.config.config import Config 
 
@@ -24,7 +25,7 @@ class ReportFileService:
             cls._instance = super().__new__(cls)
         return cls._instance
             
-    def generate_model_evaluations_file(self, model, df):
+    async def generate_model_evaluations_file(self, model, df):
         SAVED_MODEL_FOLDER = os.path.join(self.config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
         evaluations_filename = f"{model.model_name}__evaluations.pdf"
         evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
@@ -43,13 +44,14 @@ class ReportFileService:
         numeric_cols = df.select_dtypes(include=['number'])
         
         heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_heatmap.png")
-        self.__save_plot_as_image(lambda: sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f'),
+        print("*" * 500 + f" SAVED_MODEL_FOLDER:{SAVED_MODEL_FOLDER},  evaluations_filepath:{evaluations_filepath}, heatmap_filepath:{heatmap_filepath}")
+        await self.__save_plot_as_image(lambda: sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f'),
                         heatmap_filepath, width=10, height=8, dpi=300)
     
         describe_df = numeric_cols.describe().transpose()
         describe_df = describe_df.apply(pd.to_numeric, errors='coerce')
         describe_heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_describe_heatmap.png")
-        self.__save_plot_as_image(lambda: sns.heatmap(describe_df, annot=True, cmap='viridis', fmt='.2f'),
+        await self.__save_plot_as_image(lambda: sns.heatmap(describe_df, annot=True, cmap='viridis', fmt='.2f'),
                         describe_heatmap_filepath, width=15, height=12, dpi=300)
 
         flowables.append(Paragraph("Heatmap", title_style))
@@ -94,7 +96,7 @@ class ReportFileService:
         server_name = self.config.SERVER_NAME
         return f"http://{server_name}/download/{evaluations_filename}"
     
-    def __save_plot_as_image(self, plot_func, filepath, width, height, dpi=300):
+    async def __save_plot_as_image(self, plot_func, filepath, width, height, dpi=300):
         try:
             fig = plt.figure(figsize=(width, height), dpi=dpi)
             plot_func()
@@ -112,7 +114,7 @@ class ReportFileService:
         except Exception as e:
             print(f"Error saving plot as image: {e}")
 
-    def download_file(self, user_id, model_name, filename, saved_folder):
+    async def download_file(self, user_id, model_name, filename, saved_folder):
         try:
             # if file_type == 'inference':
             #     saved_folder = Config.SAVED_INFERENCES_FOLDER

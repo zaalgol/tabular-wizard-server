@@ -30,7 +30,6 @@ class Ensemble(BaseClassfierModel):
     def __init__(self, target_column, scoring, number_of_n_best_models=3):
         super().__init__(target_column=target_column, scoring=scoring)
         self.classifiers = {}
-        self.temp = {}
         self.evaluate = Evaluate()
         self.number_of_n_best_models = number_of_n_best_models
         self.list_of_n_best_models = []
@@ -43,14 +42,14 @@ class Ensemble(BaseClassfierModel):
             'lgbm_classifier' :LightgbmClassifier,
             'knn_classifier' :KnnClassifier,
             'lRegression_classifier':LRegression,
-            # 'mlp_classifier' :MLPNetClassifier,
+            # 'mlp_classifier' :MLPNetClassifier, TODO: add a condition for large datasets (or datasets with embeddings), to reduce training time
             'rf_classifier' :RandomForestClassifierCustom,
             'gnb_classifier':GaussianNaiveBayesClassifier,
             'bnb_classifier' :BernoulliNaiveBayesClassifier,
             # 'ldac_classifier' :LinearDiscriminantAnalysisClassifier, # can't work with category target
             'qdac_classifier' :QuadraticDiscriminantAnalysisClassifier,
             'catboost_classifier':CatboostClassifier
-            # 'xgb_classifier':XgboostClassifier # can't work with category target
+            # 'xgb_classifier':XgboostClassifier # can't work with category target. 
         }
         self.classifiers = {
             key: self.__classifier_factory(model_class)
@@ -63,18 +62,8 @@ class Ensemble(BaseClassfierModel):
 
                 target_column=self.target_column, 
                 scoring=self.scoring,
-                # sampling_strategy='dontOversample'
             )
         }
-        
-    # def tune_hyper_parameters(self):
-    #     for classifier_value in self.classifiers.values():
-    #         classifier_value['model'].tune_hyper_parameters(scoring=self.scoring)
-
-    # def train_all_models(self):
-    #     for name, classifier_value in self.classifiers.items():
-    #         print(f'Training model {name}')
-    #         classifier_value['trained_model'] = classifier_value['model'].train()
 
     def sort_models_by_score(self, X_train, y_train):
         scores = {}
@@ -94,10 +83,7 @@ class Ensemble(BaseClassfierModel):
             print(f"Tuning and retraining {name}...")
             model_info['model'].tune_hyper_parameters(X_train, y_train)
             model_info['trained_model'] = model_info['model'].train(X_train, y_train)
-            # model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], model_info['model'])
             model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], X_train, y_train, X_test, y_test )
-
-            # self.temp[name]=model_info['evaluations']
 
     def create_voting_classifier(self):
         self.list_of_n_best_models = [(name, info['model'].estimator) for name, info in islice(self.classifiers.items(), self.number_of_n_best_models)]
@@ -105,6 +91,3 @@ class Ensemble(BaseClassfierModel):
 
     def train_voting_classifier(self, X_train, y_train):
         self.trained_voting_classifier = self.voting_classifier.fit(X_train, y_train)
-
-    # def evaluate_voting_classifier(self, X_train, y_train, X_test, y_test):
-    #     self.evaluations = self.evaluate.evaluate_train_and_test(self.trained_voting_classifier, X_train, y_train, X_test, y_test)

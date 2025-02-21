@@ -11,6 +11,7 @@ from app.logger_setup import setup_logger
 from app.services.model_service import ModelService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
+from app.services.websocket_service import WebsocketService
 
 logger = setup_logger(__name__)
 
@@ -205,7 +206,7 @@ async def train_model(
     user_service: UserService = Depends(get_user_service),
 ):
     data = await request.json()
-    user = await user_service.get_user_by_id(user_id)
+    user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
@@ -268,8 +269,8 @@ async def delete_model(
     user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
-    await model_service.delete_model_of_user(user_id, model_name)
-    return JSONResponse(f"model {model_name} of user {user_id} has been successfully deleted", status_code=status.HTTP_200_OK)
+    result = await model_service.delete_model_of_user(user_id, model_name)
+    return JSONResponse(content={"deleted_model": model_name}, status_code=status.HTTP_200_OK)
 
 @router.post('/api/inference/', status_code=status.HTTP_200_OK)
 async def inference(
@@ -305,10 +306,11 @@ async def download_file(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
-    return model_service.download_file(user_id, model_name, filename, file_type)
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+    return await model_service.download_file(user_id, model_name, filename, file_type)
+
+# @router.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     await websocket.accept()
+#     while True:
+#         data = await websocket.receive_text()
+#         await websocket.send_text(f"Message text was: {data}")

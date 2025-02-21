@@ -24,7 +24,7 @@ class LocalModelStorage:
     def delete_model(self, user_id, model_name):
         SAVED_MODEL_FOLDER = os.path.join(app.Config.SAVED_MODELS_FOLDER, user_id, model_name)
         if not os.path.exists(SAVED_MODEL_FOLDER):
-            return f"Model {model_name} for user {user_id} not found in local storage"
+            return f"Model {model_name} for user {user_id} does not exist in storage"
             # raise Exception(f"Model {model_name} for user {user_id} not found")
         shutil.rmtree(SAVED_MODEL_FOLDER)
-        return f"Model {model_name} for user {user_id} has been deleted"
+        return f"Model {model_name} for user {user_id} has been deleted from storage"

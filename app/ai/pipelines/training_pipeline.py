@@ -32,7 +32,6 @@ class TrainingPipeline:
         
     
     def __data_processing_before_spliting(self, df, model):
-        df.columns = df.columns.str.replace(' ', '_')
         self.data_preprocessing.delete_empty_rows(df, model.target_column)
         if model.model_type == 'regression':
             self.data_preprocessing.delete_rows_with_categorical_target_column(df, model.target_column)

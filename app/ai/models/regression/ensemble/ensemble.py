@@ -20,9 +20,8 @@ from itertools import islice
 
 class Ensemble(BaseRegressorModel):
     def __init__(self, target_column, scoring, top_n_best_models=3):
-        self.regressors = {}
         super().__init__(target_column=target_column, scoring=scoring)
-        # self.already_splitted_data = {'X_train': self.X_train, 'X_test': self.X_test, 'y_train': self.y_train, 'y_test':self.y_test}
+        self.regressors = {}
         self.evaluate = Evaluate()
         self.scoring = scoring
         self.top_n_best_models = top_n_best_models
@@ -30,7 +29,7 @@ class Ensemble(BaseRegressorModel):
     def create_models(self):
         model_classes = {
             'lgbm_regressor': LightGBMRegressor,
-            'mlr_regressor': MLPNetRegressor,
+            # 'mlr_regressor': MLPNetRegressor, TODO: add a condition for large datasets (or datasets with embeddings), to reduce training time
             'xgb_regressor': XgboostRegressor,
             'rf_regressor': RandomForestRegressorModel,
             'svr_regressor': SVRRegressorModel,
@@ -64,10 +63,6 @@ class Ensemble(BaseRegressorModel):
             
             model_info['evaluations'] = self.evaluate.evaluate_train_and_test(model_info['trained_model'], X_train, y_train, X_test, y_test )
 
-    # def train_all_models(self):
-    #     for regressor_value in self.regressors.values():
-    #         regressor_value['trained_model'] = regressor_value['model'].train()
-
     def sort_models_by_score(self, X_train, y_train):
         scores = {name: cross_val_score(value['model'].estimator, X_train, y_train, cv=5, scoring=self.scoring) 
                   for name, value in self.regressors.items()}
@@ -82,6 +77,3 @@ class Ensemble(BaseRegressorModel):
 
     def train_voting_regressor(self, X_train, y_train):
         self.trained_voting_regressor = self.voting_regressor.fit(X_train, y_train)
-
-    # def evaluate_voting_regressor(self):
-    #     self.voting_regressor_evaluations = self.evaluate.evaluate_train_and_test(self.trained_voting_regressor, self)
