@@ -113,7 +113,7 @@ class ModelRepository:
         else:
             return {}
         
-    def delete_model_of_user(self, user_id, model_name, hard_delete=False):
+    async def delete_model_of_user(self, user_id, model_name, hard_delete=False):
         """
         Delete a model for a user. 
         If hard_delete is True, delete the model physically from the database.

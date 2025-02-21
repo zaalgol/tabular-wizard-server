@@ -70,7 +70,7 @@ class ModelService:
 
     async def __run_training_task(self, model, df):
         headers = df.columns.tolist()
-        if Config.DEBUG_MODE:
+        if Config.DEBUG_MODE: 
             result = self.training_task.run_task( model, df)
         else:
             result = await asyncio.to_thread(self.training_task.run_task, model, df)
@@ -95,7 +95,7 @@ class ModelService:
             saved_model_file_path = self.model_storage.save_model(
                 trained_model, model.user_id, model.model_name
             )
-            model.model_description_pdf_file_path = self.reportFileService.generate_model_evaluations_file(
+            model.model_description_pdf_file_path = await self.reportFileService.generate_model_evaluations_file(
                 model, df.copy()
             )
             model.status = "success"
@@ -241,6 +241,6 @@ class ModelService:
             print(f"Error during model details file retrieval: {e}")
             self.websocketService.emit('status', {'status': 'failed', 'message': f'Model {model_name} evaluations download failed.'})
         
-    def delete_model_of_user(self, user_id, model_name):
+    async def delete_model_of_user(self, user_id, model_name):
         self.model_storage.delete_model(user_id, model_name)
-        return self.model_repository.delete_model_of_user(user_id, model_name, hard_delete=True)
+        return await self.model_repository.delete_model_of_user(user_id, model_name, hard_delete=True)
