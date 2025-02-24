@@ -1,7 +1,14 @@
 import os
-import pandas as pd
+import math
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, XPreformatted
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Image,
+    PageBreak,
+    XPreformatted
+)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
@@ -10,9 +17,9 @@ from fastapi.responses import FileResponse
 from werkzeug.utils import safe_join
 import seaborn as sns
 import matplotlib
-matplotlib.use('Agg')  # Use a non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from app.config.config import Config 
+from app.config.config import Config
 
 class ReportFileService:
     _instance = None
@@ -25,50 +32,140 @@ class ReportFileService:
             cls._instance = super().__new__(cls)
         return cls._instance
             
-    async def generate_model_evaluations_file(self, model, df):
-        SAVED_MODEL_FOLDER = os.path.join(self.config.SAVED_MODELS_FOLDER, model.user_id, model.model_name)
-        evaluations_filename = f"{model.model_name}__evaluations.pdf"
-        evaluations_filepath = os.path.join(SAVED_MODEL_FOLDER, evaluations_filename)
+    async def generate_model_details_file(self, model, df):
+        SAVED_MODEL_FOLDER = os.path.join(
+            self.config.SAVED_MODELS_FOLDER, model.user_id, model.model_name
+        )
+        details_filename = f"{model.model_name}__details.pdf"
+        details_filepath = os.path.join(SAVED_MODEL_FOLDER, details_filename)
         
         if not os.path.exists(SAVED_MODEL_FOLDER):
             os.makedirs(SAVED_MODEL_FOLDER)
             
-        doc = SimpleDocTemplate(evaluations_filepath, pagesize=letter)
+        doc = SimpleDocTemplate(details_filepath, pagesize=letter)
         styles = getSampleStyleSheet()
-        
-        title_style = ParagraphStyle(name='Title', parent=styles['Title'], textColor='blue', alignment=TA_CENTER)
-        preformatted_style = ParagraphStyle(name='Preformatted', fontName='Courier', wordWrap='LTR', fontSize=12, leading=14)
+        title_style = ParagraphStyle(
+            name='Title',
+            parent=styles['Title'],
+            textColor='blue',
+            alignment=TA_CENTER
+        )
         
         flowables = []
         
+        # Numeric columns for plotting
         numeric_cols = df.select_dtypes(include=['number'])
-        
-        heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_heatmap.png")
-        print("*" * 500 + f" SAVED_MODEL_FOLDER:{SAVED_MODEL_FOLDER},  evaluations_filepath:{evaluations_filepath}, heatmap_filepath:{heatmap_filepath}")
-        await self.__save_plot_as_image(lambda: sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f'),
-                        heatmap_filepath, width=10, height=8, dpi=300)
-    
-        describe_df = numeric_cols.describe().transpose()
-        describe_df = describe_df.apply(pd.to_numeric, errors='coerce')
-        describe_heatmap_filepath = os.path.join(SAVED_MODEL_FOLDER, f"{model.model_name}_describe_heatmap.png")
-        await self.__save_plot_as_image(lambda: sns.heatmap(describe_df, annot=True, cmap='viridis', fmt='.2f'),
-                        describe_heatmap_filepath, width=15, height=12, dpi=300)
+
+        # 1) Heatmap
+        await self.__append_heatmap(flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER)
+
+        # 2) Scatter & Density
+        await self.__append_scatter_and_density_plots(flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER)
+
+        # 3) Model Details
+        await self.__append_model_details(flowables, model, styles, title_style)  
+
+        # 4) Evaluations
+        await self.__append_evaluations(flowables, model, title_style)
+
+        # Build PDF
+        doc.build(flowables)
+
+        server_name = self.config.SERVER_NAME
+        return f"http://{server_name}/download/{details_filename}"
+
+
+    async def __append_heatmap(self, flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER):
+        """
+        Heatmap using your existing approach. 
+        Heatmaps are 'axes-level' in Seaborn, so they do work with plt.figure().
+        """
+        heatmap_filepath = os.path.join(
+            SAVED_MODEL_FOLDER, f"{model.model_name}_heatmap.png"
+        )
+
+        # We create a figure with plt.figure(...),
+        # then call sns.heatmap(...) on the current axes, so this is fine:
+        fig = plt.figure(figsize=(10,8), dpi=300)
+        sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+        plt.tight_layout()
+        fig.savefig(heatmap_filepath, format='png')
+        plt.close(fig)
 
         flowables.append(Paragraph("Heatmap", title_style))
         flowables.append(Spacer(1, 12))
-
         heatmap_image = Image(heatmap_filepath, width=6*inch, height=4.8*inch)
         flowables.append(heatmap_image)
         flowables.append(Spacer(1, 12))
 
+
+    async def __append_scatter_and_density_plots(
+        self, flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER
+    ):
+        if numeric_cols.shape[1] == 0:
+            return
+
+        # ---- Pairplot ----
+        pairplot_filepath = os.path.join(
+            SAVED_MODEL_FOLDER, f"{model.model_name}_pairplot.png"
+        )
+        g = sns.pairplot(numeric_cols)
+        g.fig.set_size_inches(10, 10)
+        g.savefig(pairplot_filepath, dpi=300)
+        plt.close(g.fig)
+
         flowables.append(PageBreak())
-        flowables.append(Paragraph("Describe Heatmap", title_style))
+        flowables.append(Paragraph("Pairplot (Scatter Matrix)", title_style))
         flowables.append(Spacer(1, 12))
 
-        describe_heatmap_image = Image(describe_heatmap_filepath, width=6*inch, height=4.8*inch)
-        flowables.append(describe_heatmap_image)
+        pairplot_image = Image(pairplot_filepath, width=6*inch, height=6*inch)
+        flowables.append(pairplot_image)
         flowables.append(Spacer(1, 12))
 
+        # ---- Density Plots in a grid ----
+        density_filepath = os.path.join(
+            SAVED_MODEL_FOLDER, f"{model.model_name}_density.png"
+        )
+        fig = self.__create_density_plots(numeric_cols)  # see function below
+        fig.savefig(density_filepath, dpi=300)
+        plt.close(fig)
+
+        flowables.append(PageBreak())
+        flowables.append(Paragraph("Density Plots", title_style))
+        flowables.append(Spacer(1, 12))
+
+        # If you know how many rows were used, you can scale the PDF image:
+        # For simplicity, just pick something bigger than the single-row approach:
+        # E.g., 7 inches wide, 9 inches tall:
+        density_image = Image(density_filepath, width=6*inch, height=6*inch)
+        flowables.append(density_image)
+        flowables.append(Spacer(1, 12))
+
+
+    def __create_density_plots(self, numeric_cols):
+        import math
+        columns = numeric_cols.columns
+        n_cols = len(columns)
+        ncols = 2
+        nrows = math.ceil(n_cols / ncols)
+
+        # Figure ~12 inches wide, 4 inches high per row
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 4*nrows))
+        axes = axes.ravel()  # flatten the array of Axes
+
+        for idx, col in enumerate(columns):
+            sns.histplot(numeric_cols[col], kde=True, ax=axes[idx])
+            axes[idx].set_title(f"Density Plot for {col}")
+
+        # Hide any unused subplots if n_cols is odd
+        for extra_idx in range(idx+1, nrows*ncols):
+            axes[extra_idx].set_visible(False)
+
+        plt.tight_layout()
+        return fig
+
+
+    async def __append_model_details(self, flowables, model, styles, title_style):
         flowables.append(PageBreak())
         flowables.append(Paragraph("Model Details", title_style))
         flowables.append(Spacer(1, 12))
@@ -83,36 +180,21 @@ class ReportFileService:
         for line in text.split('\n'):
             flowables.append(Paragraph(line, styles['Normal']))
             flowables.append(Spacer(1, 12))
-            
+    
+    async def __append_evaluations(self, flowables, model, title_style):
         flowables.append(PageBreak())
         flowables.append(Paragraph("Evaluations", title_style))
         flowables.append(Spacer(1, 12))
+        preformatted_style = ParagraphStyle(
+            name='Preformatted',
+            fontName='Courier',
+            wordWrap='LTR',
+            fontSize=12,
+            leading=14
+        )
         
         flowables.append(XPreformatted(model.formated_evaluations, preformatted_style))
 
-        doc.build(flowables)
-
-        # scheme = 'https' if self.config.PREFERRED_URL_SCHEME == 'https' else 'http'
-        server_name = self.config.SERVER_NAME
-        return f"http://{server_name}/download/{evaluations_filename}"
-    
-    async def __save_plot_as_image(self, plot_func, filepath, width, height, dpi=300):
-        try:
-            fig = plt.figure(figsize=(width, height), dpi=dpi)
-            plot_func()
-            plt.gca().set_xticklabels(plt.gca().get_xticklabels(), rotation=45, ha='right')
-            plt.gca().set_yticklabels(plt.gca().get_yticklabels(), rotation=0)
-            
-            # Set format for the annotations
-            for text in plt.gca().texts:
-                text.set_text(f'{float(text.get_text()):.2f}')
-            
-            plt.tight_layout()
-            fig.savefig(filepath, format='png')
-            plt.close(fig)
-            print(f"Saved plot to {filepath}")
-        except Exception as e:
-            print(f"Error saving plot as image: {e}")
 
     async def download_file(self, user_id, model_name, filename, saved_folder):
         try:

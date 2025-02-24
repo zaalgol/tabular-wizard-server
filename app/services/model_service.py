@@ -110,7 +110,7 @@ class ModelService:
         saved_model_file_path = self.model_storage.save_model(
             trained_model, model.user_id, model.model_name
         )
-        model.model_description_pdf_file_path = await self.reportFileService.generate_model_evaluations_file(
+        model.model_description_pdf_file_path = await self.reportFileService.generate_model_details_file(
             model, df.copy()
         )
         model.status = "success"
