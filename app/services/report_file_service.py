@@ -1,3 +1,5 @@
+# https://chatgpt.com/c/67bb23fd-d398-800b-a160-b1f29802b964
+
 import os
 import math
 from reportlab.lib.pagesizes import letter
@@ -54,13 +56,13 @@ class ReportFileService:
         flowables = []
         
         # Numeric columns for plotting
-        numeric_cols = df.select_dtypes(include=['number'])
-
+        numeric_and_bool_cols = df.select_dtypes(include=['number', 'bool'])
+ 
         # 1) Heatmap
-        await self.__append_heatmap(flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER)
+        await self.__append_heatmap(flowables, model, title_style, numeric_and_bool_cols, SAVED_MODEL_FOLDER)
 
         # 2) Scatter & Density
-        await self.__append_scatter_and_density_plots(flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER, len(df))
+        await self.__append_scatter_and_density_plots(flowables, model, title_style, numeric_and_bool_cols, SAVED_MODEL_FOLDER, len(df))
 
         # 3) Model Details
         await self.__append_model_details(flowables, model, styles, title_style)  
@@ -75,11 +77,11 @@ class ReportFileService:
         return f"http://{server_name}/download/{details_filename}"
 
 
-    async def __append_heatmap(self, flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER):
+    async def __append_heatmap(self, flowables, model, title_style, numeric_and_bool_cols, SAVED_MODEL_FOLDER):
         """
         Create and save a heatmap of numeric columns.
         """
-        if numeric_cols.empty:
+        if numeric_and_bool_cols.empty:
             return
 
         heatmap_filepath = os.path.join(
@@ -87,7 +89,7 @@ class ReportFileService:
         )
 
         fig = plt.figure(figsize=(10, 8), dpi=300)
-        sns.heatmap(numeric_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+        sns.heatmap(numeric_and_bool_cols.corr(), annot=True, cmap='coolwarm', fmt='.2f')
         plt.tight_layout()
         fig.savefig(heatmap_filepath, format='png')
         plt.close(fig)
@@ -100,17 +102,17 @@ class ReportFileService:
 
 
     async def __append_scatter_and_density_plots(
-        self, flowables, model, title_style, numeric_cols, SAVED_MODEL_FOLDER, row_count
+        self, flowables, model, title_style, numeric_and_bool_cols, SAVED_MODEL_FOLDER, row_count
     ):
         """
         Create and insert a pairplot (scatter matrix) and density plots in a grid.
         The point size (s) and alpha are chosen based on the number of rows.
         """
-        if numeric_cols.shape[1] == 0:
+        if numeric_and_bool_cols.shape[1] == 0:
             return
 
         # Decide dot parameters based on row_count
-        dot_params = self.__compute_dot_params(row_count)
+        dot_params = await self.__compute_dot_params(row_count)
 
         # --- Pairplot (Scatter Matrix) ---
         pairplot_filepath = os.path.join(
@@ -118,7 +120,7 @@ class ReportFileService:
         )
 
         g = sns.pairplot(
-            numeric_cols,
+            numeric_and_bool_cols,
             diag_kind='hist',
             plot_kws=dot_params
         )
@@ -149,7 +151,7 @@ class ReportFileService:
         density_filepath = os.path.join(
             SAVED_MODEL_FOLDER, f"{model.model_name}_density.png"
         )
-        fig = self.__create_density_plots(numeric_cols)
+        fig = await self.__create_density_plots(numeric_and_bool_cols)
         fig.savefig(density_filepath, dpi=300)
         plt.close(fig)
 
@@ -162,28 +164,28 @@ class ReportFileService:
         flowables.append(Spacer(1, 12))
 
 
-    def __compute_dot_params(self, row_count):
+    async def __compute_dot_params(self, row_count):
         """
         Return a dict of plot_kws with s (size) and alpha (transparency) 
         that scale according to the number of data points.
         """
         if row_count < 300:
             # Small dataset => bigger dots, less transparent
-            return {'s': 20, 'alpha': 0.8, 'edgecolor': 'none'}
+            return {'s': 10, 'alpha': 0.6, 'edgecolor': 'none'}
         elif row_count < 3000:
             # Medium => moderate size/transparency
-            return {'s': 8, 'alpha': 0.5, 'edgecolor': 'none'}
+            return {'s': 4, 'alpha': 0.4, 'edgecolor': 'none'}
         else:
             # Large => very small, more transparent
-            return {'s': 2, 'alpha': 0.3, 'edgecolor': 'none'}
+            return {'s': 1, 'alpha': 0.2, 'edgecolor': 'none'}
 
 
-    def __create_density_plots(self, numeric_cols):
+    async def __create_density_plots(self, numeric_and_bool_cols):
         """
         Create a grid of hist+kde (density) plots for the numeric columns.
         Arranged in 2 columns with as many rows as needed.
         """
-        columns = numeric_cols.columns
+        columns = numeric_and_bool_cols.columns
         n_cols = len(columns)
         if n_cols == 0:
             return plt.figure()  # empty figure
@@ -195,7 +197,7 @@ class ReportFileService:
         axes = axes.ravel()  # Flatten to iterate easily
 
         for idx, col in enumerate(columns):
-            sns.histplot(numeric_cols[col], kde=True, ax=axes[idx])
+            sns.histplot(numeric_and_bool_cols[col], kde=True, ax=axes[idx])
             axes[idx].set_title(f"Density Plot for {col}")
 
         # Hide any subplots not used (e.g. if n_cols is odd)

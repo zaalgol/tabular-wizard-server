@@ -51,7 +51,7 @@ class ModelService:
             raise HTTPException(status_code=400, detail="No dataset provided")
         
         model.file_line_num = len(dataset)
-        df = self.__dataset_to_df(dataset)
+        df = await self.__dataset_to_df(dataset)
 
         model.status = "training"
         headers = df.columns.tolist()
@@ -110,8 +110,10 @@ class ModelService:
         saved_model_file_path = self.model_storage.save_model(
             trained_model, model.user_id, model.model_name
         )
+        df_for_report = await self.__get_df_for_report(model, df)
+
         model.model_description_pdf_file_path = await self.reportFileService.generate_model_details_file(
-            model, df.copy()
+            model, df_for_report
         )
         model.status = "success"
         self.model_repository.add_or_update_model_for_user(model, headers, saved_model_file_path)
@@ -133,13 +135,21 @@ class ModelService:
             'message': f'Model {model.model_name} training completed successfully.',
             'file_url': model.model_description_pdf_file_path
         }
+    
+    async def __get_df_for_report(self, model, df):
+        df_for_report = df.copy()
 
-    def __remove_columns_not_in_train_dataset(self, df, drop_other_columns=None):
+        if model.model_type == 'classification' and df[model.target_column].dtype.kind not in ('i', 'f'):
+            df_for_report = self.data_preprocessing.one_hot_encode_column(df, model.target_column)
+
+        return df_for_report
+    
+    async def __remove_columns_not_in_train_dataset(self, df, drop_other_columns=None):
         if drop_other_columns:
             df = self.data_preprocessing.exclude_other_columns(df, columns=drop_other_columns)
         return df
     
-    def __dataset_to_df(self, dataset):
+    async def __dataset_to_df(self, dataset):
         headers = dataset[0]
         data_rows = dataset[1:]
         df = pd.DataFrame(data_rows, columns=headers)
@@ -162,8 +172,8 @@ class ModelService:
             user_id=user_id
         )
 
-        inference_df = self.__dataset_to_df(dataset)
-        inference_df = self.__remove_columns_not_in_train_dataset(
+        inference_df = await self.__dataset_to_df(dataset)
+        inference_df = await self.__remove_columns_not_in_train_dataset(
             inference_df, drop_other_columns=model_details.columns
         )
 
